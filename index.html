@@ -271,13 +271,23 @@ async function tryFirebaseInit(){
     if(!window.firebaseConfig || !window.firebaseConfig.apiKey) return;
     fbApp = firebase.initializeApp(window.firebaseConfig);
     fs = firebase.firestore();
-    let family = localStorage.getItem('familyId');
-    if(!family){
-      family = prompt('ID rodziny (np. rodzina-kowalscy) — wspólna dla wszystkich urządzeń:','rodzina-demo');
-      if(!family) return;
-      localStorage.setItem('familyId', family);
-    }
-    fbDoc = fs.collection(FIREBASE_COLLECTION).doc(family);
+   // NOWE: obsługa ?forceFamily=1
+const forceAsk = /[?&]forceFamily=1/.test(location.search);
+let family = forceAsk ? null : localStorage.getItem('familyId');
+
+if (!family) {
+  const prev = localStorage.getItem('familyId') || '';
+  family = prompt(
+    'ID rodziny (np. rodzina-kowalscy) — wspólna dla wszystkich urządzeń:',
+    prev || 'rodzina-demo'
+  );
+  if (!family) return;
+  family = family.trim();
+  localStorage.setItem('familyId', family);
+}
+
+fbDoc = fs.collection(FIREBASE_COLLECTION).doc(family);
+
     fbDoc.onSnapshot(snap=>{
       const data = snap.data();
       if(!data || !data.updatedAt || !data.payload) return;
