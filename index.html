@@ -61,10 +61,14 @@ canvas{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--border
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <div class="title"><span class="dot"></span> Domowy organizer — PRO 3</div>
+ <header>
+  <div class="title"><span class="dot"></span> Domowy organizer — PRO 3</div>
+  <div>
     <div class="subtitle" id="today"></div>
-  </header>
+    <div class="subtitle">Rodzina: <strong id="familyLabel">—</strong></div>
+  </div>
+</header>
+
 
   <div class="card">
     <div class="row" style="justify-content:space-between;align-items:flex-start">
@@ -80,10 +84,11 @@ canvas{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--border
           <button id="removePersonBtn" class="btn" style="border-color:rgba(255,69,58,.35);color:#ffd1cc">🗑️ Usuń</button>
         </div>
       </div>
-      <div class="row">
-        <button id="endDayBtn" class="btn">🌙 Zakończ dzień</button>
-        <button id="endWeekBtn" class="btn">🏁 Zakończ tydzień</button>
-      </div>
+     <div class="row">
+  <button id="endDayBtn" class="btn">🌙 Zakończ dzień</button>
+  <button id="endWeekBtn" class="btn">🏁 Zakończ tydzień</button>
+  <button id="changeFamilyBtn" class="btn" title="Ustaw / zmień rodzinę">👪 Zmień rodzinę</button>
+</div>
     </div>
   </div>
 
@@ -264,45 +269,73 @@ function showDialog(html){$('#dialog').innerHTML=html;$('#overlay').style.displa
 function closeDialog(){ $('#overlay').style.display='none' }
 
 /* ===== FIREBASE (opcjonalny) ===== */
-let fbApp=null, fs=null, fbDoc=null;
+let fbApp=null, fs=null, fbDoc=null, __unsub=null;
 const FIREBASE_COLLECTION = 'organizer';
-async function tryFirebaseInit(){
-  try{
-    if(!window.firebaseConfig || !window.firebaseConfig.apiKey) return;
-    fbApp = firebase.initializeApp(window.firebaseConfig);
-    fs = firebase.firestore();
-   // NOWE: obsługa ?forceFamily=1
-const forceAsk = /[?&]forceFamily=1/.test(location.search);
-let family = forceAsk ? null : localStorage.getItem('familyId');
 
-if (!family) {
-  const prev = localStorage.getItem('familyId') || '';
-  family = prompt(
-    'ID rodziny (np. rodzina-kowalscy) — wspólna dla wszystkich urządzeń:',
-    prev || 'rodzina-demo'
-  );
-  if (!family) return;
-  family = family.trim();
-  localStorage.setItem('familyId', family);
-}
+function setFamilyLabel(id){ const l=document.getElementById('familyLabel'); if(l) l.textContent=id || '—'; }
 
-fbDoc = fs.collection(FIREBASE_COLLECTION).doc(family);
+async function subscribeToFamily(id){
+  if(!fs || !id) return;
+  // zapamiętaj i pokaż etykietę
+  id = String(id).trim();
+  localStorage.setItem('familyId', id);
+  setFamilyLabel(id);
 
-    fbDoc.onSnapshot(snap=>{
-      const data = snap.data();
-      if(!data || !data.updatedAt || !data.payload) return;
-      if(!db.updatedAt || data.updatedAt > db.updatedAt){
-        db = data.payload;
+  // przełącz nasłuchiwacza
+  if (__unsub) { try{ __unsub(); }catch(_){ } __unsub=null; }
+  fbDoc = fs.collection(FIREBASE_COLLECTION).doc(id);
+
+  __unsub = fbDoc.onSnapshot((snap)=>{
+    const data = snap.data();
+    if(!data || !data.payload) return;
+    try{
+      // payload jako string LUB jako object — obsłuż oba
+      const payload = (typeof data.payload === 'string') ? JSON.parse(data.payload) : data.payload;
+      if(!payload) return;
+
+      const local = (()=>{ try{ return JSON.parse(localStorage.getItem(stateKey)||'{}'); }catch(_){ return {}; } })();
+      // jeżeli chmura nowsza od lokalnych danych — pobierz
+      if(!local.updatedAt || (data.updatedAt && data.updatedAt.toMillis ? data.updatedAt.toMillis() > (local.updatedAt||0) : (payload.updatedAt||0) > (local.updatedAt||0))){
+        db = payload;
         localStorage.setItem(stateKey, JSON.stringify(db));
         renderAll();
       }
-    });
+    }catch(e){ console.warn('Snapshot parse error', e); }
+  }, (err)=>console.error('onSnapshot error', err));
+}
+
+async function tryFirebaseInit(){
+  try{
+    if(!window.firebaseConfig || !window.firebaseConfig.apiKey) return;
+    if(!firebase.apps?.length){ fbApp = firebase.initializeApp(window.firebaseConfig); }
+    fs = firebase.firestore();
+
+    // 1) Pobierz familyId (bez bawienia się w query – działa też w PWA)
+    let family = localStorage.getItem('familyId');
+    if(!family){
+      const prev = localStorage.getItem('familyId') || '';
+      family = prompt('ID rodziny (np. rodzina-kowalscy) — wspólna dla wszystkich urządzeń:', prev || 'rodzina-demo');
+      if(!family) return;
+      family = String(family).trim();
+      localStorage.setItem('familyId', family);
+    }
+    setFamilyLabel(family);
+
+    // 2) Odpal subskrypcję dokumentu
+    await subscribeToFamily(family);
+    // 3) Pierwszy zapis utworzy dokument, jeśli go nie ma
+    pushToFirebase();
   }catch(e){ console.warn('Firebase init error', e); }
 }
+
 async function pushToFirebase(){
   if(!fbDoc) return;
   try{
-    await fbDoc.set({ updatedAt: db.updatedAt || Date.now(), payload: db }, { merge:true });
+    // zapisujemy payload JAKO STRING (zgodnie z tym co masz już w Firestore)
+    await fbDoc.set(
+      { updatedAt: db.updatedAt || Date.now(), payload: JSON.stringify(db) },
+      { merge:true }
+    );
   }catch(e){ console.warn('Firebase write error', e); }
 }
 
@@ -721,6 +754,13 @@ $('#endDayBtn').onclick=endDay;$('#endWeekBtn').onclick=endWeek;$('#sortBy').onc
 $('#addZoneBtn').onclick=addZone;$('#delZoneBtn').onclick=delZone;$('#randomZoneBtn').onclick=randomZone;
 $('#deltaMinus').onclick=()=>manualDelta(-1);
 $('#deltaPlus').onclick=()=>manualDelta(1);
+document.getElementById('changeFamilyBtn').onclick = async () => {
+  const curr = localStorage.getItem('familyId') || '';
+  const next = prompt('ID rodziny (wspólna nazwa grupy):', curr);
+  if (!next) return;
+  await subscribeToFamily(next);
+  pushToFirebase(); // żeby dokument zawsze istniał
+};
 
 /* ===== PWA SW ===== */
 if('serviceWorker' in navigator){
