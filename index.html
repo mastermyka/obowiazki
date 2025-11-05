@@ -1,22 +1,22 @@
 <!doctype html>
 <html lang="pl">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Obowiązki</title>
 
   <!-- PWA -->
-  <link rel="manifest" href="./manifest.webmanifest" />
-  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
-  <meta name="theme-color" content="#0a84ff" />
+  <link rel="manifest" href="./manifest.webmanifest"/>
+  <link rel="apple-touch-icon" href="./icons/icon-192.png"/>
+  <meta name="theme-color" content="#0a84ff"/>
 
   <style>
     :root { color-scheme: light dark; }
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin:0; }
     .wrap { max-width: 760px; margin: 0 auto; padding: 16px; }
     header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 0; }
     h1 { font-size: 22px; margin: 0; }
-    .meta { font-size: 12px; opacity:.7 }
+    .meta { font-size: 12px; opacity:.75 }
     .controls { display:flex; gap:8px; margin: 12px 0 16px; }
     input[type="text"] { flex:1; padding:10px 12px; border-radius:12px; border:1px solid color-mix(in oklab, CanvasText 20%, Canvas 80%); }
     button { padding:10px 14px; border:0; border-radius:12px; cursor:pointer; }
@@ -36,206 +36,210 @@
       <h1>Obowiązki</h1>
       <div class="meta">
         <div>Rodzina: <span id="familyLabel">—</span></div>
-        <div class="muted">Działa offline + synchronizacja</div>
+        <div class="muted">Offline + synchronizacja</div>
       </div>
     </header>
 
     <div class="controls">
-      <input id="newTask" type="text" placeholder="Nowe zadanie…" />
+      <input id="newTask" type="text" placeholder="Nowe zadanie…"/>
       <button id="addBtn" class="primary">Dodaj</button>
-      <button id="resetBtn" title="Wyczyść pamięć i ponownie zapytaj o rodzinę">Reset</button>
+      <button id="changeFamilyBtn" title="Zmień rodzinę (familyId)">Zmień rodzinę</button>
+      <button id="resetBtn" title="Awaryjny reset (czyści dane)">Reset</button>
     </div>
 
     <ul id="list"></ul>
 
     <p class="muted" style="margin-top:16px">
-      Podpowiedź: dodaj do ekranu początkowego (Udostępnij → Dodaj do ekranu początkowego), aby działało jak natywna apka.
+      Tip: dodaj do ekranu początkowego (Udostępnij → Dodaj do ekranu początkowego).
     </p>
   </div>
 
   <!-- Firebase (compat) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <!-- Twój config (musi ustawiać window.firebaseConfig = { ... }) -->
+  <!-- Twój config ma ustawiać window.firebaseConfig = { ... } -->
   <script src="./firebase-config.js"></script>
 
   <script>
-  /* --- Sekretny reset: #reset lub ?reset=1 --- */
-  (function(){
-    const needReset = location.hash === '#reset' || location.search.includes('reset=1');
-    if (needReset) {
-      try {
-        localStorage.removeItem('familyId');
-        localStorage.removeItem('home-chores-pro3-full'); // lokalny stan
-        if ('caches' in window) caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
-        if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations()
-          .then(rs => rs.forEach(r => r.unregister()));
-      } finally {
-        alert('Zresetowano dane. Ładuję ponownie…');
-        location.replace(location.pathname); // usuń #reset/?reset z URL
-      }
-    }
-  })();
-
-  // Minimalny stan aplikacji
-  const stateKey = 'home-chores-pro3-full';
-  let tasks = [];
-  const el = {
-    list: document.getElementById('list'),
-    input: document.getElementById('newTask'),
-    add: document.getElementById('addBtn'),
-    reset: document.getElementById('resetBtn'),
-    familyLabel: document.getElementById('familyLabel'),
-  };
-
-  function saveLocal() {
-    const payload = { tasks, updatedAt: Date.now() };
-    localStorage.setItem(stateKey, JSON.stringify(payload));
-  }
-  function loadLocal() {
-    try {
-      const raw = localStorage.getItem(stateKey);
-      if (!raw) return;
-      const parsed = JSON.parse(raw);
-      if (parsed && parsed.tasks) tasks = parsed.tasks;
-    } catch(e){}
-  }
-  function render() {
-    el.list.innerHTML = '';
-    if (!tasks.length) {
-      const li = document.createElement('li');
-      li.innerHTML = '<span class="muted">Brak zadań — wpisz u góry i kliknij „Dodaj”.</span>';
-      el.list.appendChild(li);
-      return;
-    }
-    tasks.forEach((t, idx) => {
-      const li = document.createElement('li');
-      const left = document.createElement('div');
-      left.className = 'task';
-      const cb = document.createElement('input');
-      cb.type = 'checkbox';
-      cb.checked = !!t.done;
-      cb.addEventListener('change', () => { t.done = cb.checked; saveLocal(); pushToFirebase(); render(); });
-      const span = document.createElement('span');
-      span.textContent = t.text;
-      if (t.done) span.style.textDecoration = 'line-through';
-      left.appendChild(cb);
-      left.appendChild(span);
-
-      const right = document.createElement('div');
-      right.className = 'row';
-      const del = document.createElement('button');
-      del.textContent = 'Usuń';
-      del.addEventListener('click', () => { tasks.splice(idx,1); saveLocal(); pushToFirebase(); render(); });
-
-      right.appendChild(del);
-      li.appendChild(left);
-      li.appendChild(right);
-      el.list.appendChild(li);
-    });
-  }
-
-  // Dodawanie
-  el.add.addEventListener('click', () => {
-    const txt = el.input.value.trim();
-    if (!txt) return;
-    tasks.unshift({ text: txt, done: false });
-    el.input.value = '';
-    saveLocal(); pushToFirebase(); render();
-  });
-  el.input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') el.add.click();
-  });
-
-  // Reset przyciskiem
-  el.reset.addEventListener('click', () => {
-    if (!confirm('Wyczyścić dane i zapytać o rodzinę ponownie?')) return;
-    localStorage.removeItem('familyId');
-    localStorage.removeItem(stateKey);
-    location.href = location.pathname + '#reset'; // uruchomi blok resetu
-    location.reload();
-  });
-
-  // Firebase / Firestore (opcjonalny — działa, jeśli jest config)
-  let db = null;
-  let unsub = null;
-  let familyId = null;
-
-  async function tryFirebaseInit() {
-    // Wymuszenie pytania o rodzinę: ?forceFamily=1
-    const forceAsk = location.search.includes('forceFamily=1');
-
-    // Sprawdź config
-    const cfg = (window && window.firebaseConfig) || {};
-    if (!cfg.apiKey) {
-      console.log('[Firebase] Brak configu — działam tylko lokalnie.');
-      return; // offline/local only
-    }
-
-    // Init Firebase
-    if (!firebase.apps.length) firebase.initializeApp(cfg);
-    db = firebase.firestore();
-
-    // Family ID
-    familyId = forceAsk ? null : localStorage.getItem('familyId');
-    if (!familyId) {
-      familyId = prompt('ID rodziny (np. rodzina-kowalscy) — wspólna dla wszystkich urządzeń:', 'rodzina-demo');
-      if (!familyId) return; // użytkownik anulował
-      localStorage.setItem('familyId', familyId);
-    }
-    el.familyLabel.textContent = familyId;
-
-    // Subskrypcja realtime
-    if (unsub) unsub();
-    unsub = db.collection('organizer').doc(familyId).onSnapshot((doc) => {
-      const data = doc.data();
-      if (!data || !data.payload) return;
-      try {
-        const cloud = JSON.parse(data.payload);
-        // Jeśli chmura nowsza — bierzemy ją
-        const local = JSON.parse(localStorage.getItem(stateKey) || '{}');
-        if (!local.updatedAt || (cloud.updatedAt && cloud.updatedAt > local.updatedAt)) {
-          tasks = Array.isArray(cloud.tasks) ? cloud.tasks : [];
-          saveLocal(); render();
+    /* --- Sekretny reset: #reset lub ?reset=1 --- */
+    (function(){
+      const needReset = location.hash === '#reset' || location.search.includes('reset=1');
+      if (needReset) {
+        try {
+          localStorage.removeItem('familyId');
+          localStorage.removeItem('home-chores-pro3-full');
+          if ('caches' in window) caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+          if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations()
+            .then(rs => rs.forEach(r => r.unregister()));
+        } finally {
+          alert('Zresetowano dane. Ładuję ponownie…');
+          location.replace(location.pathname);
         }
-      } catch(e){ console.warn('Snapshot parse error', e); }
-    }, (err) => console.error('onSnapshot error', err));
-
-    // Pierwszy push (żeby utworzyć dokument)
-    pushToFirebase();
-  }
-
-  // Debounce zapisu do chmury
-  let pushTimer = null;
-  function pushToFirebase() {
-    if (!db || !familyId) return;
-    clearTimeout(pushTimer);
-    pushTimer = setTimeout(async () => {
-      try {
-        const payload = JSON.stringify({ tasks, updatedAt: Date.now() });
-        await db.collection('organizer').doc(familyId).set({
-          payload,
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-      } catch (e) {
-        console.error('pushToFirebase error', e);
       }
-    }, 300);
-  }
+    })();
 
-  // Start
-  loadLocal(); render();
-  tryFirebaseInit();
+    // Stan lokalny
+    const stateKey = 'home-chores-pro3-full';
+    let tasks = [];
+    const el = {
+      list: document.getElementById('list'),
+      input: document.getElementById('newTask'),
+      add: document.getElementById('addBtn'),
+      reset: document.getElementById('resetBtn'),
+      changeFamily: document.getElementById('changeFamilyBtn'),
+      familyLabel: document.getElementById('familyLabel'),
+    };
 
- // Service Worker (można wyłączyć parametrem ?nosw=1)
-const skipSW = location.search.includes('nosw=1');
-if ('serviceWorker' in navigator && !skipSW) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(console.error);
-  });
-}
+    function saveLocal() {
+      const payload = { tasks, updatedAt: Date.now() };
+      localStorage.setItem(stateKey, JSON.stringify(payload));
+    }
+    function loadLocal() {
+      try {
+        const raw = localStorage.getItem(stateKey);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.tasks) tasks = parsed.tasks;
+      } catch(e){}
+    }
+    function render() {
+      el.list.innerHTML = '';
+      if (!tasks.length) {
+        const li = document.createElement('li');
+        li.innerHTML = '<span class="muted">Brak zadań — wpisz u góry i kliknij „Dodaj”.</span>';
+        el.list.appendChild(li);
+        return;
+      }
+      tasks.forEach((t, idx) => {
+        const li = document.createElement('li');
+        const left = document.createElement('div');
+        left.className = 'task';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = !!t.done;
+        cb.addEventListener('change', () => { t.done = cb.checked; saveLocal(); pushToFirebase(); render(); });
+        const span = document.createElement('span');
+        span.textContent = t.text;
+        if (t.done) span.style.textDecoration = 'line-through';
+        left.appendChild(cb);
+        left.appendChild(span);
 
+        const right = document.createElement('div');
+        right.className = 'row';
+        const del = document.createElement('button');
+        del.textContent = 'Usuń';
+        del.addEventListener('click', () => { tasks.splice(idx,1); saveLocal(); pushToFirebase(); render(); });
 
+        right.appendChild(del);
+        li.appendChild(left);
+        li.appendChild(right);
+        el.list.appendChild(li);
+      });
+    }
+
+    // Dodawanie
+    el.add.addEventListener('click', () => {
+      const txt = el.input.value.trim();
+      if (!txt) return;
+      tasks.unshift({ text: txt, done: false });
+      el.input.value = '';
+      saveLocal(); pushToFirebase(); render();
+    });
+    el.input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') el.add.click();
+    });
+
+    // Zmiana rodziny
+    el.changeFamily.addEventListener('click', () => {
+      const curr = localStorage.getItem('familyId') || '';
+      const next = prompt('ID rodziny (wspólna nazwa grupy):', curr);
+      if (!next) return;
+      localStorage.setItem('familyId', next);
+      el.familyLabel.textContent = next;
+      pushToFirebase(); // zapisze dokument i zainicjuje subskrypcję przy starcie
+      tryFirebaseInit(true); // przełącz subskrypcję na nowy dokument
+    });
+
+    // Reset przyciskiem
+    el.reset.addEventListener('click', () => {
+      if (!confirm('Wyczyścić dane i zapytać o rodzinę ponownie?')) return;
+      localStorage.removeItem('familyId');
+      localStorage.removeItem(stateKey);
+      location.href = location.pathname + '#reset';
+      location.reload();
+    });
+
+    // Firebase / Firestore
+    let db = null;
+    let unsub = null;
+    let familyId = null;
+
+    async function tryFirebaseInit(relisten=false) {
+      const forceAsk = location.search.includes('forceFamily=1');
+      const cfg = (window && window.firebaseConfig) || {};
+      if (!cfg.apiKey) {
+        console.log('[Firebase] Brak configu — tryb lokalny.');
+        el.familyLabel.textContent = 'lokalnie';
+        return;
+      }
+      if (!firebase.apps.length) firebase.initializeApp(cfg);
+      db = firebase.firestore();
+
+      familyId = forceAsk ? null : localStorage.getItem('familyId');
+      if (!familyId) {
+        familyId = prompt('ID rodziny (np. rodzina-kowalscy) — wspólna dla wszystkich urządzeń:', 'rodzina-demo');
+        if (!familyId) { el.familyLabel.textContent = '—'; return; }
+        localStorage.setItem('familyId', familyId);
+      }
+      el.familyLabel.textContent = familyId;
+
+      if (unsub) { unsub(); unsub = null; }
+      unsub = db.collection('organizer').doc(familyId).onSnapshot((doc) => {
+        const data = doc.data();
+        if (!data || !data.payload) return;
+        try {
+          const cloud = JSON.parse(data.payload);
+          const local = JSON.parse(localStorage.getItem(stateKey) || '{}');
+          if (!local.updatedAt || (cloud.updatedAt && cloud.updatedAt > local.updatedAt)) {
+            tasks = Array.isArray(cloud.tasks) ? cloud.tasks : [];
+            saveLocal(); render();
+          }
+        } catch(e){ console.warn('Snapshot parse error', e); }
+      }, (err) => console.error('onSnapshot error', err));
+
+      if (!relisten) pushToFirebase(); // pierwszy zapis tworzy dokument
+    }
+
+    let pushTimer = null;
+    function pushToFirebase() {
+      if (!db) return;
+      const fam = localStorage.getItem('familyId');
+      if (!fam) return;
+      clearTimeout(pushTimer);
+      pushTimer = setTimeout(async () => {
+        try {
+          const payload = JSON.stringify({ tasks, updatedAt: Date.now() });
+          await db.collection('organizer').doc(fam).set({
+            payload,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+        } catch (e) {
+          console.error('pushToFirebase error', e);
+        }
+      }, 300);
+    }
+
+    // Start
+    loadLocal(); render();
+    tryFirebaseInit();
+
+    // Service Worker (awaryjnie wyłącz: ?nosw=1)
+    const skipSW = location.search.includes('nosw=1');
+    if ('serviceWorker' in navigator && !skipSW) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(console.error);
+      });
+    }
   </script>
 </body>
 </html>
