@@ -1,113 +1,222 @@
 <!doctype html>
-add: document.getElementById('addBtn'),
-reset: document.getElementById('resetBtn'),
-changeFamily: document.getElementById('changeFamilyBtn'),
-familyLabel: document.getElementById('familyLabel'),
-};
+<html lang="pl">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Obowiązki</title>
 
-function saveLocal(){ const payload={tasks,updatedAt:Date.now()}; localStorage.setItem(stateKey, JSON.stringify(payload)); }
-function loadLocal(){ try{ const raw=localStorage.getItem(stateKey); if(!raw) return; const parsed=JSON.parse(raw); if(parsed&&parsed.tasks) tasks=parsed.tasks; }catch(e){} }
-function render(){
-el.list.innerHTML='';
-const empty = !tasks.length;
-el.emptyBox.style.display = empty ? 'block' : 'none';
-if (empty) return;
-tasks.forEach((t, idx) => {
-const li=document.createElement('li');
-const left=document.createElement('div'); left.className='left';
-const cb=document.createElement('input'); cb.type='checkbox'; cb.checked=!!t.done; cb.addEventListener('change',()=>{t.done=cb.checked; saveLocal(); pushToFirebase(); render();});
-const span=document.createElement('span'); span.textContent=t.text; if(t.done) span.style.textDecoration='line-through';
-left.appendChild(cb); left.appendChild(span);
-const right=document.createElement('div');
-const del=document.createElement('button'); del.className='btn btn-ghost'; del.textContent='Usuń'; del.addEventListener('click',()=>{tasks.splice(idx,1); saveLocal(); pushToFirebase(); render();});
-right.appendChild(del);
-li.appendChild(left); li.appendChild(right);
-el.list.appendChild(li);
-});
-}
+  <!-- PWA -->
+  <link rel="manifest" href="./manifest.webmanifest"/>
+  <link rel="apple-touch-icon" href="./icons/icon-192.png"/>
+  <meta name="theme-color" content="#0a84ff"/>
 
-// Dodawanie
-el.add.addEventListener('click',()=>{ const txt=el.input.value.trim(); if(!txt) return; tasks.unshift({text:txt,done:false}); el.input.value=''; saveLocal(); pushToFirebase(); render(); });
-el.input.addEventListener('keydown',(e)=>{ if(e.key==='Enter') el.add.click(); });
+  <style>
+    :root { color-scheme: light dark; }
+    *{box-sizing:border-box}
+    body{margin:0;font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";background:canvas;color:CanvasText}
+    .container{max-width:860px;margin:0 auto;padding:20px}
+    header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px 0}
+    .title{display:flex;align-items:center;gap:10px}
+    h1{font-size:22px;margin:0}
+    .badge{font-size:12px;padding:4px 10px;border-radius:999px;background:color-mix(in oklab, #0a84ff 18%, Canvas 82%);color:color-mix(in oklab, CanvasText 15%, #0a84ff 85%)}
+    .card{background:color-mix(in oklab, Canvas 95%, CanvasText 5%);border:1px solid color-mix(in oklab, CanvasText 12%, Canvas 88%);border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+    .toolbar{display:flex;gap:10px;flex-wrap:wrap;padding:14px}
+    .field{flex:1;min-width:220px;display:flex;align-items:center;gap:8px;background:Canvas;border:1px solid color-mix(in oklab, CanvasText 15%, Canvas 85%);border-radius:12px;padding:10px 12px}
+    .input{appearance:none;-webkit-appearance:none;border:0;outline:0;background:transparent;width:100%;font-size:15px;color:inherit}
+    .btn{border:0;border-radius:12px;padding:10px 14px;font-weight:600;cursor:pointer;transition:transform .03s ease, box-shadow .2s ease}
+    .btn:active{transform:translateY(1px)}
+    .btn-primary{background:#0a84ff;color:#fff;box-shadow:0 6px 18px rgba(10,132,255,.25)}
+    .btn-ghost{background:transparent;border:1px solid color-mix(in oklab, CanvasText 15%, Canvas 85%)}
+    .btn-danger{background:color-mix(in oklab, crimson 35%, Canvas 65%);color:white}
+    #adminBar{display:none;gap:10px}
 
-// Zmiana rodziny
-if (el.changeFamily) el.changeFamily.addEventListener('click',()=>{
-const curr=localStorage.getItem('familyId')||'';
-const next=prompt('ID rodziny (wspólna nazwa grupy):', curr);
-if(!next) return;
-localStorage.setItem('familyId', next);
-el.familyLabel.textContent = next;
-tryFirebaseInit(true); // przełącz subskrypcję
-pushToFirebase();
-});
+    .list{padding:10px 14px 20px}
+    .empty{padding:14px;border:1px dashed color-mix(in oklab, CanvasText 18%, Canvas 82%);border-radius:12px;text-align:center;opacity:.75}
+    ul{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:10px}
+    li{display:flex;align-items:center;justify-content:space-between;gap:12px;background:Canvas;border:1px solid color-mix(in oklab, CanvasText 12%, Canvas 88%);border-radius:12px;padding:12px}
+    .left{display:flex;align-items:center;gap:12px}
+    .left input[type=checkbox]{width:20px;height:20px}
+    .muted{opacity:.65;font-size:12px}
 
-// Reset przyciskiem
-if (el.reset) el.reset.addEventListener('click',()=>{
-if(!confirm('Wyczyścić dane i zapytać o rodzinę ponownie?')) return;
-localStorage.removeItem('familyId');
-localStorage.removeItem(stateKey);
-location.href = location.pathname + '#reset';
-location.reload();
-});
+    .stack{display:grid;gap:6px}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="title">
+        <h1>Obowiązki</h1>
+        <span class="badge" title="Wersja UI / cache-bust">build v14</span>
+      </div>
+      <div class="stack">
+        <div class="muted">Rodzina: <strong id="familyLabel">—</strong></div>
+        <div class="muted">Offline + synchronizacja</div>
+      </div>
+    </header>
 
-// Firebase / Firestore
-let db=null, unsub=null, familyId=null;
-async function tryFirebaseInit(relisten=false){
-const forceAsk = location.search.includes('forceFamily=1');
-const cfg=(window&&window.firebaseConfig)||{}; if(!cfg.apiKey){ console.log('[Firebase] Brak configu — tryb lokalny.'); el.familyLabel.textContent='lokalnie'; return; }
-if(!firebase.apps.length) firebase.initializeApp(cfg);
-db=firebase.firestore();
-familyId = forceAsk ? null : localStorage.getItem('familyId');
-if(!familyId){
-familyId = prompt('ID rodziny (np. rodzina-kowalscy) — wspólna dla wszystkich urządzeń:', 'rodzina-demo');
-if(!familyId){ el.familyLabel.textContent='—'; return; }
-localStorage.setItem('familyId', familyId);
-}
-el.familyLabel.textContent=familyId;
+    <section class="card">
+      <div class="toolbar">
+        <div class="field" style="flex:1">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+          <input id="newTask" class="input" type="text" placeholder="Nowe zadanie…"/>
+        </div>
+        <button id="addBtn" class="btn btn-primary">Dodaj</button>
+        <div id="adminBar">
+          <button id="changeFamilyBtn" class="btn btn-ghost" title="Zmień rodzinę (familyId)">Zmień rodzinę</button>
+          <button id="resetBtn" class="btn btn-danger" title="Awaryjny reset (czyści dane)">Reset</button>
+        </div>
+      </div>
+      <div class="list">
+        <div id="emptyBox" class="empty" style="display:none">Brak zadań — wpisz u góry i kliknij <strong>Dodaj</strong>.</div>
+        <ul id="list"></ul>
+      </div>
+    </section>
+  </div>
 
-if (unsub) { unsub(); unsub=null; }
-unsub = db.collection('organizer').doc(familyId).onSnapshot((doc)=>{
-const data=doc.data(); if(!data||!data.payload) return;
-try{
-const cloud=JSON.parse(data.payload);
-const local=JSON.parse(localStorage.getItem(stateKey)||'{}');
-if(!local.updatedAt || (cloud.updatedAt && cloud.updatedAt>local.updatedAt)){
-tasks = Array.isArray(cloud.tasks) ? cloud.tasks : [];
-saveLocal(); render();
-}
-}catch(e){ console.warn('Snapshot parse error', e); }
-}, (err)=>console.error('onSnapshot error', err));
+  <!-- Firebase (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <!-- Twój config ma ustawiać window.firebaseConfig = { ... } -->
+  <script src="./firebase-config.js"></script>
 
-if(!relisten) pushToFirebase();
-}
+  <script>
+    /* --- Sekretny reset: #reset lub ?reset=1 --- */
+    (function(){
+      const needReset = location.hash === '#reset' || location.search.includes('reset=1');
+      if (needReset) {
+        try {
+          localStorage.removeItem('familyId');
+          localStorage.removeItem('home-chores-pro3-full');
+          if ('caches' in window) caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+          if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister()));
+        } finally {
+          alert('Zresetowano dane. Ładuję ponownie…');
+          location.replace(location.pathname);
+        }
+      }
+    })();
 
-let pushTimer=null;
-function pushToFirebase(){
-const fam=localStorage.getItem('familyId');
-if(!db||!fam) return;
-clearTimeout(pushTimer);
-pushTimer=setTimeout(async()=>{
-try{
-const payload=JSON.stringify({tasks,updatedAt:Date.now()});
-await db.collection('organizer').doc(fam).set({
-payload,
-updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-}, {merge:true});
-}catch(e){ console.error('pushToFirebase error', e); }
-}, 250);
-}
+    // Tryb admina: pokaż adminBar tylko dla ?admin=1
+    const isAdmin = location.search.includes('admin=1');
+    const adminBar = document.getElementById('adminBar');
+    if (adminBar) adminBar.style.display = isAdmin ? 'inline-flex' : 'none';
 
-// Start
-loadLocal(); render();
-tryFirebaseInit();
+    // Stan lokalny
+    const stateKey = 'home-chores-pro3-full';
+    let tasks = [];
+    const el = {
+      list: document.getElementById('list'),
+      emptyBox: document.getElementById('emptyBox'),
+      input: document.getElementById('newTask'),
+      add: document.getElementById('addBtn'),
+      reset: document.getElementById('resetBtn'),
+      changeFamily: document.getElementById('changeFamilyBtn'),
+      familyLabel: document.getElementById('familyLabel'),
+    };
 
-// Service Worker (awaryjnie wyłącz: ?nosw=1)
-const skipSW = location.search.includes('nosw=1');
-if ('serviceWorker' in navigator && !skipSW) {
-window.addEventListener('load', ()=>{
-navigator.serviceWorker.register('./sw.js').catch(console.error);
-});
-}
-</script>
+    function saveLocal(){ const payload={tasks,updatedAt:Date.now()}; localStorage.setItem(stateKey, JSON.stringify(payload)); }
+    function loadLocal(){ try{ const raw=localStorage.getItem(stateKey); if(!raw) return; const parsed=JSON.parse(raw); if(parsed&&parsed.tasks) tasks=parsed.tasks; }catch(e){} }
+    function render(){
+      el.list.innerHTML='';
+      const empty = !tasks.length;
+      el.emptyBox.style.display = empty ? 'block' : 'none';
+      if (empty) return;
+      tasks.forEach((t, idx) => {
+        const li=document.createElement('li');
+        const left=document.createElement('div'); left.className='left';
+        const cb=document.createElement('input'); cb.type='checkbox'; cb.checked=!!t.done; cb.addEventListener('change',()=>{t.done=cb.checked; saveLocal(); pushToFirebase(); render();});
+        const span=document.createElement('span'); span.textContent=t.text; if(t.done) span.style.textDecoration='line-through';
+        left.appendChild(cb); left.appendChild(span);
+        const right=document.createElement('div');
+        const del=document.createElement('button'); del.className='btn btn-ghost'; del.textContent='Usuń'; del.addEventListener('click',()=>{tasks.splice(idx,1); saveLocal(); pushToFirebase(); render();});
+        right.appendChild(del);
+        li.appendChild(left); li.appendChild(right);
+        el.list.appendChild(li);
+      });
+    }
+
+    // Dodawanie
+    el.add.addEventListener('click',()=>{ const txt=el.input.value.trim(); if(!txt) return; tasks.unshift({text:txt,done:false}); el.input.value=''; saveLocal(); pushToFirebase(); render(); });
+    el.input.addEventListener('keydown',(e)=>{ if(e.key==='Enter') el.add.click(); });
+
+    // Zmiana rodziny
+    if (el.changeFamily) el.changeFamily.addEventListener('click',()=>{
+      const curr=localStorage.getItem('familyId')||'';
+      const next=prompt('ID rodziny (wspólna nazwa grupy):', curr);
+      if(!next) return;
+      localStorage.setItem('familyId', next);
+      el.familyLabel.textContent = next;
+      tryFirebaseInit(true); // przełącz subskrypcję
+      pushToFirebase();
+    });
+
+    // Reset przyciskiem
+    if (el.reset) el.reset.addEventListener('click',()=>{
+      if(!confirm('Wyczyścić dane i zapytać o rodzinę ponownie?')) return;
+      localStorage.removeItem('familyId');
+      localStorage.removeItem(stateKey);
+      location.href = location.pathname + '#reset';
+      location.reload();
+    });
+
+    // Firebase / Firestore
+    let db=null, unsub=null, familyId=null;
+    async function tryFirebaseInit(relisten=false){
+      const forceAsk = location.search.includes('forceFamily=1');
+      const cfg=(window&&window.firebaseConfig)||{}; if(!cfg.apiKey){ console.log('[Firebase] Brak configu — tryb lokalny.'); el.familyLabel.textContent='lokalnie'; return; }
+      if(!firebase.apps.length) firebase.initializeApp(cfg);
+      db=firebase.firestore();
+      familyId = forceAsk ? null : localStorage.getItem('familyId');
+      if(!familyId){
+        familyId = prompt('ID rodziny (np. rodzina-kowalscy) — wspólna dla wszystkich urządzeń:', 'rodzina-demo');
+        if(!familyId){ el.familyLabel.textContent='—'; return; }
+        localStorage.setItem('familyId', familyId);
+      }
+      el.familyLabel.textContent=familyId;
+
+      if (unsub) { unsub(); unsub=null; }
+      unsub = db.collection('organizer').doc(familyId).onSnapshot((doc)=>{
+        const data=doc.data(); if(!data||!data.payload) return;
+        try{
+          const cloud=JSON.parse(data.payload);
+          const local=JSON.parse(localStorage.getItem(stateKey)||'{}');
+          if(!local.updatedAt || (cloud.updatedAt && cloud.updatedAt>local.updatedAt)){
+            tasks = Array.isArray(cloud.tasks) ? cloud.tasks : [];
+            saveLocal(); render();
+          }
+        }catch(e){ console.warn('Snapshot parse error', e); }
+      }, (err)=>console.error('onSnapshot error', err));
+
+      if(!relisten) pushToFirebase();
+    }
+
+    let pushTimer=null;
+    function pushToFirebase(){
+      const fam=localStorage.getItem('familyId');
+      if(!db||!fam) return;
+      clearTimeout(pushTimer);
+      pushTimer=setTimeout(async()=>{
+        try{
+          const payload=JSON.stringify({tasks,updatedAt:Date.now()});
+          await db.collection('organizer').doc(fam).set({
+            payload,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }, {merge:true});
+        }catch(e){ console.error('pushToFirebase error', e); }
+      }, 250);
+    }
+
+    // Start
+    loadLocal(); render();
+    tryFirebaseInit();
+
+    // Service Worker (awaryjnie wyłącz: ?nosw=1)
+    const skipSW = location.search.includes('nosw=1');
+    if ('serviceWorker' in navigator && !skipSW) {
+      window.addEventListener('load', ()=>{
+        navigator.serviceWorker.register('./sw.js').catch(console.error);
+      });
+    }
+  </script>
 </body>
 </html>
