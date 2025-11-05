@@ -96,10 +96,15 @@
       }
     })();
 
-    // Tryb admina: pokaż adminBar tylko dla ?admin=1
-    const isAdmin = location.search.includes('admin=1');
-    const adminBar = document.getElementById('adminBar');
-    if (adminBar) adminBar.style.display = isAdmin ? 'inline-flex' : 'none';
+   // Tryb admina: pokaż adminBar tylko dla ?admin=1
+document.addEventListener('DOMContentLoaded', () => {
+  const isAdmin = location.search.includes('admin=1');
+  const adminBar = document.getElementById('adminBar');
+  if (adminBar) {
+    adminBar.style.display = isAdmin ? 'inline-flex' : 'none';
+  }
+});
+
 
     // Stan lokalny
     const stateKey = 'home-chores-pro3-full';
