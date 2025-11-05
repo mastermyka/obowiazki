@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Domowy organizer — PRO 3 (full)</title>
 
-<!-- PWA meta -->
+<!-- PWA -->
 <meta name="theme-color" content="#0a84ff"/>
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="apple-touch-icon" href="icons/icon-192.png"/>
 
-<!-- Firebase compat (opcjonalny sync) -->
+<!-- Firebase compat -->
 <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
 <script defer src="firebase-config.js"></script>
@@ -26,9 +26,6 @@ header{display:flex;gap:12px;align-items:center;justify-content:space-between;fl
 .subtitle{opacity:.85;color:var(--muted)}
 .card{background:var(--card);border:1px solid var(--border);backdrop-filter:saturate(140%) blur(10px);border-radius:16px;padding:14px;box-shadow:var(--shadow)}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.tabs{display:flex;gap:8px;flex-wrap:wrap}
-.tab{border:1px solid var(--border);background:rgba(255,255,255,.05);color:var(--text);padding:8px 12px;border-radius:999px;cursor:pointer}
-.tab.active{background:var(--accent);border-color:transparent;color:#fff;box-shadow:0 12px 24px rgba(10,132,255,.35)}
 button,.btn{border:1px solid var(--border);background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));color:var(--text);padding:10px 14px;border-radius:12px;cursor:pointer}
 button:active{transform:translateY(1px)}
 input[type=text],input[type=number],input[type=time],input[type=date],input[type=password],select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text)}
@@ -55,26 +52,24 @@ canvas{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--border
 .shopItem{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--border);border-radius:12px;padding:10px;background:rgba(255,255,255,.03)}
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:50}
 .dialog{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;width:min(520px,92vw)}
-.zoneRow{display:flex;gap:8px;align-items:center}
 .zoneTag{border:1px solid var(--border);background:rgba(255,255,255,.06);border-radius:999px;padding:4px 10px}
 </style>
 </head>
 <body>
 <div class="wrap">
- <header>
-  <div class="title"><span class="dot"></span> Domowy organizer — PRO 3</div>
-  <div>
-    <div class="subtitle" id="today"></div>
-    <div class="subtitle">Rodzina: <strong id="familyLabel">—</strong></div>
-  </div>
-</header>
-
+  <header>
+    <div class="title"><span class="dot"></span> Domowy organizer — PRO 3</div>
+    <div>
+      <div class="subtitle" id="today"></div>
+      <div class="subtitle">Rodzina: <strong id="familyLabel">—</strong></div>
+    </div>
+  </header>
 
   <div class="card">
     <div class="row" style="justify-content:space-between;align-items:flex-start">
       <div>
         <div class="muted">Zakładki domowników</div>
-        <div id="peopleTabs" class="tabs"></div>
+        <div id="peopleTabs" class="row" style="gap:8px;flex-wrap:wrap"></div>
         <div class="row" style="margin-top:8px">
           <button id="addPersonBtn" class="btn">➕ Dodaj osobę</button>
           <button id="renamePersonBtn" class="btn">✏️ Zmień</button>
@@ -84,11 +79,11 @@ canvas{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--border
           <button id="removePersonBtn" class="btn" style="border-color:rgba(255,69,58,.35);color:#ffd1cc">🗑️ Usuń</button>
         </div>
       </div>
-     <div class="row">
-  <button id="endDayBtn" class="btn">🌙 Zakończ dzień</button>
-  <button id="endWeekBtn" class="btn">🏁 Zakończ tydzień</button>
-  <button id="changeFamilyBtn" class="btn" title="Ustaw / zmień rodzinę">👪 Zmień rodzinę</button>
-</div>
+      <div class="row">
+        <button id="endDayBtn" class="btn">🌙 Zakończ dzień</button>
+        <button id="endWeekBtn" class="btn">🏁 Zakończ tydzień</button>
+        <button id="changeFamilyBtn" class="btn" title="Ustaw / zmień rodzinę">👪 Zmień rodzinę</button>
+      </div>
     </div>
   </div>
 
@@ -125,8 +120,7 @@ canvas{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--border
         <div class="row" id="oncePicker" style="display:none;width:100%"><label class="muted">Data:</label><input id="taskDate" type="date" style="flex:1"/></div>
         <div class="row" id="monthlyPicker" style="display:none;width:100%"><label class="muted">Dzień miesiąca:</label><input id="dayOfMonth" type="number" min="1" max="31" value="1" style="width:120px"/></div>
         <div class="row" id="yearlyPicker" style="display:none;width:100%"><label class="muted">Data w roku:</label><input id="yearlyDate" type="date" style="flex:1"/></div>
-        <div class="row" id="weeklyPicker" style="display:none;width:100%">
-          <label class="muted">Dni:</label>
+        <div class="row" id="weeklyPicker" style="display:none;width:100%"><label class="muted">Dni:</label>
           <label><input type="checkbox" value="1">Pn</label><label><input type="checkbox" value="2">Wt</label><label><input type="checkbox" value="3">Śr</label><label><input type="checkbox" value="4">Cz</label><label><input type="checkbox" value="5">Pt</label><label><input type="checkbox" value="6">So</label><label><input type="checkbox" value="0">Nd</label>
         </div>
         <div class="row" style="width:100%">
@@ -136,9 +130,8 @@ canvas{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--border
             <option value="med" selected>• Średni</option>
             <option value="low">… Niski</option>
           </select>
-          <input id="taskPoints" type="number" min="1" step="1" value="1" style="width:120px" title="Ile gwiazdek daje wykonanie"/>
+          <input id="taskPoints" type="number" min="1" step="1" value="1" style="width:120px"/>
         </div>
-        <!-- NOWE: kara per zadanie -->
         <div class="row" style="width:100%">
           <label class="muted">Kara gdy nie zrobione (⭐):</label>
           <input id="taskPenalty" type="number" min="0" step="1" value="1" style="width:120px" />
@@ -156,19 +149,16 @@ canvas{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--border
       <div class="row" style="justify-content:space-between;width:100%">
         <div style="flex:1">
           <div class="row" style="justify-content:space-between">
-            <!-- Cel dzienny wyliczany automatycznie = liczba zadań na dziś -->
             <div>Dzisiejsze: <span class="score" id="todayScore">0</span> / <span id="goalScore">0</span> ⭐</div>
             <div class="muted">Tydzień: <span class="score" id="weekScore">0</span></div>
           </div>
           <div class="progress" style="margin-top:6px"><div id="goalBar"></div></div>
         </div>
-        <!-- Zostawiamy dawny selektor kary, ale logika używa kar per zadanie -->
         <div class="row"><label class="muted">Kara globalna (nieużywana)</label>
           <select id="penaltyPolicy" disabled><option value="1" selected>-100%</option></select>
         </div>
       </div>
 
-      <!-- NOWE: szybkie korekty punktów -->
       <div class="card" style="margin-top:10px">
         <h4 style="margin:0 0 6px 0">Szybkie korekty (nagrody/kary)</h4>
         <div class="row" style="width:100%">
@@ -258,6 +248,21 @@ canvas{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--border
 <div id="overlay" class="overlay"><div id="dialog" class="dialog"></div></div>
 
 <script>
+/* ---------- AWARYJNY RESET: ?reset=1 lub #reset ---------- */
+(function(){
+  if (location.search.includes('reset=1') || location.hash === '#reset') {
+    try {
+      localStorage.removeItem('familyId');
+      localStorage.removeItem('home-chores-pro3-full');
+      if ('caches' in window) caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+      if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister()));
+    } finally {
+      alert('Zresetowano dane i cache. Ładuję ponownie…');
+      location.replace(location.pathname);
+    }
+  }
+})();
+
 /* ===== UTIL ===== */
 const $=s=>document.querySelector(s), $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const todayEl=$('#today'); function fmtDate(d){return d.toLocaleDateString('pl-PL',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}
@@ -271,17 +276,14 @@ function closeDialog(){ $('#overlay').style.display='none' }
 /* ===== FIREBASE (opcjonalny) ===== */
 let fbApp=null, fs=null, fbDoc=null, __unsub=null;
 const FIREBASE_COLLECTION = 'organizer';
-
 function setFamilyLabel(id){ const l=document.getElementById('familyLabel'); if(l) l.textContent=id || '—'; }
 
 async function subscribeToFamily(id){
   if(!fs || !id) return;
-  // zapamiętaj i pokaż etykietę
   id = String(id).trim();
   localStorage.setItem('familyId', id);
   setFamilyLabel(id);
 
-  // przełącz nasłuchiwacza
   if (__unsub) { try{ __unsub(); }catch(_){ } __unsub=null; }
   fbDoc = fs.collection(FIREBASE_COLLECTION).doc(id);
 
@@ -289,13 +291,14 @@ async function subscribeToFamily(id){
     const data = snap.data();
     if(!data || !data.payload) return;
     try{
-      // payload jako string LUB jako object — obsłuż oba
       const payload = (typeof data.payload === 'string') ? JSON.parse(data.payload) : data.payload;
       if(!payload) return;
 
-      const local = (()=>{ try{ return JSON.parse(localStorage.getItem(stateKey)||'{}'); }catch(_){ return {}; } })();
-      // jeżeli chmura nowsza od lokalnych danych — pobierz
-      if(!local.updatedAt || (data.updatedAt && data.updatedAt.toMillis ? data.updatedAt.toMillis() > (local.updatedAt||0) : (payload.updatedAt||0) > (local.updatedAt||0))){
+      const local = (()=>{ try { return JSON.parse(localStorage.getItem(stateKey)||'{}'); } catch { return {}; }})();
+      const cloudMillis = data.updatedAt?.toMillis?.() ?? payload.updatedAt ?? 0;
+      const localMillis = local.updatedAt ?? 0;
+
+      if (!localMillis || cloudMillis > localMillis) {
         db = payload;
         localStorage.setItem(stateKey, JSON.stringify(db));
         renderAll();
@@ -310,7 +313,6 @@ async function tryFirebaseInit(){
     if(!firebase.apps?.length){ fbApp = firebase.initializeApp(window.firebaseConfig); }
     fs = firebase.firestore();
 
-    // 1) Pobierz familyId (bez bawienia się w query – działa też w PWA)
     let family = localStorage.getItem('familyId');
     if(!family){
       const prev = localStorage.getItem('familyId') || '';
@@ -321,22 +323,24 @@ async function tryFirebaseInit(){
     }
     setFamilyLabel(family);
 
-    // 2) Odpal subskrypcję dokumentu
     await subscribeToFamily(family);
-    // 3) Pierwszy zapis utworzy dokument, jeśli go nie ma
-    pushToFirebase();
+    pushToFirebase(); // utwórz dokument jeśli go nie ma
   }catch(e){ console.warn('Firebase init error', e); }
 }
 
 async function pushToFirebase(){
   if(!fbDoc) return;
   try{
-    // zapisujemy payload JAKO STRING (zgodnie z tym co masz już w Firestore)
+    const payloadStr = JSON.stringify(db);
     await fbDoc.set(
-      { updatedAt: db.updatedAt || Date.now(), payload: JSON.stringify(db) },
+      { payload: payloadStr, updatedAt: firebase.firestore.FieldValue.serverTimestamp() },
       { merge:true }
     );
-  }catch(e){ console.warn('Firebase write error', e); }
+    // console.log('[Firestore] zapis OK', localStorage.getItem('familyId'));
+  }catch(e){
+    console.error('[Firestore] zapis ERROR', e);
+    alert('Błąd zapisu do Firestore: ' + (e?.message || e));
+  }
 }
 
 /* ===== STATE ===== */
@@ -364,7 +368,7 @@ let db=load(); if(!db.currentPersonId && db.people.length) db.currentPersonId=db
 function renderDate(){todayEl.textContent=fmtDate(new Date())}
 function currentPerson(){return db.people.find(p=>p.id===db.currentPersonId)||db.people[0]}
 const tabsEl=$('#peopleTabs');
-function renderTabs(){tabsEl.innerHTML='';db.people.forEach(p=>{const b=document.createElement('button');b.className='tab'+(p.id===db.currentPersonId?' active':'');b.textContent=`${p.name} · ⭐ ${p.scoreWeek} · 🔥 ${p.streak||0}${p.childMode?' · 👶':''}`;b.onclick=()=>{db.currentPersonId=p.id;save();renderAll()};tabsEl.appendChild(b)})}
+function renderTabs(){tabsEl.innerHTML='';db.people.forEach(p=>{const b=document.createElement('button');b.className='btn'+(p.id===db.currentPersonId?'':'');b.textContent=`${p.name} · ⭐ ${p.scoreWeek} · 🔥 ${p.streak||0}${p.childMode?' · 👶':''}`;b.onclick=()=>{db.currentPersonId=p.id;save();renderAll()};tabsEl.appendChild(b)})}
 function addPerson(){const name=prompt('Imię domownika:');if(!name)return;const p={id:crypto.randomUUID(),name:name.trim(),goal:5,streak:0,icsTime:'07:00',scoreToday:0,scoreWeek:0,latePenaltyPerHour:1,pin:'',childMode:false,tasks:[]};db.people.push(p);db.currentPersonId=p.id;save();renderAll()}
 function renamePerson(){const p=currentPerson();if(!p)return;const n=prompt('Nowa nazwa:',p.name);if(!n)return;p.name=n.trim();save();renderTabs()}
 function removePerson(){const p=currentPerson();if(!p)return;if(!confirm(`Usunąć osobę „${p.name}”?`))return;db.people=db.people.filter(x=>x.id!==p.id);db.currentPersonId=db.people[0]?.id||null;save();renderAll()}
@@ -381,7 +385,7 @@ function redeem(id){const p=currentPerson();const r=db.rewards.find(x=>x.id===id
 
 /* ===== SCORES ===== */
 const personTitleEl=$('#personTitle'),todayScoreEl=$('#todayScore'),weekScoreEl=$('#weekScore'),goalScoreEl=$('#goalScore'),goalBarEl=$('#goalBar'),leaderboardEl=$('#leaderboard');
-function goalForToday(p){ return p.tasks.filter(dueToday).length; } // Cel dzienny = liczba zadań
+function goalForToday(p){ return p.tasks.filter(dueToday).length; }
 function renderScores(){
   const p=currentPerson(); if(!p) return;
   todayScoreEl.textContent=p.scoreToday||0;
@@ -467,7 +471,7 @@ function markSkip(t){
 }
 function addSubUI(container,t,p){
   const box=document.createElement('div'); box.className='subtasks';
-  t.sub.forEach(s=>{
+  (t.sub||[]).forEach(s=>{
     const line=document.createElement('div'); line.className='row';
     const cb=document.createElement('input'); cb.type='checkbox'; cb.checked=!!s.done;
     cb.onchange=()=>{ s.done=cb.checked; save(); renderTasks(); };
@@ -477,7 +481,7 @@ function addSubUI(container,t,p){
   const add=document.createElement('div'); add.className='row subAdd';
   const inp=document.createElement('input'); inp.type='text'; inp.placeholder='Dodaj pod-zadanie';
   const btn=document.createElement('button'); btn.className='btn'; btn.textContent='➕';
-  btn.onclick=()=>{ const v=inp.value.trim(); if(!v) return; t.sub.push({id:crypto.randomUUID(),title:v,done:false}); inp.value=''; save(); renderTasks(); };
+  btn.onclick=()=>{ const v=inp.value.trim(); if(!v) return; (t.sub=t.sub||[]).push({id:crypto.randomUUID(),title:v,done:false}); inp.value=''; save(); renderTasks(); };
   add.appendChild(inp); add.appendChild(btn);
   container.appendChild(box); container.appendChild(add);
 }
@@ -488,8 +492,6 @@ function renderTasks(){
   if(!p.tasks.length){ tasksListEl.innerHTML='<div class="muted">Brak zadań. Dodaj coś po prawej.</div>'; return; }
   const arr=sortTasks(p.tasks);
   arr.forEach(t=>{
-    ensureSub(t);
-    if(typeof t.penalty!=='number') t.penalty = 1; // migracja
     const row=document.createElement('div'); row.className='task'+(t.done?' done':''); row.draggable=true;
     row.addEventListener('dragstart', e=>{ e.dataTransfer.setData('text/plain', JSON.stringify({taskId:t.id, personId:p.id})); });
     const cb=document.createElement('input'); cb.type='checkbox'; cb.checked=!!t.done; cb.style.transform='scale(1.2)';
@@ -569,7 +571,7 @@ function endWeek(){ db.people.forEach(p=> p.scoreWeek=0 ); save(); renderAll(); 
 function manualDelta(sign){
   const p=currentPerson(); if(!p) return;
   const val = Math.max(1, parseInt($('#deltaPoints').value||'1',10));
-  const scope = $('#deltaScope').value; // 'week' | 'today'
+  const scope = $('#deltaScope').value;
   const reason = prompt(sign>0?'Powód nagrody (+)':'Powód kary (−):','');
   if(scope==='today'){ p.scoreToday = Math.max(0, (p.scoreToday||0) + sign*val); }
   else { p.scoreWeek = Math.max(0, (p.scoreWeek||0) + sign*val); }
@@ -645,7 +647,7 @@ async function shareICSForCurrentPerson(){
 function exportJSON(){ const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='obowiazki-backup.json'; a.click(); URL.revokeObjectURL(a.href); }
 function importJSONFromFile(file){ const r=new FileReader(); r.onload=()=>{ try{ const j=JSON.parse(r.result); db=j; save(); renderAll(); alert('Zaimportowano.'); }catch(e){ alert('Nieprawidłowy JSON.'); } }; r.readAsText(file); }
 
-/* === TTS: czyta tylko tytuły zadań na dziś === */
+/* === TTS === */
 function speakNow(){
   const p=currentPerson(); if(!p) return;
   const titles = p.tasks.filter(dueToday).map(t=>t.title);
@@ -730,9 +732,8 @@ function renderTopZones(){
 
 /* ===== PEOPLE SETTINGS ===== */
 function setGoal(){
-  // zachowane dla kompatybilności (cel i tak liczony automatycznie)
   const p=currentPerson(); if(!p) return;
-  const g=prompt('Cel dzienny (INFO: teraz liczy się automatycznie = liczba zadań na dziś). Ustaw wartość „informacyjną”:', String(p.goal||goalForToday(p)));
+  const g=prompt('Cel dzienny (INFO: teraz liczony automatycznie = liczba zadań na dziś). Ustaw wartość „informacyjną”:', String(p.goal||goalForToday(p)));
   if(g!==null){ const v=Math.max(0,parseInt(g,10)||0); p.goal=v; save(); renderScores(); }
 }
 function setIcs(){const p=currentPerson();if(!p)return;const cur=p.icsTime||'07:00';const t=prompt('Godzina .ics (HH:MM, 24h):',cur);if(!t)return;if(!/^\d{2}:\d{2}$/.test(t))return alert('Format HH:MM');p.icsTime=t;save();renderLeaderboard()}
@@ -758,12 +759,13 @@ document.getElementById('changeFamilyBtn').onclick = async () => {
   const curr = localStorage.getItem('familyId') || '';
   const next = prompt('ID rodziny (wspólna nazwa grupy):', curr);
   if (!next) return;
-  await subscribeToFamily(next);
-  pushToFirebase(); // żeby dokument zawsze istniał
+  await subscribeToFamily(next.trim());
+  pushToFirebase();
 };
 
 /* ===== PWA SW ===== */
-if('serviceWorker' in navigator){
+const skipSW = location.search.includes('nosw=1');
+if('serviceWorker' in navigator && !skipSW){
   window.addEventListener('load', ()=> {
     navigator.serviceWorker.register('./sw.js').catch(()=>{});
   });
@@ -772,7 +774,6 @@ if('serviceWorker' in navigator){
 /* ===== INIT ===== */
 renderAll();
 tryFirebaseInit();
-console.log('Tip: Udostępnij → „Do ekranu początkowego” (działa offline jak PWA).');
 </script>
 </body>
 </html>
