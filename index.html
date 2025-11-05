@@ -227,13 +227,14 @@
   loadLocal(); render();
   tryFirebaseInit();
 
-  // Service Worker (można wyłączyć parametrem ?nosw=1)
+ // Service Worker (można wyłączyć parametrem ?nosw=1)
 const skipSW = location.search.includes('nosw=1');
 if ('serviceWorker' in navigator && !skipSW) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js').catch(console.error);
   });
 }
+
 
   </script>
 </body>
