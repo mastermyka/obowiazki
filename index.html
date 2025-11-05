@@ -262,6 +262,25 @@ function clamp(n,a,b){return Math.max(a,Math.min(b,n))}
 function copy(text){return navigator.clipboard.writeText(text)}
 function showDialog(html){$('#dialog').innerHTML=html;$('#overlay').style.display='flex'}
 function closeDialog(){ $('#overlay').style.display='none' }
+<script>
+/* --- DEBUG RESET: #reset lub ?reset=1 --- */
+(function(){
+  const needReset = location.hash === '#reset' || location.search.includes('reset=1');
+  if (needReset) {
+    try {
+      // wyczyść localStorage (w tym familyId i stan appki)
+      localStorage.removeItem('familyId');
+      localStorage.removeItem('home-chores-pro3-full'); // stateKey
+      // wyczyść cache SW + sam SW
+      if ('caches' in window) caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+      if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations()
+        .then(rs => rs.forEach(r => r.unregister()));
+    } finally {
+      alert('Zresetowano dane. Załaduje się ponownie.');
+      location.replace(location.pathname); // usuń #reset z adresu
+    }
+  }
+})();
 
 /* ===== FIREBASE (opcjonalny) ===== */
 let fbApp=null, fs=null, fbDoc=null;
