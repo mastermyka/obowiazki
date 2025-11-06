@@ -20,6 +20,9 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
+<!-- + Auth i App Check -->
+<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-check-compat.js"></script>
 
 <style>
 :root{--bg:#0f1113;--card:rgba(28,28,30,.72);--border:rgba(255,255,255,.08);--muted:#8e8e93;--text:#f5f5f7;--accent:#0a84ff;--ok:#30d158;--warn:#ffd60a;--danger:#ff453a;--shadow:0 8px 30px rgba(0,0,0,.35)}
@@ -341,9 +344,26 @@ async function subscribeToFamily(id){
 async function tryFirebaseInit(){
   try{
     if(!window.firebaseConfig || !window.firebaseConfig.apiKey) return;
-    if(!firebase.apps?.length){ fbApp = firebase.initializeApp(window.firebaseConfig); }
-    fs = firebase.firestore();
 
+    if(!firebase.apps?.length){ 
+      fbApp = firebase.initializeApp(window.firebaseConfig); 
+    }
+
+    // APP CHECK — po włączeniu w konsoli wklej swój Site key zamiast PASTE_YOUR_SITE_KEY
+    if (firebase.appCheck) {
+      firebase.appCheck().activate('PASTE_YOUR_SITE_KEY', true);
+    }
+
+    fs = firebase.firestore();
+    const auth = firebase.auth();
+
+    // Anonimowe logowanie
+    if(!auth.currentUser){
+      await auth.signInAnonymously();
+    }
+    const uid = auth.currentUser?.uid;
+
+    // familyId jak dotąd
     let family = localStorage.getItem('familyId');
     if(!family){
       const prev = localStorage.getItem('familyId') || '';
@@ -354,9 +374,17 @@ async function tryFirebaseInit(){
     }
     setFamilyLabel(family);
 
+    // dopisz użytkownika do rodziny
+    const famRef = fs.collection('families').doc(family);
+    await famRef.set({ members: { [uid]: true } }, { merge: true });
+
+    // subskrypcja i pierwsze utworzenie dokumentu
     await subscribeToFamily(family);
-    pushToFirebase(); // utwórz dokument jeśli go nie ma
-  }catch(e){ console.warn('Firebase init error', e); }
+    await pushToFirebase();
+  }catch(e){
+    console.warn('Firebase init error', e);
+    alert('Błąd inicjalizacji Firebase: ' + (e?.message || e));
+  }
 }
 
 async function pushToFirebase(){
