@@ -385,6 +385,16 @@ async function tryFirebaseInit(){
     alert('Błąd inicjalizacji Firebase: ' + (e?.message || e));
   }
 }
+// DIAGNOSTYKA App Check
+try {
+  const t = await firebase.appCheck().getToken(true);
+  console.log('[AppCheck] token OK, prefix:', (t && t.token || '').slice(0, 12));
+  // mały “ping” do Firestore, żeby token poleciał w sieć:
+  await firebase.firestore().collection('__ping').limit(1).get().catch(()=>{});
+} catch (e) {
+  console.error('[AppCheck] getToken ERROR:', e);
+  alert('AppCheck error: ' + (e.message || e));
+}
 
 
 async function pushToFirebase(){
