@@ -941,9 +941,11 @@ if('serviceWorker' in navigator && !skipSW){
 
 /* ===== INIT ===== */
 document.addEventListener('DOMContentLoaded', () => {
-  renderAll();
-  tryFirebaseInit(); // działa offline jeśli nie ma poprawnego firebase-config.js
+ renderAll();
+window.addEventListener('DOMContentLoaded', () => {
+  tryFirebaseInit();
 });
+
 </script>
 </body>
 </html>
