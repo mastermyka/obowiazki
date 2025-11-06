@@ -773,8 +773,10 @@ if('serviceWorker' in navigator && !skipSW){
 }
 
 /* ===== INIT ===== */
-renderAll();
-tryFirebaseInit();
+document.addEventListener('DOMContentLoaded', () => {
+  renderAll();
+  tryFirebaseInit();
+});
 </script>
 </body>
 </html>
