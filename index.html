@@ -88,6 +88,25 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
   /* wąskie ekrany: drobne przycięcie stałych szerokości */
   #taskTime { width: 110px !important; }
 }
+/* --- LIGHT THEME --- */
+:root.light {
+  --bg:#f6f7fb;
+  --card:#ffffffcc;
+  --border:#e6e8ef;
+  --muted:#64748b;
+  --text:#0f172a;
+  --accent:#6366f1;
+  --ok:#22c55e;
+  --warn:#f59e0b;
+  --danger:#ef4444;
+  --shadow:0 12px 28px rgba(2,6,23,.14);
+}
+:root.light body{
+  color:var(--text);
+  background:radial-gradient(1400px 900px at 20% -10%,#eef2ff 0%,#f8fafc 60%);
+}
+.task .editable { cursor:text; border-radius:8px; padding:2px 4px; }
+.task .editable:focus { outline:2px solid rgba(99,102,241,.35); background:rgba(255,255,255,.06); }
 
 </style>
 </head>
@@ -99,6 +118,8 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
       <div class="subtitle" id="today"></div>
       <div class="subtitle">Rodzina: <strong id="familyLabel">—</strong></div>
     </div>
+    <button id="themeToggle" class="btn" title="Jasny / ciemny">☀️ / 🌙</button>
+
   </header>
 
   <div class="card">
@@ -533,7 +554,25 @@ function renderTasks(){
     cb.onchange=()=>{ if(p.childMode){ cb.checked=!cb.checked; alert('Tryb dziecka — blokada zmiany.'); return; }
                       toggleTask(p,t,cb.checked); save(); renderAllCore(); };
     const label=document.createElement('label');
-    label.innerHTML = `<strong>${t.title}</strong><br><small>${taskBadge(t)} ${dueToday(t)?'':"<span style='color:var(--warn)'> (nie dziś)</span>"}</small>`;
+   label.innerHTML = `
+  <strong class="editable" contenteditable="true" spellcheck="false">${t.title}</strong>
+  <br><small>${taskBadge(t)} ${dueToday(t)?'':"<span style='color:var(--warn)'> (nie dziś)</span>"}</small>
+`;
+const titleEl = label.querySelector('.editable');
+titleEl.addEventListener('keydown', (e)=>{
+  if(e.key==='Enter'){ e.preventDefault(); titleEl.blur(); }
+});
+titleEl.addEventListener('blur', ()=>{
+  const v = titleEl.textContent.trim();
+  if(v && v !== t.title){
+    t.title = v;
+    save(); // zachowuje i zsynchronizuje
+    renderTasks(); // odśwież znacznik (badge itp.)
+  }else{
+    titleEl.textContent = t.title; // przywróć oryginał, jeśli puste
+  }
+});
+
     const actions=document.createElement('div'); actions.className='actions';
     const editBtn=document.createElement('button'); editBtn.className='btn'; editBtn.textContent='✏️'; editBtn.onclick=()=>{ if(p.childMode){alert('Tryb dziecka.'); return;} editTask(t); save(); renderTasks(); };
     const skipBtn=document.createElement('button'); skipBtn.className='btn'; skipBtn.textContent='🙈'; skipBtn.title='Pomiń z powodem'; skipBtn.onclick=()=>{ if(p.childMode){alert('Tryb dziecka.'); return;} markSkip(t); };
@@ -797,6 +836,84 @@ document.getElementById('changeFamilyBtn').onclick = async () => {
   await subscribeToFamily(next.trim());
   pushToFirebase();
 };
+/* THEME TOGGLE */
+(function themeInit(){
+  const saved = localStorage.getItem('ui-theme') || 'dark';
+  if(saved === 'light') document.documentElement.classList.add('light');
+  const btn = document.getElementById('themeToggle');
+  if(btn){
+    btn.onclick = () => {
+      document.documentElement.classList.toggle('light');
+      localStorage.setItem('ui-theme',
+        document.documentElement.classList.contains('light') ? 'light' : 'dark'
+      );
+    };
+  }
+})();
+/* SWIPE GESTURES FOR TASKS (mobile) */
+(function enableSwipe(){
+  let startX=0, startY=0, active=null, moved=false;
+  const THRESH = 48;      // ile pikseli, by uznać gest
+  const MAX = 96;         // maks. przesunięcie
+
+  function attach(row, onRight, onLeft){
+    row.addEventListener('touchstart', (e)=>{
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      active = row; moved=false;
+      row.style.transition = 'none';
+    }, {passive:true});
+
+    row.addEventListener('touchmove', (e)=>{
+      if(!active) return;
+      const dx = e.touches[0].clientX - startX;
+      const dy = e.touches[0].clientY - startY;
+      if(Math.abs(dy) > Math.abs(dx)) return; // przewijanie pionowe
+      moved=true;
+      const off = Math.max(-MAX, Math.min(MAX, dx));
+      active.style.transform = `translateX(${off}px)`;
+      active.style.opacity = String(1 - Math.min(0.35, Math.abs(off)/300));
+    }, {passive:true});
+
+    row.addEventListener('touchend', ()=>{
+      if(!active) return;
+      const matrix = new WebKitCSSMatrix(getComputedStyle(active).transform);
+      const off = matrix.m41 || 0;
+      active.style.transition = '';
+      active.style.transform = '';
+      active.style.opacity = '';
+      if(moved && off > THRESH){ onRight && onRight(); }     // w prawo = complete
+      else if(moved && off < -THRESH){ onLeft && onLeft(); } // w lewo = delete
+      active=null; moved=false;
+    });
+  }
+
+  // Podpinamy po każdym renderze listy
+  const _origRenderTasks = renderTasks;
+  renderTasks = function(){
+    _origRenderTasks();
+    // znajdź węzły i podepnij gesty
+    const p = currentPerson(); if(!p) return;
+    const rows = document.querySelectorAll('#tasksList .task');
+    const tasks = p.tasks; // kolejność zgodna z renderem po sort
+    rows.forEach((row, idx)=>{
+      const tNode = rows[idx];
+      const titleEl = tNode.querySelector('strong');
+      // „complete” = toggle checkbox
+      const cb = tNode.querySelector('input[type="checkbox"]');
+      attach(row,
+        ()=>{ if(cb){ cb.checked = true; cb.dispatchEvent(new Event('change')); } },
+        ()=>{ // delete
+          if (p.childMode) { alert('Tryb dziecka.'); return; }
+          if(confirm('Usunąć zadanie?')){
+            const id = tasks[idx]?.id;
+            if(id){ p.tasks = p.tasks.filter(z=>z.id!==id); save(); renderAllCore(); }
+          }
+        }
+      );
+    });
+  };
+})();
 
 /* ===== PWA SW ===== */
 const skipSW = location.search.includes('nosw=1');
