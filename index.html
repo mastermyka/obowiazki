@@ -20,6 +20,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-check-compat.js"></script>
 
 <style>
 /* ====== BAZA (Twoje oryginalne style, nietknięte) ====== */
@@ -368,6 +369,8 @@ async function tryFirebaseInit(){
   try{
     if(!window.firebaseConfig || !window.firebaseConfig.apiKey) return;
     if(!firebase.apps?.length){ fbApp = firebase.initializeApp(window.firebaseConfig); }
+    firebase.appCheck().activate("6LffMAQsAAAAAHaO0TzmnQHwSA3SPNOxJOOIFCk1", true);
+    
     fs = firebase.firestore();
 
     let family = localStorage.getItem('familyId');
