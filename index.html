@@ -16,17 +16,17 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
 
-<!-- Firebase compat -->
+<!-- Firebase compat: KOLEJNOŚĆ MA ZNACZENIE -->
 <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js"></script>
-<!-- + Auth i App Check -->
-<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-check-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
+
+<!-- Konfiguracja projektu (ustawia window.firebaseConfig = {...}) -->
+<script src="firebase-config.js"></script>
 
 <style>
 :root{--bg:#0f1113;--card:rgba(28,28,30,.72);--border:rgba(255,255,255,.08);--muted:#8e8e93;--text:#f5f5f7;--accent:#0a84ff;--ok:#30d158;--warn:#ffd60a;--danger:#ff453a;--shadow:0 8px 30px rgba(0,0,0,.35)}
-/* LIGHT THEME */
 :root.light {--bg:#f6f7fb;--card:#ffffffcc;--border:#e6e8ef;--muted:#64748b;--text:#0f172a;--accent:#6366f1;--ok:#22c55e;--warn:#f59e0b;--danger:#ef4444;--shadow:0 12px 28px rgba(2,6,23,.14)}
 *{box-sizing:border-box}
 body{margin:0;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"Apple Color Emoji";color:var(--text);background:radial-gradient(1200px 800px at 20% -10%,#1b1d20 0%,#0f1113 60%)}
@@ -71,14 +71,11 @@ canvas{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--border
 h3{font-weight:700}
 .card h3{display:flex;align-items:center;gap:8px}
 table#leaderboard th, table#leaderboard td{border-bottom:1px solid var(--border)}
-/* edycja tytułu */
 .task .editable{cursor:text;border-radius:8px;padding:2px 4px}
 .task .editable:focus{outline:2px solid rgba(99,102,241,.35);background:rgba(255,255,255,.06)}
-/* iPhone — blokujemy poziomy scroll i wymuszanie szerokości */
 html,body{width:100%;max-width:100%;overflow-x:hidden}
 .wrap,.card,.row,.grid,.week,.statsGrid{min-width:0}
 table#leaderboard{display:block;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
-/* Widok tygodnia na małych ekranach */
 @media (max-width: 640px){ .week{grid-template-columns:1fr 1fr} .day{min-height:96px} #taskTime{width:110px!important} }
 </style>
 </head>
@@ -350,18 +347,14 @@ async function tryFirebaseInit(){
       fbApp = firebase.initializeApp(window.firebaseConfig);
     }
 
-   // --- APP CHECK (POPRAWNY) ---
-self.FIREBASE_APPCHECK_DEBUG_TOKEN = '75A5C997-A72A-4AE0-83D4-C16E2B6975A6'; // debug token (na czas testów)
-
-if (firebase.appCheck) {
-  // UŻYJ PUBLICZNEGO SITE KEY (v3) — ten od reCAPTCHA z Google
-  firebase.appCheck().activate('6LffMAQsAAAAAHaO0TzmnQHwSA3SPNOxJOOIFCk1', true); // auto-refresh = true
-}
-// --- KONIEC APP CHECK ---
+    // 2) App Check (compat) — debug token + SITE KEY (v3)
+    self.FIREBASE_APPCHECK_DEBUG_TOKEN = '75A5C997-A72A-4AE0-83D4-C16E2B6975A6'; // (na testy; usuń w produkcji)
+    if (firebase.appCheck) {
+      firebase.appCheck().activate('6LffMAQsAAAAAHaO0TzmnQHwSA3SPNOxJOOIFCk1', true); // Twój SITE KEY v3
+    }
 
     // 3) Firestore + (opcjonalnie) Auth anon
     fs = firebase.firestore();
-
     if (firebase.auth) {
       const auth = firebase.auth();
       if (!auth.currentUser) { await auth.signInAnonymously().catch(()=>{}); }
@@ -387,17 +380,6 @@ if (firebase.appCheck) {
     alert('Błąd inicjalizacji Firebase: ' + (e?.message || e));
   }
 }
-// DIAGNOSTYKA App Check
-try {
-  const t = await firebase.appCheck().getToken(true);
-  console.log('[AppCheck] token OK, prefix:', (t && t.token || '').slice(0, 12));
-  // mały “ping” do Firestore, żeby token poleciał w sieć:
-  await firebase.firestore().collection('__ping').limit(1).get().catch(()=>{});
-} catch (e) {
-  console.error('[AppCheck] getToken ERROR:', e);
-  alert('AppCheck error: ' + (e.message || e));
-}
-
 
 async function pushToFirebase(){
   if(!fbDoc) return;
@@ -555,7 +537,7 @@ function addSubUI(container,t,p){
   const add=document.createElement('div'); add.className='row subAdd';
   const inp=document.createElement('input'); inp.type='text'; inp.placeholder='Dodaj pod-zadanie';
   const btn=document.createElement('button'); btn.className='btn'; btn.textContent='➕';
-  btn.onclick=()=>{ const v=inp.value.trim(); if(!v) return; (t.sub=t.sub||[]).push({id:crypto.randomUUID(),title:v,done:false}); inp.value=''; save(); renderTasks(); };
+  btn.onclick=()=>{ const v=inp.value.trim(); if(!v) return; (t.sub=t.sub||[]).push({id:crypto.randomUUID(),title=v,done:false}); inp.value=''; save(); renderTasks(); };
   add.appendChild(inp); add.appendChild(btn);
   container.appendChild(box); container.appendChild(add);
 }
@@ -602,7 +584,6 @@ function renderTasks(){
     tasksListEl.appendChild(row);
   });
 
-  // SWIPE (mobile)
   enableSwipeOnRendered();
 }
 
@@ -877,13 +858,9 @@ function enableSwipeOnRendered(){
       active=null; moved=false;
     });
   }
-  const p = currentPerson(); if(!p) return;
   const rows = document.querySelectorAll('#tasksList .task');
-  const map = new Map(p.tasks.map(t=>[t.id,t]));
   rows.forEach(row=>{
     const cb = row.querySelector('input[type="checkbox"]');
-    const strong = row.querySelector('strong');
-    // znajdź id zadania po tytule (bezpiecznie: fallback do odhaczenia/usuń z wiersza)
     attach(row,
       ()=>{ if(cb){ cb.checked = true; cb.dispatchEvent(new Event('change')); } },
       ()=>{ const del = row.querySelector('.actions .btn:last-child'); if(del) del.click(); }
