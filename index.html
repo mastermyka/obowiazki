@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Domowe obowiązki (full)</title>
+<title>Domowy organizer — PRO 3 (full)</title>
 
 <!-- PWA -->
 <meta name="theme-color" content="#0a84ff"/>
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="apple-touch-icon" href="icons/icon-192.png"/>
 
-<!-- Tailwind + Inter (tylko wygląd) -->
+<!-- Tailwind + Inter (wygląd) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -22,10 +22,12 @@
 <script src="firebase-config.js"></script>
 
 <style>
-/* ====== BAZA (Twoje oryginalne style, nietknięte) ====== */
 :root{--bg:#0f1113;--card:rgba(28,28,30,.72);--border:rgba(255,255,255,.08);--muted:#8e8e93;--text:#f5f5f7;--accent:#0a84ff;--ok:#30d158;--warn:#ffd60a;--danger:#ff453a;--shadow:0 8px 30px rgba(0,0,0,.35)}
+/* LIGHT THEME */
+:root.light {--bg:#f6f7fb;--card:#ffffffcc;--border:#e6e8ef;--muted:#64748b;--text:#0f172a;--accent:#6366f1;--ok:#22c55e;--warn:#f59e0b;--danger:#ef4444;--shadow:0 12px 28px rgba(2,6,23,.14)}
 *{box-sizing:border-box}
 body{margin:0;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"Apple Color Emoji";color:var(--text);background:radial-gradient(1200px 800px at 20% -10%,#1b1d20 0%,#0f1113 60%)}
+:root.light body{background:radial-gradient(1400px 900px at 20% -10%,#eef2ff 0%,#f8fafc 60%)}
 .wrap{max-width:1200px;margin:28px auto;padding:0 16px}
 header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 .title{font-weight:800;font-size:1.25rem;display:flex;gap:10px;align-items:center;letter-spacing:.2px}
@@ -55,7 +57,7 @@ input[type=text]:focus, input[type=number]:focus, input[type=time]:focus, input[
 .week{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
 .day{min-height:120px;border:1px dashed var(--border);border-radius:12px;padding:8px}
 .day h4{margin:0 0 6px 0;font-size:.95rem;color:var(--muted)}
-.pill{display:inline-block;padding:4px 8px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,.06);font-size:.85rem;margin:2px 0;cursor:grab}
+.pill{display:inline-block;padding:4px 8px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,.06);font-size:.85rem;margin:2px 0;cursor:grab;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .statsGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media(max-width:980px){.statsGrid{grid-template-columns:1fr}}
 canvas{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px}
@@ -63,63 +65,29 @@ canvas{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--border
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:50}
 .dialog{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;width:min(520px,92vw)}
 .zoneTag{border:1px solid var(--border);background:rgba(255,255,255,.06);border-radius:999px;padding:4px 10px}
-
-/* drobne udoskonalenia spacingu, nagłówków i tabeli */
 h3{font-weight:700}
 .card h3{display:flex;align-items:center;gap:8px}
 table#leaderboard th, table#leaderboard td{border-bottom:1px solid var(--border)}
-/* --- iPhone horizontal scroll fix --- */
-html, body { width:100%; max-width:100%; overflow-x:hidden; }
-
-/* nic nie wymusza większej szerokości niż rodzic */
-.wrap, .card, .row, .grid, .week, .statsGrid { min-width:0; }
-.btn { white-space:nowrap; }
-
-/* tabela przewija się w swoim pudełku, nie cała strona */
-table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
-
-/* pigułki w widoku tygodnia nie wyjeżdżają */
-.pill { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-
-/* „Widok tygodnia” – na małych ekranach w 2 kolumny */
-@media (max-width: 640px) {
-  .week { grid-template-columns: 1fr 1fr; }
-  .day  { min-height: 96px; }
-  /* wąskie ekrany: drobne przycięcie stałych szerokości */
-  #taskTime { width: 110px !important; }
-}
-/* --- LIGHT THEME --- */
-:root.light {
-  --bg:#f6f7fb;
-  --card:#ffffffcc;
-  --border:#e6e8ef;
-  --muted:#64748b;
-  --text:#0f172a;
-  --accent:#6366f1;
-  --ok:#22c55e;
-  --warn:#f59e0b;
-  --danger:#ef4444;
-  --shadow:0 12px 28px rgba(2,6,23,.14);
-}
-:root.light body{
-  color:var(--text);
-  background:radial-gradient(1400px 900px at 20% -10%,#eef2ff 0%,#f8fafc 60%);
-}
-.task .editable { cursor:text; border-radius:8px; padding:2px 4px; }
-.task .editable:focus { outline:2px solid rgba(99,102,241,.35); background:rgba(255,255,255,.06); }
-
+/* edycja tytułu */
+.task .editable{cursor:text;border-radius:8px;padding:2px 4px}
+.task .editable:focus{outline:2px solid rgba(99,102,241,.35);background:rgba(255,255,255,.06)}
+/* iPhone — blokujemy poziomy scroll i wymuszanie szerokości */
+html,body{width:100%;max-width:100%;overflow-x:hidden}
+.wrap,.card,.row,.grid,.week,.statsGrid{min-width:0}
+table#leaderboard{display:block;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+/* Widok tygodnia na małych ekranach */
+@media (max-width: 640px){ .week{grid-template-columns:1fr 1fr} .day{min-height:96px} #taskTime{width:110px!important} }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
     <div class="title"><span class="dot"></span> Domowy organizer — PRO 3</div>
-    <div>
+    <div class="row">
       <div class="subtitle" id="today"></div>
       <div class="subtitle">Rodzina: <strong id="familyLabel">—</strong></div>
+      <button id="themeToggle" class="btn" title="Jasny / ciemny">☀️ / 🌙</button>
     </div>
-    <button id="themeToggle" class="btn" title="Jasny / ciemny">☀️ / 🌙</button>
-
   </header>
 
   <div class="card">
@@ -151,6 +119,12 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
       <div class="row" style="justify-content:space-between;align-items:center">
         <h3 style="margin:0">Zadania <span id="personTitle" class="muted"></span></h3>
         <div class="row">
+          <input id="searchTasks" type="text" placeholder="Szukaj…" style="width:220px">
+          <select id="filterMode">
+            <option value="today" selected>Tylko na dziś</option>
+            <option value="all">Wszystkie</option>
+          </select>
+          <span class="muted" id="tasksCount"></span>
           <label class="muted">Sortuj</label>
           <select id="sortBy"><option value="status">Status</option><option value="priority">Priorytet</option><option value="title">Tytuł A→Z</option><option value="zone">Strefa</option></select>
           <button id="resetDailyBtn" class="btn">🔁 Reset</button>
@@ -464,6 +438,10 @@ function latePenaltyForTask(p,t){
 
 /* ===== TASKS ===== */
 const tasksListEl=$('#tasksList'),sortSel=$('#sortBy');
+const filterSel=document.getElementById('filterMode');
+const searchEl=document.getElementById('searchTasks');
+let searchQuery='';
+
 function dueToday(t){
   const kind=t.schedType||t.repeat||'daily';
   const now=new Date(); const dow=now.getDay();
@@ -545,33 +523,31 @@ function renderTasks(){
   const p=currentPerson(); if(!p) return;
   personTitleEl.textContent = `— ${p.name}`;
   tasksListEl.innerHTML = '';
-  if(!p.tasks.length){ tasksListEl.innerHTML='<div class="muted">Brak zadań. Dodaj coś po prawej.</div>'; return; }
-  const arr=sortTasks(p.tasks);
-  arr.forEach(t=>{
+  const allSorted=sortTasks(p.tasks);
+  const filteredByDay = (filterSel.value==='today') ? allSorted.filter(dueToday) : allSorted;
+  const filtered = searchQuery ? filteredByDay.filter(t=>t.title.toLowerCase().includes(searchQuery)) : filteredByDay;
+
+  const countEl=document.getElementById('tasksCount');
+  if(countEl) countEl.textContent=`(${filtered.length}/${allSorted.length})`;
+
+  if(!filtered.length){ tasksListEl.innerHTML='<div class="muted">Brak zadań do wyświetlenia.</div>'; return; }
+
+  filtered.forEach(t=>{
     const row=document.createElement('div'); row.className='task'+(t.done?' done':''); row.draggable=true;
     row.addEventListener('dragstart', e=>{ e.dataTransfer.setData('text/plain', JSON.stringify({taskId:t.id, personId:p.id})); });
+
     const cb=document.createElement('input'); cb.type='checkbox'; cb.checked=!!t.done; cb.style.transform='scale(1.2)';
     cb.onchange=()=>{ if(p.childMode){ cb.checked=!cb.checked; alert('Tryb dziecka — blokada zmiany.'); return; }
                       toggleTask(p,t,cb.checked); save(); renderAllCore(); };
+
     const label=document.createElement('label');
-   label.innerHTML = `
-  <strong class="editable" contenteditable="true" spellcheck="false">${t.title}</strong>
-  <br><small>${taskBadge(t)} ${dueToday(t)?'':"<span style='color:var(--warn)'> (nie dziś)</span>"}</small>
-`;
-const titleEl = label.querySelector('.editable');
-titleEl.addEventListener('keydown', (e)=>{
-  if(e.key==='Enter'){ e.preventDefault(); titleEl.blur(); }
-});
-titleEl.addEventListener('blur', ()=>{
-  const v = titleEl.textContent.trim();
-  if(v && v !== t.title){
-    t.title = v;
-    save(); // zachowuje i zsynchronizuje
-    renderTasks(); // odśwież znacznik (badge itp.)
-  }else{
-    titleEl.textContent = t.title; // przywróć oryginał, jeśli puste
-  }
-});
+    label.innerHTML = `
+      <strong class="editable" contenteditable="true" spellcheck="false">${t.title}</strong>
+      <br><small>${taskBadge(t)} ${dueToday(t)?'':"<span style='color:var(--warn)'> (nie dziś)</span>"}</small>
+    `;
+    const titleEl=label.querySelector('.editable');
+    titleEl.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); titleEl.blur(); }});
+    titleEl.addEventListener('blur', ()=>{ const v=titleEl.textContent.trim(); if(v && v!==t.title){ t.title=v; save(); renderTasks(); } else { titleEl.textContent=t.title; } });
 
     const actions=document.createElement('div'); actions.className='actions';
     const editBtn=document.createElement('button'); editBtn.className='btn'; editBtn.textContent='✏️'; editBtn.onclick=()=>{ if(p.childMode){alert('Tryb dziecka.'); return;} editTask(t); save(); renderTasks(); };
@@ -580,10 +556,14 @@ titleEl.addEventListener('blur', ()=>{
     const delBtn=document.createElement('button'); delBtn.className='btn'; delBtn.textContent='🗑️'; delBtn.onclick=()=>{ if(p.childMode){alert('Tryb dziecka.'); return;}
       if(confirm('Usunąć zadanie?')){ p.tasks=p.tasks.filter(x=>x.id!==t.id); save(); renderAllCore(); } };
     actions.appendChild(editBtn); actions.appendChild(skipBtn); actions.appendChild(icsBtn); actions.appendChild(delBtn);
+
     row.appendChild(cb); row.appendChild(label); row.appendChild(actions);
     addSubUI(row, t, p);
     tasksListEl.appendChild(row);
   });
+
+  // SWIPE (mobile)
+  enableSwipeOnRendered();
 }
 
 /* ===== PLANNER VIS ===== */
@@ -813,6 +793,64 @@ function setGoal(){
 function setIcs(){const p=currentPerson();if(!p)return;const cur=p.icsTime||'07:00';const t=prompt('Godzina .ics (HH:MM, 24h):',cur);if(!t)return;if(!/^\d{2}:\d{2}$/.test(t))return alert('Format HH:MM');p.icsTime=t;save();renderLeaderboard()}
 function pinDialog(){const p=currentPerson();if(!p)return;showDialog(`<h3 style="margin-top:0">PIN i Tryb dziecka — ${p.name}</h3><div class="row" style="flex-direction:column;align-items:stretch"><label class="muted">Ustaw/zmień PIN (4–8 cyfr)</label><input id="pinSet" type="password" placeholder="${p.pin?'(obecny istnieje)':'brak'}"/><label class="muted" style="margin-top:8px">Tryb dziecka (blokada zmian)</label><div class="row"><button class="btn" onclick="setChildMode(true)">👶 Włącz</button><button class="btn" onclick="setChildMode(false)">🔓 Wyłącz</button></div></div><div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn" onclick="closeDialog()">Zamknij</button><button class="btn" onclick="savePin()">✅ Zapisz PIN</button></div>`);window.savePin=function(){const v=$('#pinSet').value.trim();if(v&&!/^\d{4,8}$/.test(v))return alert('PIN 4–8 cyfr.');p.pin=v;save();alert('Zapisano PIN.');closeDialog()};window.setChildMode=function(on){if(p.pin){const entered=prompt('Podaj PIN:');if(entered!==p.pin)return alert('Zły PIN.')}p.childMode=!!on;save();renderTabs();alert(on?'Tryb dziecka WŁĄCZONY.':'Tryb dziecka WYŁĄCZONY.')}}
 
+/* ===== THEME TOGGLE ===== */
+(function themeInit(){
+  const saved = localStorage.getItem('ui-theme') || 'dark';
+  if(saved === 'light') document.documentElement.classList.add('light');
+  const btn = document.getElementById('themeToggle');
+  if(btn){
+    btn.onclick = () => {
+      document.documentElement.classList.toggle('light');
+      localStorage.setItem('ui-theme',
+        document.documentElement.classList.contains('light') ? 'light' : 'dark'
+      );
+    };
+  }
+})();
+
+/* ===== SWIPE (MOBILE) ===== */
+function enableSwipeOnRendered(){
+  let startX=0, startY=0, active=null, moved=false;
+  const THRESH = 48, MAX = 96;
+  function attach(row, onRight, onLeft){
+    row.addEventListener('touchstart', (e)=>{
+      startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+      active = row; moved=false; row.style.transition='none';
+    }, {passive:true});
+    row.addEventListener('touchmove', (e)=>{
+      if(!active) return;
+      const dx = e.touches[0].clientX - startX;
+      const dy = e.touches[0].clientY - startY;
+      if(Math.abs(dy) > Math.abs(dx)) return;
+      moved=true;
+      const off = Math.max(-MAX, Math.min(MAX, dx));
+      active.style.transform = `translateX(${off}px)`;
+      active.style.opacity = String(1 - Math.min(0.35, Math.abs(off)/300));
+    }, {passive:true});
+    row.addEventListener('touchend', ()=>{
+      if(!active) return;
+      const m = new WebKitCSSMatrix(getComputedStyle(active).transform);
+      const off = m.m41 || 0;
+      active.style.transition=''; active.style.transform=''; active.style.opacity='';
+      if(moved && off > THRESH){ onRight && onRight(); }
+      else if(moved && off < -THRESH){ onLeft && onLeft(); }
+      active=null; moved=false;
+    });
+  }
+  const p = currentPerson(); if(!p) return;
+  const rows = document.querySelectorAll('#tasksList .task');
+  const map = new Map(p.tasks.map(t=>[t.id,t]));
+  rows.forEach(row=>{
+    const cb = row.querySelector('input[type="checkbox"]');
+    const strong = row.querySelector('strong');
+    // znajdź id zadania po tytule (bezpiecznie: fallback do odhaczenia/usuń z wiersza)
+    attach(row,
+      ()=>{ if(cb){ cb.checked = true; cb.dispatchEvent(new Event('change')); } },
+      ()=>{ const del = row.querySelector('.actions .btn:last-child'); if(del) del.click(); }
+    );
+  });
+}
+
 /* ===== RENDER ROOT ===== */
 function renderLeaderboardAndStats(){renderLeaderboard();renderHeat();renderTopZones()}
 function renderAllCore(){renderTabs();renderZones();renderShop();renderTasks();renderScores();renderWeek();renderLeaderboardAndStats()}
@@ -836,84 +874,8 @@ document.getElementById('changeFamilyBtn').onclick = async () => {
   await subscribeToFamily(next.trim());
   pushToFirebase();
 };
-/* THEME TOGGLE */
-(function themeInit(){
-  const saved = localStorage.getItem('ui-theme') || 'dark';
-  if(saved === 'light') document.documentElement.classList.add('light');
-  const btn = document.getElementById('themeToggle');
-  if(btn){
-    btn.onclick = () => {
-      document.documentElement.classList.toggle('light');
-      localStorage.setItem('ui-theme',
-        document.documentElement.classList.contains('light') ? 'light' : 'dark'
-      );
-    };
-  }
-})();
-/* SWIPE GESTURES FOR TASKS (mobile) */
-(function enableSwipe(){
-  let startX=0, startY=0, active=null, moved=false;
-  const THRESH = 48;      // ile pikseli, by uznać gest
-  const MAX = 96;         // maks. przesunięcie
-
-  function attach(row, onRight, onLeft){
-    row.addEventListener('touchstart', (e)=>{
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
-      active = row; moved=false;
-      row.style.transition = 'none';
-    }, {passive:true});
-
-    row.addEventListener('touchmove', (e)=>{
-      if(!active) return;
-      const dx = e.touches[0].clientX - startX;
-      const dy = e.touches[0].clientY - startY;
-      if(Math.abs(dy) > Math.abs(dx)) return; // przewijanie pionowe
-      moved=true;
-      const off = Math.max(-MAX, Math.min(MAX, dx));
-      active.style.transform = `translateX(${off}px)`;
-      active.style.opacity = String(1 - Math.min(0.35, Math.abs(off)/300));
-    }, {passive:true});
-
-    row.addEventListener('touchend', ()=>{
-      if(!active) return;
-      const matrix = new WebKitCSSMatrix(getComputedStyle(active).transform);
-      const off = matrix.m41 || 0;
-      active.style.transition = '';
-      active.style.transform = '';
-      active.style.opacity = '';
-      if(moved && off > THRESH){ onRight && onRight(); }     // w prawo = complete
-      else if(moved && off < -THRESH){ onLeft && onLeft(); } // w lewo = delete
-      active=null; moved=false;
-    });
-  }
-
-  // Podpinamy po każdym renderze listy
-  const _origRenderTasks = renderTasks;
-  renderTasks = function(){
-    _origRenderTasks();
-    // znajdź węzły i podepnij gesty
-    const p = currentPerson(); if(!p) return;
-    const rows = document.querySelectorAll('#tasksList .task');
-    const tasks = p.tasks; // kolejność zgodna z renderem po sort
-    rows.forEach((row, idx)=>{
-      const tNode = rows[idx];
-      const titleEl = tNode.querySelector('strong');
-      // „complete” = toggle checkbox
-      const cb = tNode.querySelector('input[type="checkbox"]');
-      attach(row,
-        ()=>{ if(cb){ cb.checked = true; cb.dispatchEvent(new Event('change')); } },
-        ()=>{ // delete
-          if (p.childMode) { alert('Tryb dziecka.'); return; }
-          if(confirm('Usunąć zadanie?')){
-            const id = tasks[idx]?.id;
-            if(id){ p.tasks = p.tasks.filter(z=>z.id!==id); save(); renderAllCore(); }
-          }
-        }
-      );
-    });
-  };
-})();
+filterSel.onchange=()=>renderTasks();
+searchEl.addEventListener('input',()=>{ searchQuery = searchEl.value.trim().toLowerCase(); renderTasks(); });
 
 /* ===== PWA SW ===== */
 const skipSW = location.search.includes('nosw=1');
