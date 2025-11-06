@@ -68,6 +68,27 @@ canvas{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--border
 h3{font-weight:700}
 .card h3{display:flex;align-items:center;gap:8px}
 table#leaderboard th, table#leaderboard td{border-bottom:1px solid var(--border)}
+/* --- iPhone horizontal scroll fix --- */
+html, body { width:100%; max-width:100%; overflow-x:hidden; }
+
+/* nic nie wymusza większej szerokości niż rodzic */
+.wrap, .card, .row, .grid, .week, .statsGrid { min-width:0; }
+.btn { white-space:nowrap; }
+
+/* tabela przewija się w swoim pudełku, nie cała strona */
+table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+
+/* pigułki w widoku tygodnia nie wyjeżdżają */
+.pill { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+/* „Widok tygodnia” – na małych ekranach w 2 kolumny */
+@media (max-width: 640px) {
+  .week { grid-template-columns: 1fr 1fr; }
+  .day  { min-height: 96px; }
+  /* wąskie ekrany: drobne przycięcie stałych szerokości */
+  #taskTime { width: 110px !important; }
+}
+
 </style>
 </head>
 <body>
