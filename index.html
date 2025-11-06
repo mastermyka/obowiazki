@@ -352,6 +352,12 @@ async function tryFirebaseInit(){
 
     // 2) App Check (compat) — WSTAW SWÓJ SITE KEY W APOSTROFACH
     //    Na czas testów możesz zostawić debug token, potem usuń tę linijkę.
+    // przed activate():
+self.FIREBASE_APPCHECK_DEBUG_TOKEN = '75A5C997-A72A-4AE0-83D4-C16E2B6975A6';
+
+// zwykły SITE KEY zostaje:
+firebase.appCheck().activate('6LffMAQsAAAAAHaO0TzmnQHwSA3SPNOxJOOIFCk1', true);
+
     self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
     if (firebase.appCheck) {
       firebase.appCheck().activate('75A5C997-A72A-4AE0-83D4-C16E2B6975A6', true); // true = auto-refresh
