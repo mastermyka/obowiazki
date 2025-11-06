@@ -370,7 +370,7 @@ async function tryFirebaseInit(){
     if(!window.firebaseConfig || !window.firebaseConfig.apiKey) return;
     if(!firebase.apps?.length){ fbApp = firebase.initializeApp(window.firebaseConfig); }
     firebase.appCheck().activate("6LffMAQsAAAAAHaO0TzmnQHwSA3SPNOxJOOIFCk1", true);
-    
+
     fs = firebase.firestore();
 
     let family = localStorage.getItem('familyId');
