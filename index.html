@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -5,6 +6,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Domowe obowiązki (full)</title>
 
+
+ 
 <!-- PWA -->
 <meta name="theme-color" content="#0a84ff"/>
 <link rel="manifest" href="manifest.webmanifest" />
@@ -16,7 +19,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
 
-<!-- Shim dla reCAPTCHA v3 -->
 <script>window.process = window.process || { env: {} };</script>
 
 <!-- Firebase compat (prawidłowa kolejność) -->
@@ -25,8 +27,9 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-check-compat.js"></script>
 <script src="firebase-config.js"></script>
 
+
 <style>
-/* ====== BAZA (Twoje oryginalne style) ====== */
+/* ====== BAZA (Twoje oryginalne style, nietknięte) ====== */
 :root{--bg:#0f1113;--card:rgba(28,28,30,.72);--border:rgba(255,255,255,.08);--muted:#8e8e93;--text:#f5f5f7;--accent:#0a84ff;--ok:#30d158;--warn:#ffd60a;--danger:#ff453a;--shadow:0 8px 30px rgba(0,0,0,.35)}
 *{box-sizing:border-box}
 body{margin:0;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"Apple Color Emoji";color:var(--text);background:radial-gradient(1200px 800px at 20% -10%,#1b1d20 0%,#0f1113 60%)}
@@ -67,42 +70,43 @@ canvas{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--border
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:50}
 .dialog{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;width:min(520px,92vw)}
 .zoneTag{border:1px solid var(--border);background:rgba(255,255,255,.06);border-radius:999px;padding:4px 10px}
+
+/* drobne udoskonalenia spacingu, nagłówków i tabeli */
 h3{font-weight:700}
 .card h3{display:flex;align-items:center;gap:8px}
 table#leaderboard th, table#leaderboard td{border-bottom:1px solid var(--border)}
+/* --- iPhone horizontal scroll fix --- */
 html, body { width:100%; max-width:100%; overflow-x:hidden; }
+
+/* nic nie wymusza większej szerokości niż rodzic */
 .wrap, .card, .row, .grid, .week, .statsGrid { min-width:0; }
 .btn { white-space:nowrap; }
+
+/* tabela przewija się w swoim pudełku, nie cała strona */
 table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+
+/* pigułki w widoku tygodnia nie wyjeżdżają */
 .pill { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
-/* iPhone: „Widok tygodnia” przewijany poziomo */
-.week{
-  grid-template-columns: repeat(7, minmax(180px,1fr));
-  overflow-x:auto; -webkit-overflow-scrolling:touch;
+/* „Widok tygodnia” – na małych ekranach w 2 kolumny */
+@media (max-width: 640px) {
+  .week { grid-template-columns: 1fr 1fr; }
+  .day  { min-height: 96px; }
+  /* wąskie ekrany: drobne przycięcie stałych szerokości */
+  #taskTime { width: 110px !important; }
 }
-.week::-webkit-scrollbar{ height:6px }
-.week::-webkit-scrollbar-thumb{ background:#444; border-radius:3px }
-
-/* „Strefa domu” i współtowarzysze w 1 kolumnie na mobile */
-@media (max-width: 640px){
-  #taskZone, #taskPriority, #taskPoints,
-  #taskPenalty, #taskTime, #taskDate, #dayOfMonth, #yearlyDate,
-  #remNum, #remUnit { width:100% !important; flex:1 1 100%; }
-}
-
-/* Wiersz zadania — mobilnie akcje pod tytuł */
-@media (max-width: 520px){
-  #tasksList .task{ display:flex; flex-wrap:wrap; align-items:flex-start; gap:.5rem; }
-  #tasksList .task label{ flex:1 1 100%; min-width:100%; }
-  #tasksList .task .actions{ flex:1 1 100%; min-width:100%; display:flex; justify-content:flex-end; gap:.5rem; }
-  #tasksList .task .actions .btn{ height:42px; width:42px; padding:0; line-height:42px; }
-}
-
 /* --- LIGHT THEME --- */
 :root.light {
-  --bg:#f6f7fb; --card:#ffffffcc; --border:#e6e8ef; --muted:#64748b; --text:#0f172a;
-  --accent:#6366f1; --ok:#22c55e; --warn:#f59e0b; --danger:#ef4444; --shadow:0 12px 28px rgba(2,6,23,.14);
+  --bg:#f6f7fb;
+  --card:#ffffffcc;
+  --border:#e6e8ef;
+  --muted:#64748b;
+  --text:#0f172a;
+  --accent:#6366f1;
+  --ok:#22c55e;
+  --warn:#f59e0b;
+  --danger:#ef4444;
+  --shadow:0 12px 28px rgba(2,6,23,.14);
 }
 :root.light body{
   color:var(--text);
@@ -110,9 +114,59 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
 }
 .task .editable { cursor:text; border-radius:8px; padding:2px 4px; }
 .task .editable:focus { outline:2px solid rgba(99,102,241,.35); background:rgba(255,255,255,.06); }
-</style>
-</head>
 
+</style>
+<style id="ui-hotfix-2025-11-07">
+  /* 1) Wiersz zadania na telefonie owija się, a przyciski lecą pod tytuł */
+  @media (max-width: 480px){
+    /* Każdy wiersz zadania – jeśli masz inny selektor, niech złapie <li> / kontener taska */
+    .task-row, .zadanie-row, li[data-task], div[data-task]{
+      display:flex; flex-wrap:wrap; align-items:flex-start; gap:.5rem;
+    }
+    /* Kolumna z tytułem/opisem */
+    .task-title, .zadanie-tytul{ flex:1 1 100%; min-width:100%; }
+    /* Meta (np. strefa, priorytet) – też pełna szerokość */
+    .task-meta, .zadanie-meta{ flex:1 1 100%; min-width:100%; }
+    /* Akcje (checkboxy, kosz) lądują pod spodem po prawej */
+    .task-actions, .zadanie-akcje{
+      flex:1 1 100%; min-width:100%;
+      display:flex; justify-content:flex-end; gap:.5rem;
+    }
+    /* Sam przycisk kosza – ograniczamy wielkość, bez przesunięć */
+    .btn-trash, .btn-usun, [data-action="remove"]{
+      width:42px; height:42px; padding:0; line-height:42px;
+      transform:none !important;
+    }
+  }
+
+  /* 3) Pole „strefa domu” – na telefonie zawsze nowa linia i pełna szerokość */
+  @media (max-width: 640px){
+    .zone-field, .strefa-input{
+      display:block; width:100% !important; min-width:100%;
+      margin-top:.25rem;
+    }
+    .zone-field input, .strefa-input input{ width:100%; }
+  }
+
+  /* 4) Widok tygodnia – poziomy scroll jak tablica wyników */
+  .week-scroll{
+    display:grid;
+    grid-auto-flow:column;
+    grid-auto-columns:minmax(160px, 1fr);
+    gap:.5rem;
+    overflow-x:auto;
+    padding-bottom:.5rem;
+    overscroll-behavior-x:contain;
+    -webkit-overflow-scrolling:touch;
+  }
+  .week-scroll::-webkit-scrollbar{ height:6px }
+  .week-scroll::-webkit-scrollbar-thumb{ background:#444; border-radius:3px }
+
+  /* 5) Sekcja eksportów na sam dół: damy jej mały margines gdy jest przeniesiona */
+  .exports--moved{ margin-top:1.25rem }
+
+
+</head>
 <body>
 <div class="wrap">
   <header>
@@ -122,6 +176,7 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
       <div class="subtitle">Rodzina: <strong id="familyLabel">—</strong></div>
     </div>
     <button id="themeToggle" class="btn" title="Jasny / ciemny">☀️ / 🌙</button>
+
   </header>
 
   <div class="card">
@@ -154,16 +209,9 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
         <h3 style="margin:0">Zadania <span id="personTitle" class="muted"></span></h3>
         <div class="row">
           <label class="muted">Sortuj</label>
-          <select id="sortBy">
-            <option value="status">Status</option>
-            <option value="priority">Priorytet</option>
-            <option value="title">Tytuł A→Z</option>
-            <option value="zone">Strefa</option>
-          </select>
+          <select id="sortBy"><option value="status">Status</option><option value="priority">Priorytet</option><option value="title">Tytuł A→Z</option><option value="zone">Strefa</option></select>
           <button id="resetDailyBtn" class="btn">🔁 Reset</button>
           <button id="clearDoneBtn" class="btn">🧹 Usuń wykonane</button>
-          <!-- NOWY: przeniesiony przycisk „Czytaj” -->
-          <button id="ttsInlineBtn" class="btn">🔊 Czytaj</button>
         </div>
       </div>
       <div id="tasksList" style="margin-top:10px;display:flex;flex-direction:column;gap:10px"></div>
@@ -198,10 +246,10 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
           </select>
           <input id="taskPoints" type="number" min="1" step="1" value="1" style="width:120px"/>
         </div>
-        <div class="row" style="width:100%"><label class="muted">Kara gdy nie zrobione (⭐):</label>
+        <div class="row" style="width:100%">
+          <label class="muted">Kara gdy nie zrobione (⭐):</label>
           <input id="taskPenalty" type="number" min="0" step="1" value="1" style="width:120px" />
         </div>
-
         <div class="row" style="width:100%"><label class="muted">Przypomnij wcześniej:</label>
           <input id="remNum" type="number" min="0" step="1" value="10" style="width:100px"/>
           <select id="remUnit" style="width:150px"><option value="minutes" selected>minuty</option><option value="hours">godziny</option><option value="days">dni</option><option value="weeks">tygodnie</option><option value="months">miesiące</option><option value="years">lata</option></select>
@@ -226,7 +274,7 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
       </div>
 
       <div class="card" style="margin-top:10px">
-        <h4 style="margin:0 0 6px 0" class="muted">Szybkie korekty (nagrody/kary)</h4>
+        <h4 style="margin:0 0 6px 0">Szybkie korekty (nagrody/kary)</h4>
         <div class="row" style="width:100%">
           <input id="deltaPoints" type="number" value="1" min="1" step="1" style="width:120px"/>
           <select id="deltaScope" style="width:160px">
@@ -243,6 +291,40 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
       <h3 style="margin-top:0">Sklepik nagród 🎁</h3>
       <div id="shopList" style="display:flex;flex-direction:column;gap:8px"></div>
       <div class="row"><input id="rewardName" type="text" placeholder="np. seans filmu" style="flex:1"/><input id="rewardCost" type="number" min="1" step="1" value="10" style="width:120px"/><button id="addRewardBtn" class="btn">➕</button></div>
+
+      <hr style="border-color:var(--border);margin:14px 0"/>
+
+      <h3 style="margin-top:0">Udostępnij / Eksport</h3>
+      <div class="row">
+        <button id="mailBtn" class="btn">📧 Podsumowanie</button>
+        <button id="copyBtn" class="btn">📋 Kopiuj</button>
+        <button id="icsBtn" class="btn">📆 .ics (osoba)</button>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button id="exportCSVPersonBtn" class="btn">⬇️ CSV (osoba)</button>
+        <button id="exportCSVAllBtn" class="btn">⬇️ CSV (wszyscy)</button>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button id="exportBtn" class="btn">☁️ Zapisz JSON</button>
+        <input id="importFile" type="file" accept="application/json" style="display:none"/>
+        <button id="importBtn" class="btn">☁️ Wczytaj JSON</button>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button id="remindersBtn" class="btn">📝 Do Przypomnień (Shortcuts)</button>
+        <button id="ttsBtn" class="btn">🔊 Czytaj teraz</button>
+      </div>
+
+      <hr style="border-color:var(--border);margin:14px 0"/>
+
+      <h3 style="margin-top:0">Strefy domu</h3>
+      <div class="row">
+        <select id="zonesSelect" style="flex:1"></select>
+        <input id="newZone" type="text" placeholder="Nowa strefa" style="flex:1"/>
+        <button id="addZoneBtn" class="btn">➕</button>
+        <button id="delZoneBtn" class="btn" title="Usuń wybraną">🗑️</button>
+        <button id="randomZoneBtn" class="btn">🎲 Losuj</button>
+      </div>
+      <div id="zonesBadges" class="row" style="margin-top:8px;flex-wrap:wrap"></div>
     </aside>
   </div>
 
@@ -275,31 +357,6 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
     <h3 style="margin:0 0 6px 0">Tablica wyników</h3>
     <table id="leaderboard" style="width:100%;border-collapse:collapse"></table>
   </aside>
-
-  <div style="height:10px"></div>
-
-  <!-- PRZENIESIONA NA SAM DÓŁ: Udostępnij / Eksport -->
-  <section class="card" id="exports">
-    <h3 style="margin-top:0">Udostępnij / Eksport</h3>
-    <div class="row">
-      <button id="mailBtn" class="btn">📧 Podsumowanie</button>
-      <button id="copyBtn" class="btn">📋 Kopiuj</button>
-      <button id="icsBtn" class="btn">📆 .ics (osoba)</button>
-    </div>
-    <div class="row" style="margin-top:8px">
-      <button id="exportCSVPersonBtn" class="btn">⬇️ CSV (osoba)</button>
-      <button id="exportCSVAllBtn" class="btn">⬇️ CSV (wszyscy)</button>
-    </div>
-    <div class="row" style="margin-top:8px">
-      <button id="exportBtn" class="btn">☁️ Zapisz JSON</button>
-      <input id="importFile" type="file" accept="application/json" style="display:none"/>
-      <button id="importBtn" class="btn">☁️ Wczytaj JSON</button>
-    </div>
-    <div class="row" style="margin-top:8px">
-      <button id="remindersBtn" class="btn">📝 Do Przypomnień (Shortcuts)</button>
-      <!-- UWAGA: „Czytaj teraz” przeniesione do sekcji Zadania -->
-    </div>
-  </section>
 </div>
 
 <div id="overlay" class="overlay"><div id="dialog" class="dialog"></div></div>
@@ -437,27 +494,8 @@ function addZone(){const z=$('#newZone').value.trim(); if(!z) return; if(!db.zon
 function delZone(){const val=$('#zonesSelect').value; if(!val) return; if(!confirm(`Usunąć strefę „${val}”?`)) return; db.zones=db.zones.filter(z=>z!==val); save(); renderZones()}
 function randomZone(){ if(!db.zones.length) return alert('Brak stref'); const z=db.zones[Math.floor(Math.random()*db.zones.length)]; alert('🎲 Dzisiejsza strefa: '+z) }
 
-/* ===== SHOP (z usuwaniem nagród) ===== */
-function renderShop(){
-  const host=$('#shopList'); host.innerHTML=''; const p=currentPerson(); if(!p) return;
-  db.rewards.forEach(r=>{
-    const row=document.createElement('div'); row.className='shopItem';
-    row.innerHTML=`<div>${r.name} — <b>${r.cost}⭐</b></div>`;
-    const box=document.createElement('div'); box.className='row';
-
-    const btnUse=document.createElement('button'); btnUse.className='btn'; btnUse.textContent='Zrealizuj';
-    btnUse.onclick=()=>{ if(p.childMode){alert('Tryb dziecka — realizacja nagród zablokowana.');return}
-      if(p.scoreWeek<r.cost){alert('Za mało ⭐');return}
-      showDialog(`<h3 style="margin-top:0">Potwierdź nagrodę</h3><p>${p.name} wymienia <b>${r.cost}⭐</b> na „${r.name}”. Kontynuować?</p><div class="row" style="justify-content:flex-end"><button class="btn" onclick="closeDialog()">Anuluj</button><button class="btn" onclick="redeem('${r.id}')">✅ OK</button></div>`);
-    };
-
-    const btnDel=document.createElement('button'); btnDel.className='btn'; btnDel.title='Usuń nagrodę'; btnDel.textContent='🗑️';
-    btnDel.onclick=()=>{ if(!confirm(`Usunąć nagrodę „${r.name}”?`)) return; db.rewards=db.rewards.filter(x=>x.id!==r.id); save(); renderShop(); };
-
-    box.appendChild(btnUse); box.appendChild(btnDel);
-    row.appendChild(box); host.appendChild(row);
-  });
-}
+/* ===== SHOP ===== */
+function renderShop(){const host=$('#shopList');host.innerHTML='';const p=currentPerson();if(!p)return;db.rewards.forEach(r=>{const row=document.createElement('div');row.className='shopItem';row.innerHTML=`<div>${r.name} — <b>${r.cost}⭐</b></div>`;const btn=document.createElement('button');btn.className='btn';btn.textContent='Zrealizuj';btn.onclick=()=>{if(p.childMode){alert('Tryb dziecka — realizacja nagród zablokowana.');return}if(p.scoreWeek<r.cost){alert('Za mało ⭐');return}showDialog(`<h3 style="margin-top:0">Potwierdź nagrodę</h3><p>${p.name} wymienia <b>${r.cost}⭐</b> na „${r.name}”. Kontynuować?</p><div class="row" style="justify-content:flex-end"><button class="btn" onclick="closeDialog()">Anuluj</button><button class="btn" onclick="redeem('${r.id}')">✅ OK</button></div>`)};row.appendChild(btn);host.appendChild(row)})}
 function redeem(id){const p=currentPerson();const r=db.rewards.find(x=>x.id===id);if(!p||!r)return;p.scoreWeek-=r.cost;if(p.scoreWeek<0)p.scoreWeek=0;db.history.push({date:nowYMD(),personId:p.id,earned:0,missed:0,reward:r.name});save();closeDialog();renderScores();renderTabs()}
 
 /* ===== SCORES ===== */
@@ -465,13 +503,13 @@ const personTitleEl=$('#personTitle'),todayScoreEl=$('#todayScore'),weekScoreEl=
 function goalForToday(p){ return p.tasks.filter(dueToday).length; }
 function renderScores(){
   const p=currentPerson(); if(!p) return;
-  todayScoreEl && (todayScoreEl.textContent=p.scoreToday||0);
-  weekScoreEl && (weekScoreEl.textContent=p.scoreWeek||0);
+  todayScoreEl.textContent=p.scoreToday||0;
+  weekScoreEl.textContent=p.scoreWeek||0;
   const g = Math.max(0, goalForToday(p));
-  goalScoreEl && (goalScoreEl.textContent=g);
+  goalScoreEl.textContent=g;
   const perc = g? clamp(Math.round(100*(p.scoreToday||0)/g),0,100) : 0;
-  goalBarEl && (goalBarEl.style.width = perc+'%');
-  const penSel = $('#penaltyPolicy'); if(penSel) penSel.value='1';
+  goalBarEl.style.width = perc+'%';
+  $('#penaltyPolicy').value='1';
 }
 function latePenaltyForTask(p,t){
   if(!t.time) return 0;
@@ -575,17 +613,24 @@ function renderTasks(){
     cb.onchange=()=>{ if(p.childMode){ cb.checked=!cb.checked; alert('Tryb dziecka — blokada zmiany.'); return; }
                       toggleTask(p,t,cb.checked); save(); renderAllCore(); };
     const label=document.createElement('label');
-    label.innerHTML = `
-      <strong class="editable" contenteditable="true" spellcheck="false">${t.title}</strong>
-      <br><small>${taskBadge(t)} ${dueToday(t)?'':"<span style='color:var(--warn)'> (nie dziś)</span>"}</small>
-    `;
-    const titleEl = label.querySelector('.editable');
-    titleEl.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); titleEl.blur(); }});
-    titleEl.addEventListener('blur', ()=>{
-      const v = titleEl.textContent.trim();
-      if(v && v !== t.title){ t.title = v; save(); renderTasks(); }
-      else { titleEl.textContent = t.title; }
-    });
+   label.innerHTML = `
+  <strong class="editable" contenteditable="true" spellcheck="false">${t.title}</strong>
+  <br><small>${taskBadge(t)} ${dueToday(t)?'':"<span style='color:var(--warn)'> (nie dziś)</span>"}</small>
+`;
+const titleEl = label.querySelector('.editable');
+titleEl.addEventListener('keydown', (e)=>{
+  if(e.key==='Enter'){ e.preventDefault(); titleEl.blur(); }
+});
+titleEl.addEventListener('blur', ()=>{
+  const v = titleEl.textContent.trim();
+  if(v && v !== t.title){
+    t.title = v;
+    save(); // zachowuje i zsynchronizuje
+    renderTasks(); // odśwież znacznik (badge itp.)
+  }else{
+    titleEl.textContent = t.title; // przywróć oryginał, jeśli puste
+  }
+});
 
     const actions=document.createElement('div'); actions.className='actions';
     const editBtn=document.createElement('button'); editBtn.className='btn'; editBtn.textContent='✏️'; editBtn.onclick=()=>{ if(p.childMode){alert('Tryb dziecka.'); return;} editTask(t); save(); renderTasks(); };
@@ -791,11 +836,10 @@ function renderLeaderboard(){
   [...db.people].sort((a,b)=> b.scoreWeek-a.scoreWeek || (b.streak||0)-(a.streak||0)).forEach(p=>{
     rows.push(`<tr><td style="padding:6px">${p.name}${p.childMode?' 👶':''}</td><td style="padding:6px">${p.streak||0}</td><td style="padding:6px">${p.scoreWeek}</td><td style="padding:6px">${p.scoreToday}</td><td style="padding:6px">${p.icsTime||'07:00'}</td></tr>`);
   });
-  const table=$('#leaderboard'); if(table) table.innerHTML=rows.join('');
+  leaderboardEl.innerHTML=rows.join('');
 }
 function renderHeat(){
-  const cvs=$('#heat'); if(!cvs) return;
-  const ctx=cvs.getContext('2d'), W=cvs.width, H=cvs.height;
+  const cvs=$('#heat'), ctx=cvs.getContext('2d'), W=cvs.width, H=cvs.height;
   ctx.clearRect(0,0,W,H);
   const cols=7, rows=6, pad=12, cw=(W-pad*2)/cols, ch=(H-pad*2)/rows;
   const map={}; const last=new Date();
@@ -805,7 +849,7 @@ function renderHeat(){
   let idx=0; for(let r=0;r<rows;r++){ for(let c=0;c<cols;c++){ const k=keys[idx++]; const v=map[k]||0; const x=pad+c*cw, y=pad+r*ch, a=v/max; ctx.fillStyle=`rgba(10,132,255,${0.15+0.75*a})`; ctx.fillRect(x+3,y+3,cw-6,ch-6); } }
 }
 function renderTopZones(){
-  const list=$('#topZones'); if(!list) return; list.innerHTML='';
+  const list=$('#topZones'); list.innerHTML='';
   const cutoff=new Date(); cutoff.setDate(cutoff.getDate()-30);
   const agg={};
   db.history.forEach(h=>{
@@ -836,7 +880,7 @@ function renderAll(){renderDate();renderAllCore()}
 /* ===== BINDINGS ===== */
 $('#addPersonBtn').onclick=addPerson;$('#renamePersonBtn').onclick=renamePerson;$('#removePersonBtn').onclick=removePerson;$('#setGoalBtn').onclick=setGoal;$('#setIcsBtn').onclick=setIcs;$('#pinBtn').onclick=pinDialog;
 $('#addTaskBtn').onclick=addTask;$('#resetDailyBtn').onclick=()=>{db.people.forEach(p=>p.tasks.forEach(t=>{if((t.schedType||'daily')==='daily')t.done=false}));save();renderTasks()};$('#clearDoneBtn').onclick=()=>{const p=currentPerson();p.tasks=p.tasks.filter(t=>!((t.schedType==='once'||t.repeat==='once')&&t.done));save();renderTasks()};
-$('#mailBtn').onclick=sendMail;$('#copyBtn').onclick=copyToClipboard;$('#icsBtn').onclick=shareICSForCurrentPerson;$('#remindersBtn').onclick=()=>{const payload={date:nowYMD(),people:db.people.map(p=>({name:p.name,items:p.tasks.filter(dueToday).map(t=>({title:t.title,time:t.time||'07:00',zone:t.zone||'',points:t.points||1}))}))};const text='CHORES_PAYLOAD\n'+JSON.stringify(payload);copy(text).then(()=>{location.href='shortcuts://run-shortcut?name=Chores%20Import'}).catch(()=>alert('Skopiuj ręcznie:\n\n'+text))};
+$('#mailBtn').onclick=sendMail;$('#copyBtn').onclick=copyToClipboard;$('#icsBtn').onclick=shareICSForCurrentPerson;$('#ttsBtn').onclick=speakNow;$('#remindersBtn').onclick=()=>{const payload={date:nowYMD(),people:db.people.map(p=>({name:p.name,items:p.tasks.filter(dueToday).map(t=>({title:t.title,time:t.time||'07:00',zone:t.zone||'',points:t.points||1}))}))};const text='CHORES_PAYLOAD\n'+JSON.stringify(payload);copy(text).then(()=>{location.href='shortcuts://run-shortcut?name=Chores%20Import'}).catch(()=>alert('Skopiuj ręcznie:\n\n'+text))};
 $('#exportBtn').onclick=exportJSON;$('#importBtn').onclick=()=>$('#importFile').click();$('#importFile').onchange=e=>{const f=e.target.files[0];if(f)importJSONFromFile(f)};
 $('#exportCSVPersonBtn').onclick=()=>{const p=currentPerson();if(!p)return;const header=['Osoba','Tytuł','Harmonogram','DOWs','Punkty','Kara','Priorytet','Strefa','Zrobione'];const rows=[header.join(',')];p.tasks.forEach(t=>rows.push([p.name,t.title,t.schedType||'daily',(t.dows||[]).join('|'),t.points||0,t.penalty??1,t.priority||'med',t.zone||'',t.done?'1':'0'].map(v=>'"'+String(v).replaceAll('"','""')+'"').join(',')));const blob=new Blob([rows.join('\n')],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`obowiazki-${p.name}.csv`;a.click();URL.revokeObjectURL(a.href)};
 $('#exportCSVAllBtn').onclick=()=>{const header=['Osoba','Tytuł','Harmonogram','DOWs','Punkty','Kara','Priorytet','Strefa','Zrobione'];const rows=[header.join(',')];db.people.forEach(p=>p.tasks.forEach(t=>rows.push([p.name,t.title,t.schedType||'daily',(t.dows||[]).join('|'),t.points||0,t.penalty??1,t.priority||'med',t.zone||'',t.done?'1':'0'].map(v=>'"'+String(v).replaceAll('"','""')+'"').join(','))));const blob=new Blob([rows.join('\n')],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='obowiazki-wszyscy.csv';a.click();URL.revokeObjectURL(a.href)};
@@ -844,30 +888,13 @@ $('#endDayBtn').onclick=endDay;$('#endWeekBtn').onclick=endWeek;$('#sortBy').onc
 $('#addZoneBtn').onclick=addZone;$('#delZoneBtn').onclick=delZone;$('#randomZoneBtn').onclick=randomZone;
 $('#deltaMinus').onclick=()=>manualDelta(-1);
 $('#deltaPlus').onclick=()=>manualDelta(1);
-/* nowy bind dla przeniesionego „Czytaj” */
 document.getElementById('changeFamilyBtn').onclick = async () => {
   const curr = localStorage.getItem('familyId') || '';
   const next = prompt('ID rodziny (wspólna nazwa grupy):', curr);
   if (!next) return;
-
-  const id = next.trim();
-
-  // zapamiętaj od razu
-  localStorage.setItem('familyId', id);
-
-  // odśwież label
-  setFamilyLabel(id);
-
-  // przepnij listenera Firestore
-  await subscribeToFamily(id);
-
-  // upewnij się że dokument istnieje
+  await subscribeToFamily(next.trim());
   pushToFirebase();
-
-  alert('Zmieniono rodzinę na: ' + id);
 };
-
-
 /* THEME TOGGLE */
 (function themeInit(){
   const saved = localStorage.getItem('ui-theme') || 'dark';
@@ -882,11 +909,11 @@ document.getElementById('changeFamilyBtn').onclick = async () => {
     };
   }
 })();
-
 /* SWIPE GESTURES FOR TASKS (mobile) */
 (function enableSwipe(){
   let startX=0, startY=0, active=null, moved=false;
-  const THRESH = 48; const MAX = 96;
+  const THRESH = 48;      // ile pikseli, by uznać gest
+  const MAX = 96;         // maks. przesunięcie
 
   function attach(row, onRight, onLeft){
     row.addEventListener('touchstart', (e)=>{
@@ -900,7 +927,7 @@ document.getElementById('changeFamilyBtn').onclick = async () => {
       if(!active) return;
       const dx = e.touches[0].clientX - startX;
       const dy = e.touches[0].clientY - startY;
-      if(Math.abs(dy) > Math.abs(dx)) return;
+      if(Math.abs(dy) > Math.abs(dx)) return; // przewijanie pionowe
       moved=true;
       const off = Math.max(-MAX, Math.min(MAX, dx));
       active.style.transform = `translateX(${off}px)`;
@@ -914,27 +941,34 @@ document.getElementById('changeFamilyBtn').onclick = async () => {
       active.style.transition = '';
       active.style.transform = '';
       active.style.opacity = '';
-      if(moved && off > THRESH){ onRight && onRight(); }
-      else if(moved && off < -THRESH){ onLeft && onLeft(); }
+      if(moved && off > THRESH){ onRight && onRight(); }     // w prawo = complete
+      else if(moved && off < -THRESH){ onLeft && onLeft(); } // w lewo = delete
       active=null; moved=false;
     });
   }
 
+  // Podpinamy po każdym renderze listy
   const _origRenderTasks = renderTasks;
   renderTasks = function(){
     _origRenderTasks();
+    // znajdź węzły i podepnij gesty
     const p = currentPerson(); if(!p) return;
     const rows = document.querySelectorAll('#tasksList .task');
-    const tasks = p.tasks;
+    const tasks = p.tasks; // kolejność zgodna z renderem po sort
     rows.forEach((row, idx)=>{
-      const cb = row.querySelector('input[type="checkbox"]');
+      const tNode = rows[idx];
+      const titleEl = tNode.querySelector('strong');
+      // „complete” = toggle checkbox
+      const cb = tNode.querySelector('input[type="checkbox"]');
       attach(row,
         ()=>{ if(cb){ cb.checked = true; cb.dispatchEvent(new Event('change')); } },
-        ()=>{ if (p.childMode) { alert('Tryb dziecka.'); return; }
-              if(confirm('Usunąć zadanie?')){
-                const id = tasks[idx]?.id;
-                if(id){ p.tasks = p.tasks.filter(z=>z.id!==id); save(); renderAllCore(); }
-              } }
+        ()=>{ // delete
+          if (p.childMode) { alert('Tryb dziecka.'); return; }
+          if(confirm('Usunąć zadanie?')){
+            const id = tasks[idx]?.id;
+            if(id){ p.tasks = p.tasks.filter(z=>z.id!==id); save(); renderAllCore(); }
+          }
+        }
       );
     });
   };
@@ -947,10 +981,6 @@ if('serviceWorker' in navigator && !skipSW){
     navigator.serviceWorker.register('./sw.js').catch(()=>{});
   });
 }
-// Jeśli w URL jest ?forcefamily=1 — zapytaj o rodzinę od nowa
-if (new URLSearchParams(location.search).has('forcefamily')) {
-  localStorage.removeItem('familyId');
-}
 
 /* ===== INIT ===== */
 document.addEventListener('DOMContentLoaded', () => {
@@ -958,41 +988,212 @@ document.addEventListener('DOMContentLoaded', () => {
   tryFirebaseInit();
 });
 </script>
-  <!-- wymuś pytanie o rodzinę przez ?forcefamily=1 -->
-<script>
-  if (new URLSearchParams(location.search).has('forcefamily')) {
-    try { localStorage.removeItem('familyId'); } catch(_) {}
-  }
-</script>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  const CHANGE_BTN_SEL = '#changeFamilyBtn, button[title*="Zmień rodzinę"], button[title*="rodzinę"]';
+ <script>
+/* 2) USUWANIE NAGRÓD – delikatny delegowany handler.
+   Zakładam, że przy każdej nagrodzie masz element z atrybutem data-reward-id
+   i przynajmniej znamy familyId i osobę (personId). Nic nie rusza Firebase init. */
+(function(){
+  // Bezpiecznie wyciągamy te funkcje/zmienne, które już masz w appce:
+  const db = window.fs || (window.firebase && firebase.firestore && firebase.firestore());
+  const getFamilyId = () => localStorage.getItem('familyId') || 'rodzina-m';
 
-  async function doChangeFamily() {
-    const curr = localStorage.getItem('familyId') || '';
-    const next = prompt('ID rodziny (wspólna nazwa grupy):', curr);
-    if (!next) return;
+  // 2a) Delegacja klików na przyciskach usuwania nagród
+  document.addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-action="remove-reward"], .reward-remove, .usun-nagrode');
+    if(!btn) return;
 
-    const id = String(next).trim();
-    localStorage.setItem('familyId', id);
-    if (typeof setFamilyLabel === 'function') setFamilyLabel(id);
+    const rewardEl = btn.closest('[data-reward-id]');
+    const rewardId  = rewardEl && rewardEl.getAttribute('data-reward-id');
+    const personId  = rewardEl && rewardEl.getAttribute('data-person-id'); // w razie czego dodaj ten atrybut w markupie
 
-    try { await subscribeToFamily(id); } catch(_) {}
-    try { await pushToFirebase(); } catch(_) {}
-    alert('Zmieniono rodzinę na: ' + id);
-  }
+    if(!rewardId || !personId){ console.warn('Brakuje data-reward-id / data-person-id'); return; }
 
-  // 1) klasyczne bindowanie – jeśli przycisk istnieje
-  const btn = document.querySelector(CHANGE_BTN_SEL);
-  if (btn) btn.addEventListener('click', (e) => { e.preventDefault(); doChangeFamily(); });
+    if(!confirm('Usunąć tę nagrodę?')) return;
 
-  // 2) delegacja – działa nawet jeśli przycisk został dorenderowany później
-  document.addEventListener('click', (e) => {
-    if (e.target.closest(CHANGE_BTN_SEL)) { e.preventDefault(); doChangeFamily(); }
+    try{
+      // Schemat zapisu – dopasuj do swojego modelu. U Ciebie cały payload siedzi w jednym dokumencie.
+      const familyId = getFamilyId();
+      const ref = db.collection('organizer').doc(familyId);
+      const snap = await ref.get();
+      if(!snap.exists) return;
+
+      const data = snap.data() || {};
+      const payload = JSON.parse(data.payload || '{}');
+
+      // Szukamy osoby i filtrujemy nagrody
+      const person = (payload.people || payload.person || []).find(p => p.id === personId || p.key === personId);
+      if(!person){ alert('Nie znaleziono osoby'); return; }
+
+      person.rewards = (person.rewards || []).filter(r => r.id !== rewardId && r.key !== rewardId);
+
+      await ref.set({
+        ...data,
+        payload: JSON.stringify(payload),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge:true });
+
+      // Usuń z DOM
+      rewardEl.remove();
+    }catch(err){
+      console.error('Błąd usuwania nagrody:', err);
+      alert('Nie udało się usunąć nagrody.');
+    }
   });
+
+  // 4) WIDOK TYGODNIA – jeśli masz kontener tygodnia, dodajemy klasę do poziomego scrolla
+  // Dostosuj selektor do swojego markup’u:
+  const week = document.querySelector('#week, .week, [data-section="week"]');
+  if(week) week.classList.add('week-scroll');
+
+  // 5) PRZENOSINY SEKcji „Eksporty” na sam dół i „Czytaj” pod zadania osobiste
+  document.addEventListener('DOMContentLoaded', () => {
+    const appRoot = document.querySelector('#app, main, body'); // główny kontener
+    const exportsSec = document.querySelector('#exports, .exports, [data-section="exports"]');
+    if (appRoot && exportsSec){
+      appRoot.appendChild(exportsSec);
+      exportsSec.classList.add('exports--moved');
+    }
+
+    // Przeniesienie przycisku „Czytaj” pod zadania danej osoby:
+    // Dostosuj selektory jeżeli masz inne id/klasy.
+    const readBtn = document.querySelector('#readBtn, .btn-czytaj, [data-action="read"]');
+    const tasksOfPerson = document.querySelector('#tasks-of-person, .osoba-zadania, [data-section="tasks"]');
+    if (readBtn && tasksOfPerson){
+      tasksOfPerson.appendChild(readBtn);
+    }
+  });
+})();
+</script>
+<!-- ===== UI HOTFIX (tylko wygląd; nie zmienia logiki Firebase/FamilyID) ===== -->
+<style id="ui-hotfix">
+  /* 1) Wiersz zadania na telefonie: zawijanie, akcje pod spodem, kosz nie wyjeżdża */
+  @media (max-width: 480px){
+    #tasksList .task{
+      display:flex; flex-wrap:wrap; align-items:flex-start; gap:.5rem;
+    }
+    #tasksList .task label{ flex:1 1 100%; min-width:100%; }
+    #tasksList .task .actions{
+      flex:1 1 100%; min-width:100%;
+      display:flex; justify-content:flex-end; gap:.5rem;
+    }
+    #tasksList .task .actions .btn{
+      width:42px; height:42px; padding:0; line-height:42px;
+      transform:none !important;
+    }
+  }
+
+  /* 2) „Strefa domu” – na telefonie pełna szerokość i osobna linia */
+  @media (max-width: 640px){
+    .zone-field, .strefa-input{
+      display:block; width:100% !important; min-width:100%;
+      margin-top:.25rem;
+    }
+    .zone-field input, .strefa-input input{ width:100%; }
+  }
+
+  /* 3) Widok tygodnia – poziomy scroll (jak tablica wyników) */
+  #weekGrid.week-scroll{
+    display:grid;
+    grid-auto-flow:column;
+    grid-auto-columns:minmax(160px, 1fr);
+    gap:.5rem;
+    overflow-x:auto;
+    padding-bottom:.5rem;
+    overscroll-behavior-x:contain;
+    -webkit-overflow-scrolling:touch;
+  }
+  #weekGrid.week-scroll::-webkit-scrollbar{ height:6px }
+  #weekGrid.week-scroll::-webkit-scrollbar-thumb{ background:#444; border-radius:3px }
+</style>
+
+<script>
+/* Tydzień przewijany poziomo — tylko klasę dokładamy */
+document.addEventListener('DOMContentLoaded', () => {
+  const grid = document.getElementById('weekGrid');
+  if (grid) grid.classList.add('week-scroll');
 });
 </script>
 
-</body>
+<script>
+/* Sklepik: dodaj „Usuń nagrodę” — używa wyłącznie Twojego save()/db, nie dotyka Firebase bezpośrednio */
+(function attachRewardDelete(){
+  // nadpisujemy istniejącą renderShop, ale wyłącznie UI; zapis leci przez save()
+  const originalSave = (typeof save === 'function') ? save : function(){};
+  window.renderShop = function(){
+    const host = document.getElementById('shopList');
+    if(!host) return;
+    host.innerHTML = '';
+    const p = (typeof currentPerson === 'function') ? currentPerson() : null;
+    if(!p) return;
+
+    (db?.rewards || []).forEach(r=>{
+      const row = document.createElement('div');
+      row.className = 'shopItem';
+      row.innerHTML = `<div>${r.name} — <b>${r.cost}⭐</b></div>`;
+
+      const box = document.createElement('div');
+      box.style.display = 'flex';
+      box.style.gap = '6px';
+
+      // Zrealizuj (jak wcześniej)
+      const useBtn = document.createElement('button');
+      useBtn.className = 'btn';
+      useBtn.textContent = 'Zrealizuj';
+      useBtn.onclick = ()=>{
+        if(p.childMode){ alert('Tryb dziecka — realizacja nagród zablokowana.'); return; }
+        if(p.scoreWeek < r.cost){ alert('Za mało ⭐'); return; }
+        if(typeof showDialog === 'function'){
+          showDialog(
+            `<h3 style="margin-top:0">Potwierdź nagrodę</h3>
+             <p>${p.name} wymienia <b>${r.cost}⭐</b> na „${r.name}”. Kontynuować?</p>
+             <div class="row" style="justify-content:flex-end">
+               <button class="btn" onclick="closeDialog()">Anuluj</button>
+               <button class="btn" onclick="redeem('${r.id}')">✅ OK</button>
+             </div>`
+          );
+        }
+      };
+
+      // Usuń
+      const delBtn = document.createElement('button');
+      delBtn.className = 'btn';
+      delBtn.title = 'Usuń nagrodę';
+      delBtn.textContent = '🗑️';
+      delBtn.onclick = ()=>{
+        if(!confirm(`Usunąć nagrodę „${r.name}”?`)) return;
+        db.rewards = (db.rewards || []).filter(x => x.id !== r.id);
+        originalSave();
+        window.renderShop(); // odśwież listę
+      };
+
+      box.appendChild(useBtn);
+      box.appendChild(delBtn);
+      row.appendChild(box);
+      host.appendChild(row);
+    });
+  };
+})();
+</script>
+
+<script>
+/* Przenieś sekcję „Udostępnij / Eksport” na sam dół strony (bez zmian HTML) */
+document.addEventListener('DOMContentLoaded', () => {
+  try{
+    const wrap = document.querySelector('.wrap');
+    if(!wrap) return;
+
+    // Znajdź kartę, która ma nagłówek zaczynający się od „Udostępnij”
+    const cards = Array.from(document.querySelectorAll('.card'));
+    const exportsCard = cards.find(c => (c.querySelector('h3')?.textContent || '').trim().startsWith('Udostępnij'));
+    if(exportsCard){
+      wrap.appendChild(exportsCard);           // na koniec
+      exportsCard.classList.add('exports--moved');
+    }
+  }catch(_){}
+});
+</script>
+<!-- ===== /UI HOTFIX ===== -->
+
+ </body>
 </html>
