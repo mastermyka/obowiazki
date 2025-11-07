@@ -150,9 +150,26 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
   overflow:hidden;
 }
 
+  /* Splash overlay */
+  #splash {
+    position: fixed; inset: 0; z-index: 9999;
+    display:flex; align-items:center; justify-content:center;
+    background: var(--bg, #0f1113);  /* pasuje do motywu */
+  }
+  #splash .logo {
+    width: 120px; height: 120px; border-radius: 24px;
+    display:flex; align-items:center; justify-content:center;
+    font-size: 56px;
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.08);
+    box-shadow: 0 8px 30px rgba(0,0,0,.35);
+  }
+
 </style>
 </head>
 <body>
+ <div id="splash"><div class="logo">🧹</div></div>
+
 <div class="wrap">
   <header>
     <div class="title"><span class="dot"></span> Domowy organizer — PRO 3</div>
@@ -983,6 +1000,12 @@ if('serviceWorker' in navigator && !skipSW){
 /* ===== INIT ===== */
 document.addEventListener('DOMContentLoaded', () => {
   renderAll();
+ <script>
+  function hideSplash(){ const el = document.getElementById('splash'); if(el) el.style.display='none'; }
+  // po załadowaniu UI:
+  document.addEventListener('DOMContentLoaded', ()=> setTimeout(hideSplash, 200)); // albo po Twoim tryFirebaseInit()
+</script>
+
   tryFirebaseInit();
 });
 </script>
