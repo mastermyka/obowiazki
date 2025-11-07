@@ -1115,6 +1115,39 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 <!-- ===== /UI HOTFIX ===== -->
+<script>
+/* Przenieś kartę "Udostępnij / Eksport" na sam dół po każdym renderze */
+(function(){
+  function moveExports(){
+    const wrap = document.querySelector('.wrap') || document.body;
+    const h3s = Array.from(document.querySelectorAll('h3'));
+    const expH = h3s.find(h => /Udostępnij\s*\/\s*Eksport/i.test(h.textContent));
+    if(!expH) return;
+    const card = expH.closest('.card') || expH.parentElement;
+    if(card && wrap && card.parentElement !== wrap){
+      wrap.appendChild(card);
+      card.classList.add('exports--moved');
+    }
+  }
+
+  // raz po załadowaniu
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', moveExports);
+  } else {
+    moveExports();
+  }
+
+  // i po każdym re-renderze aplikacji
+  const orig = window.renderAllCore;
+  if (typeof orig === 'function'){
+    window.renderAllCore = function(){
+      const r = orig.apply(this, arguments);
+      moveExports();
+      return r;
+    };
+  }
+})();
+</script>
 
 </body>
 </html>
