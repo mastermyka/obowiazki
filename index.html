@@ -922,6 +922,19 @@ document.getElementById('changeFamilyBtn').onclick = async () => {
     });
   };
 })();
+<script>
+// --- Przenieś "Czytaj teraz" z eksportów do panelu z zadaniami ---
+document.addEventListener('DOMContentLoaded', () => {
+  const ttsBtn  = document.getElementById('ttsBtn');
+  // to jest wiersz z: Sortuj / Reset / Usuń wykonane
+  const taskToolbar = document.querySelector('section.card > div.row > div.row'); 
+  if (ttsBtn && taskToolbar) {
+    taskToolbar.appendChild(ttsBtn);
+    // delikatny odstęp, żeby ładnie siadł obok przycisków
+    ttsBtn.style.marginLeft = '8px';
+  }
+});
+</script>
 
 /* ===== PWA SW ===== */
 const skipSW = location.search.includes('nosw=1');
