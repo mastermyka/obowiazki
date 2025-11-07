@@ -958,5 +958,41 @@ document.addEventListener('DOMContentLoaded', () => {
   tryFirebaseInit();
 });
 </script>
+  <!-- wymuś pytanie o rodzinę przez ?forcefamily=1 -->
+<script>
+  if (new URLSearchParams(location.search).has('forcefamily')) {
+    try { localStorage.removeItem('familyId'); } catch(_) {}
+  }
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const CHANGE_BTN_SEL = '#changeFamilyBtn, button[title*="Zmień rodzinę"], button[title*="rodzinę"]';
+
+  async function doChangeFamily() {
+    const curr = localStorage.getItem('familyId') || '';
+    const next = prompt('ID rodziny (wspólna nazwa grupy):', curr);
+    if (!next) return;
+
+    const id = String(next).trim();
+    localStorage.setItem('familyId', id);
+    if (typeof setFamilyLabel === 'function') setFamilyLabel(id);
+
+    try { await subscribeToFamily(id); } catch(_) {}
+    try { await pushToFirebase(); } catch(_) {}
+    alert('Zmieniono rodzinę na: ' + id);
+  }
+
+  // 1) klasyczne bindowanie – jeśli przycisk istnieje
+  const btn = document.querySelector(CHANGE_BTN_SEL);
+  if (btn) btn.addEventListener('click', (e) => { e.preventDefault(); doChangeFamily(); });
+
+  // 2) delegacja – działa nawet jeśli przycisk został dorenderowany później
+  document.addEventListener('click', (e) => {
+    if (e.target.closest(CHANGE_BTN_SEL)) { e.preventDefault(); doChangeFamily(); }
+  });
+});
+</script>
+
 </body>
 </html>
