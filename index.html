@@ -115,6 +115,56 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
 .task .editable:focus { outline:2px solid rgba(99,102,241,.35); background:rgba(255,255,255,.06); }
 
 </style>
+<style id="ui-hotfix-2025-11-07">
+  /* 1) Wiersz zadania na telefonie owija się, a przyciski lecą pod tytuł */
+  @media (max-width: 480px){
+    /* Każdy wiersz zadania – jeśli masz inny selektor, niech złapie <li> / kontener taska */
+    .task-row, .zadanie-row, li[data-task], div[data-task]{
+      display:flex; flex-wrap:wrap; align-items:flex-start; gap:.5rem;
+    }
+    /* Kolumna z tytułem/opisem */
+    .task-title, .zadanie-tytul{ flex:1 1 100%; min-width:100%; }
+    /* Meta (np. strefa, priorytet) – też pełna szerokość */
+    .task-meta, .zadanie-meta{ flex:1 1 100%; min-width:100%; }
+    /* Akcje (checkboxy, kosz) lądują pod spodem po prawej */
+    .task-actions, .zadanie-akcje{
+      flex:1 1 100%; min-width:100%;
+      display:flex; justify-content:flex-end; gap:.5rem;
+    }
+    /* Sam przycisk kosza – ograniczamy wielkość, bez przesunięć */
+    .btn-trash, .btn-usun, [data-action="remove"]{
+      width:42px; height:42px; padding:0; line-height:42px;
+      transform:none !important;
+    }
+  }
+
+  /* 3) Pole „strefa domu” – na telefonie zawsze nowa linia i pełna szerokość */
+  @media (max-width: 640px){
+    .zone-field, .strefa-input{
+      display:block; width:100% !important; min-width:100%;
+      margin-top:.25rem;
+    }
+    .zone-field input, .strefa-input input{ width:100%; }
+  }
+
+  /* 4) Widok tygodnia – poziomy scroll jak tablica wyników */
+  .week-scroll{
+    display:grid;
+    grid-auto-flow:column;
+    grid-auto-columns:minmax(160px, 1fr);
+    gap:.5rem;
+    overflow-x:auto;
+    padding-bottom:.5rem;
+    overscroll-behavior-x:contain;
+    -webkit-overflow-scrolling:touch;
+  }
+  .week-scroll::-webkit-scrollbar{ height:6px }
+  .week-scroll::-webkit-scrollbar-thumb{ background:#444; border-radius:3px }
+
+  /* 5) Sekcja eksportów na sam dół: damy jej mały margines gdy jest przeniesiona */
+  .exports--moved{ margin-top:1.25rem }
+
+
 </head>
 <body>
 <div class="wrap">
@@ -937,5 +987,83 @@ document.addEventListener('DOMContentLoaded', () => {
   tryFirebaseInit();
 });
 </script>
-</body>
+
+ <script>
+/* 2) USUWANIE NAGRÓD – delikatny delegowany handler.
+   Zakładam, że przy każdej nagrodzie masz element z atrybutem data-reward-id
+   i przynajmniej znamy familyId i osobę (personId). Nic nie rusza Firebase init. */
+(function(){
+  // Bezpiecznie wyciągamy te funkcje/zmienne, które już masz w appce:
+  const db = window.fs || (window.firebase && firebase.firestore && firebase.firestore());
+  const getFamilyId = () => localStorage.getItem('familyId') || 'rodzina-m';
+
+  // 2a) Delegacja klików na przyciskach usuwania nagród
+  document.addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-action="remove-reward"], .reward-remove, .usun-nagrode');
+    if(!btn) return;
+
+    const rewardEl = btn.closest('[data-reward-id]');
+    const rewardId  = rewardEl && rewardEl.getAttribute('data-reward-id');
+    const personId  = rewardEl && rewardEl.getAttribute('data-person-id'); // w razie czego dodaj ten atrybut w markupie
+
+    if(!rewardId || !personId){ console.warn('Brakuje data-reward-id / data-person-id'); return; }
+
+    if(!confirm('Usunąć tę nagrodę?')) return;
+
+    try{
+      // Schemat zapisu – dopasuj do swojego modelu. U Ciebie cały payload siedzi w jednym dokumencie.
+      const familyId = getFamilyId();
+      const ref = db.collection('organizer').doc(familyId);
+      const snap = await ref.get();
+      if(!snap.exists) return;
+
+      const data = snap.data() || {};
+      const payload = JSON.parse(data.payload || '{}');
+
+      // Szukamy osoby i filtrujemy nagrody
+      const person = (payload.people || payload.person || []).find(p => p.id === personId || p.key === personId);
+      if(!person){ alert('Nie znaleziono osoby'); return; }
+
+      person.rewards = (person.rewards || []).filter(r => r.id !== rewardId && r.key !== rewardId);
+
+      await ref.set({
+        ...data,
+        payload: JSON.stringify(payload),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge:true });
+
+      // Usuń z DOM
+      rewardEl.remove();
+    }catch(err){
+      console.error('Błąd usuwania nagrody:', err);
+      alert('Nie udało się usunąć nagrody.');
+    }
+  });
+
+  // 4) WIDOK TYGODNIA – jeśli masz kontener tygodnia, dodajemy klasę do poziomego scrolla
+  // Dostosuj selektor do swojego markup’u:
+  const week = document.querySelector('#week, .week, [data-section="week"]');
+  if(week) week.classList.add('week-scroll');
+
+  // 5) PRZENOSINY SEKcji „Eksporty” na sam dół i „Czytaj” pod zadania osobiste
+  document.addEventListener('DOMContentLoaded', () => {
+    const appRoot = document.querySelector('#app, main, body'); // główny kontener
+    const exportsSec = document.querySelector('#exports, .exports, [data-section="exports"]');
+    if (appRoot && exportsSec){
+      appRoot.appendChild(exportsSec);
+      exportsSec.classList.add('exports--moved');
+    }
+
+    // Przeniesienie przycisku „Czytaj” pod zadania danej osoby:
+    // Dostosuj selektory jeżeli masz inne id/klasy.
+    const readBtn = document.querySelector('#readBtn, .btn-czytaj, [data-action="read"]');
+    const tasksOfPerson = document.querySelector('#tasks-of-person, .osoba-zadania, [data-section="tasks"]');
+    if (readBtn && tasksOfPerson){
+      tasksOfPerson.appendChild(readBtn);
+    }
+  });
+})();
+</script>
+
+ </body>
 </html>
