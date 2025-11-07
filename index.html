@@ -934,6 +934,10 @@ if('serviceWorker' in navigator && !skipSW){
     navigator.serviceWorker.register('./sw.js').catch(()=>{});
   });
 }
+// Jeśli w URL jest ?forcefamily=1 — zapytaj o rodzinę od nowa
+if (new URLSearchParams(location.search).has('forcefamily')) {
+  localStorage.removeItem('familyId');
+}
 
 /* ===== INIT ===== */
 document.addEventListener('DOMContentLoaded', () => {
