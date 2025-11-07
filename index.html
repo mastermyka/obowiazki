@@ -845,15 +845,28 @@ $('#addZoneBtn').onclick=addZone;$('#delZoneBtn').onclick=delZone;$('#randomZone
 $('#deltaMinus').onclick=()=>manualDelta(-1);
 $('#deltaPlus').onclick=()=>manualDelta(1);
 /* nowy bind dla przeniesionego „Czytaj” */
-const ttsInline=document.getElementById('ttsInlineBtn'); if(ttsInline) ttsInline.onclick = speakNow;
-
 document.getElementById('changeFamilyBtn').onclick = async () => {
   const curr = localStorage.getItem('familyId') || '';
   const next = prompt('ID rodziny (wspólna nazwa grupy):', curr);
   if (!next) return;
-  await subscribeToFamily(next.trim());
+
+  const id = next.trim();
+
+  // zapamiętaj od razu
+  localStorage.setItem('familyId', id);
+
+  // odśwież label
+  setFamilyLabel(id);
+
+  // przepnij listenera Firestore
+  await subscribeToFamily(id);
+
+  // upewnij się że dokument istnieje
   pushToFirebase();
+
+  alert('Zmieniono rodzinę na: ' + id);
 };
+
 
 /* THEME TOGGLE */
 (function themeInit(){
