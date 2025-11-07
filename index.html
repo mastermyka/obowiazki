@@ -998,16 +998,21 @@ if('serviceWorker' in navigator && !skipSW){
 }
 
 /* ===== INIT ===== */
+function hideSplash(){
+  const el = document.getElementById('splash');
+  if (el) el.remove();               // usuwamy całkiem; bez migotania
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   renderAll();
- <script>
-  function hideSplash(){ const el = document.getElementById('splash'); if(el) el.style.display='none'; }
-  // po załadowaniu UI:
-  document.addEventListener('DOMContentLoaded', ()=> setTimeout(hideSplash, 200)); // albo po Twoim tryFirebaseInit()
-</script>
-
   tryFirebaseInit();
+  // schowaj splash chwile po wyrenderowaniu UI
+  setTimeout(hideSplash, 200);
 });
+
+// dodatkowy bezpiecznik gdyby coś się dłuużej ładowało
+window.addEventListener('load', hideSplash);
+
 </script>
 <!-- ===== UI HOTFIX (tylko wygląd; nie zmienia logiki Firebase/FamilyID) ===== -->
 <style id="ui-hotfix">
