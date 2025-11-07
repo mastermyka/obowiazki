@@ -113,6 +113,42 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
 }
 .task .editable { cursor:text; border-radius:8px; padding:2px 4px; }
 .task .editable:focus { outline:2px solid rgba(99,102,241,.35); background:rgba(255,255,255,.06); }
+/* Mobile: w "Strefy domu" selektor na pełną szerokość i jako pierwszy wiersz */
+@media (max-width: 640px){
+  #zonesSelect{
+    flex: 1 1 100% !important;
+    min-width: 100%;
+    order: -1;               /* przenieś na samą górę w wierszu */
+    margin-bottom: 8px;
+  }
+  #newZone{                  /* pole "Nowa strefa" też wygodniej szerzej */
+    flex: 1 1 100%;
+    min-width: 100%;
+  }
+}
+/* Mobile: w formularzu dodawania zadania strefa na osobnej linii */
+@media (max-width: 640px){
+  #taskZone{
+    display:block;
+    flex: 1 1 100% !important;
+    min-width:100%;
+    margin-bottom:8px;
+  }
+}
+/* Pigułki w tygodniu — jednowierszowo, z elipsą i bez przepływu */
+.week .pill{
+  display:block;
+  box-sizing:border-box;
+  max-width:100%;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+/* Kontener w dniu nie wypuszcza zawartości na boki */
+.day .drop{
+  overflow:hidden;
+}
 
 </style>
 </head>
