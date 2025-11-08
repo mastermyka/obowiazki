@@ -393,7 +393,12 @@ function closeDialog(){ $('#overlay').style.display='none' }
 /* ===== FIREBASE (opcjonalny) ===== */
 let fbApp=null, fs=null, fbDoc=null, __unsub=null;
 const FIREBASE_COLLECTION = 'organizer';
+ // --- anti-overwrite guards ---
+let _isLoadingFromCloud = false;   // gdy true: nie wysyłamy nic do Firestore
+let _lastServerTs = 0;             // znacznik czasu ostatniej wersji z chmury (ms)
 function setFamilyLabel(id){ const l=document.getElementById('familyLabel'); if(l) l.textContent=id || '—'; }
+// --- anti-overwrite guards ---
+
 
 async function subscribeToFamily(id){
   if(!fs || !id) return;
@@ -401,28 +406,64 @@ async function subscribeToFamily(id){
   localStorage.setItem('familyId', id);
   setFamilyLabel(id);
 
-  if (__unsub) { try{ __unsub(); }catch(_){ } __unsub=null; }
+  if (__unsub) { try{ __unsub(); }catch(_){} __unsub=null; }
   fbDoc = fs.collection(FIREBASE_COLLECTION).doc(id);
 
+  // 1) Jednorazowy read: czy dokument istnieje?
+  const snap = await fbDoc.get();
+  if (!snap.exists) {
+    // Nie ma nic w chmurze – pierwszy klient w rodzinie: utwórz dokument z lokalnym stanem
+    try{
+      await fbDoc.set({
+        payload: JSON.stringify(db),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+      _lastServerTs = Date.now(); // orientacyjnie, i tak zaraz przyjdzie snapshot z prawdziwym serverTimestamp
+    }catch(e){
+      console.warn('Initial create failed', e);
+    }
+  } else {
+    // Jest chmura – ZAŁADUJ ją do lokalnego db, ale nic nie wysyłaj
+    try{
+      const data = snap.data() || {};
+      const payload = typeof data.payload === 'string' ? JSON.parse(data.payload) : data.payload;
+      if (payload && typeof payload === 'object') {
+        _isLoadingFromCloud = true;
+        db = payload;
+        localStorage.setItem(stateKey, JSON.stringify(db));
+        _lastServerTs = data.updatedAt?.toMillis?.() || 0;
+        renderAll();
+      }
+    } finally {
+      _isLoadingFromCloud = false;
+    }
+  }
+
+  // 2) Live sync – nasłuch zmian z chmury
   __unsub = fbDoc.onSnapshot((snap)=>{
     const data = snap.data();
     if(!data || !data.payload) return;
-    try{
-      const payload = (typeof data.payload === 'string') ? JSON.parse(data.payload) : data.payload;
-      if(!payload) return;
 
-      const local = (()=>{ try { return JSON.parse(localStorage.getItem(stateKey)||'{}'); } catch { return {}; }})();
-      const cloudMillis = data.updatedAt?.toMillis?.() ?? payload.updatedAt ?? 0;
-      const localMillis = local.updatedAt ?? 0;
+    const cloudTs = data.updatedAt?.toMillis?.() || 0;
+    if (!cloudTs) return;
 
-      if (!localMillis || cloudMillis > localMillis) {
+    // jeśli wersja w chmurze jest nowsza niż ostatnio widziana – pobierz
+    if (cloudTs > _lastServerTs) {
+      try{
+        const payload = typeof data.payload === 'string' ? JSON.parse(data.payload) : data.payload;
+        if (!payload) return;
+        _isLoadingFromCloud = true;
         db = payload;
         localStorage.setItem(stateKey, JSON.stringify(db));
+        _lastServerTs = cloudTs;
         renderAll();
+      } finally {
+        _isLoadingFromCloud = false;
       }
-    }catch(e){ console.warn('Snapshot parse error', e); }
+    }
   }, (err)=>console.error('onSnapshot error', err));
 }
+
 
 async function tryFirebaseInit(){
   try{
@@ -442,24 +483,29 @@ async function tryFirebaseInit(){
     }
     setFamilyLabel(family);
 
+    // UWAGA: tylko subskrybujemy. NIE wywołujemy tutaj pushToFirebase().
     await subscribeToFamily(family);
-    pushToFirebase(); // utwórz dokument jeśli go nie ma
   }catch(e){ console.warn('Firebase init error', e); }
 }
 
+
 async function pushToFirebase(){
   if(!fbDoc) return;
+  if(_isLoadingFromCloud) return; // kluczowe: nie nadpisuj podczas ładowania chmury
   try{
     const payloadStr = JSON.stringify(db);
     await fbDoc.set(
       { payload: payloadStr, updatedAt: firebase.firestore.FieldValue.serverTimestamp() },
       { merge:true }
     );
+    // opcjonalnie: aktualizujemy nasz znacznik, aż przyjdzie snapshot z prawdziwym TS
+    _lastServerTs = Date.now();
   }catch(e){
     console.error('[Firestore] zapis ERROR', e);
     alert('Błąd zapisu do Firestore: ' + (e?.message || e));
   }
 }
+
 
 /* ===== STATE ===== */
 const stateKey='home-chores-pro3-full';
@@ -479,7 +525,12 @@ const defaultData={zones:defaultZones,rewards:defaultRewards,people:[
   ]}
 ],currentPersonId:null,penaltyFactor:1,history:[],updatedAt: Date.now()};
 function load(){try{return JSON.parse(localStorage.getItem(stateKey))||defaultData}catch(e){return defaultData}}
-function save(){ db.updatedAt=Date.now(); localStorage.setItem(stateKey,JSON.stringify(db)); pushToFirebase(); }
+function save(){
+  db.updatedAt = Date.now();
+  localStorage.setItem(stateKey, JSON.stringify(db));
+  pushToFirebase();
+}
+
 let db=load(); if(!db.currentPersonId && db.people.length) db.currentPersonId=db.people[0].id;
 
 /* ===== HEADER & TABS ===== */
@@ -895,9 +946,10 @@ document.getElementById('changeFamilyBtn').onclick = async () => {
   const curr = localStorage.getItem('familyId') || '';
   const next = prompt('ID rodziny (wspólna nazwa grupy):', curr);
   if (!next) return;
-  await subscribeToFamily(next.trim());
-  pushToFirebase();
+  await subscribeToFamily(next.trim());  // sami przełączamy subskrypcję
+  // NIE robimy tu pushToFirebase(); dopiero prawdziwe zmiany użytkownika zapiszą chmurę
 };
+
 /* THEME TOGGLE */
 (function themeInit(){
   const saved = localStorage.getItem('ui-theme') || 'dark';
@@ -1127,21 +1179,33 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 <script>
-/* Przenieś sekcję „Udostępnij / Eksport” na sam dół strony (bez zmian HTML) */
-document.addEventListener('DOMContentLoaded', () => {
-  try{
-    const wrap = document.querySelector('.wrap');
-    if(!wrap) return;
-
-    // Znajdź kartę, która ma nagłówek zaczynający się od „Udostępnij”
-    const cards = Array.from(document.querySelectorAll('.card'));
-    const exportsCard = cards.find(c => (c.querySelector('h3')?.textContent || '').trim().startsWith('Udostępnij'));
-    if(exportsCard){
-      wrap.appendChild(exportsCard);           // na koniec
-      exportsCard.classList.add('exports--moved');
+/* Przenieś kartę "Udostępnij / Eksport" na sam dół po każdym renderze */
+(function(){
+  function moveExports(){
+    const wrap = document.querySelector('.wrap') || document.body;
+    const h3s = Array.from(document.querySelectorAll('h3'));
+    const expH = h3s.find(h => /Udostępnij\s*\/\s*Eksport/i.test(h.textContent));
+    if(!expH) return;
+    const card = expH.closest('.card') || expH.parentElement;
+    if(card && wrap && card.parentElement !== wrap){
+      wrap.appendChild(card);
+      card.classList.add('exports--moved');
     }
-  }catch(_){}
-});
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', moveExports);
+  } else {
+    moveExports();
+  }
+  const orig = window.renderAllCore;
+  if (typeof orig === 'function'){
+    window.renderAllCore = function(){
+      const r = orig.apply(this, arguments);
+      moveExports();
+      return r;
+    };
+  }
+})();
 </script>
 <!-- ===== /UI HOTFIX ===== -->
 <script>
