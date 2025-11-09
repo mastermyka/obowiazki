@@ -136,10 +136,25 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
 </style>
 </head>
 <body>
+  <script>
+(function ensureFamilyIdEarly(){
+  try {
+    var fid = localStorage.getItem('familyId');
+    if (!fid) {
+      fid = prompt('ID rodziny (np. rodzina-kowalscy) — wspólna dla wszystkich urządzeń:', 'rodzina-demo') || '';
+      fid = fid.trim();
+      if (fid) localStorage.setItem('familyId', fid);
+    }
+    // Ustaw etykietę w nagłówku od razu (bez helperów)
+    var lab = document.getElementById('familyLabel');
+    if (lab) lab.textContent = fid || '—';
+  } catch(_) {}
+})();
+</script>
+
 <div id="splash"><div class="logo">🧹</div></div>
 <script>
 (function(){
-  // Idempotentne ukrywanie splash’a + delikatne wygaszenie
   function hideSplashSafe(){
     var el = document.getElementById('splash');
     if (!el) return;
@@ -151,22 +166,15 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
         else if (el) el.style.display = 'none';
       }, 220);
     } catch(_) {
-      // absolutny fallback
       try { el.style.display = 'none'; } catch(__) {}
     }
   }
-
-  // Jeśli dokument już jest gotowy — chowaj od razu
-  if (document.readyState !== 'loading') {
-    hideSplashSafe();
-  } else {
-    // Zarejestruj 2 niezależne eventy
-    document.addEventListener('DOMContentLoaded', hideSplashSafe, { once: true });
-    window.addEventListener('load', hideSplashSafe, { once: true });
+  if (document.readyState !== 'loading') hideSplashSafe();
+  else {
+    document.addEventListener('DOMContentLoaded', hideSplashSafe, { once:true });
+    window.addEventListener('load', hideSplashSafe, { once:true });
   }
-
-  // Twardy timeout awaryjny (gdyby eventy nie doszły)
-  setTimeout(hideSplashSafe, 4000);
+  setTimeout(hideSplashSafe, 4000); // awaryjnie
 })();
 </script>
 
