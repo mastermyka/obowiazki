@@ -635,7 +635,8 @@ function renderShop(){
       showDialog(`<h3 style="margin-top:0">Potwierdź nagrodę</h3><p>${p.name} wymienia <b>${r.cost}⭐</b> na „${r.name}”. Kontynuować?</p><div class="row" style="justify-content:flex-end"><button class="btn" onclick="closeDialog()">Anuluj</button><button class="btn" onclick="redeem('${r.id}')">✅ OK</button></div>`)
     };
     const del=document.createElement('button');del.className='btn';del.textContent='🗑️';del.title='Usuń nagrodę';
-    del.onclick=()=>{ if(!guardAction(p,'deleteReward')) return; if(!confirm(`Usunąć nagrodę „${r.name}”?`))return; db.rewards=(db.rewards||[]).filter(x=>x.id!==r.id); save(); renderShop(); };
+    del.onclick=()=>{ if(!confirm(`Usunąć nagrodę „${r.name}”?`)) return; db.rewards=(db.rewards||[]).filter(x=>x.id!==r.id); save(); renderShop(); };
+
     box.appendChild(btn);box.appendChild(del);row.appendChild(box);host.appendChild(row)
   })
 }
@@ -647,9 +648,7 @@ function redeem(id){
   db.history.push({date:nowYMD(), personId:p.id, earned:0, missed:0, reward:r.name});
   save(); closeDialog(); renderScores(); renderTabs();
 }
-
 /* ===== SCORES ===== */
-const personTitleEl=$('#personTitle'),todayScoreEl=$('#todayScore'),weekScoreEl=$('#weekScore'),goalScoreEl=$('#goalScore'),goalBarEl=$('#goalBar'),leaderboardEl=$('#leaderboard');
 
 const personTitleEl=$('#personTitle'),todayScoreEl=$('#todayScore'),weekScoreEl=$('#weekScore'),goalScoreEl=$('#goalScore'),goalBarEl=$('#goalBar'),leaderboardEl=$('#leaderboard');
 function goalForToday(p){ return p.tasks.filter(dueToday).length; }
