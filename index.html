@@ -156,6 +156,7 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
 .shop-item { display:flex; gap:8px; align-items:center; border:1px solid var(--border); border-radius:12px; padding:10px; background:rgba(255,255,255,.03) }
 .shop-badge { display:inline-block; padding:2px 8px; border-radius:999px; border:1px solid var(--border); background:rgba(255,255,255,.06); font-size:.8rem; }
 .shop-done { opacity:.55; text-decoration: line-through; }
+
 /* === Zakupy: pasek kategorii (poziomy scroll) === */
 #shopCats{
   display:grid;
@@ -183,7 +184,6 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
   border-color: var(--accent);
   box-shadow: 0 8px 24px -12px rgba(10,132,255,.5);
 }
-
 </style>
 </head>
 <body>
@@ -342,18 +342,6 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
           <button id="remindersBtn" class="btn">📝 Do Przypomnień (Shortcuts)</button>
           <button id="ttsBtn" class="btn">🔊 Czytaj teraz</button>
         </div>
-
-        <hr style="border-color:var(--border);margin:14px 0"/>
-
-        <h3 style="margin-top:0">Strefy domu</h3>
-        <div class="row">
-          <select id="zonesSelect" style="flex:1"></select>
-          <input id="newZone" type="text" placeholder="Nowa strefa" style="flex:1"/>
-          <button id="addZoneBtn" class="btn">➕</button>
-          <button id="delZoneBtn" class="btn" title="Usuń wybraną">🗑️</button>
-          <button id="randomZoneBtn" class="btn">🎲 Losuj</button>
-        </div>
-        <div id="zonesBadges" class="row" style="margin-top:8px;flex-wrap:wrap"></div>
       </aside>
     </div>
 
@@ -388,33 +376,42 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
     </aside>
   </div><!-- /view-chores -->
 
- <!-- ====== WIDOK: ZAKUPY ====== -->
-<div id="view-shopping" style="display:none">
-  <section class="card">
-    <h3 style="margin:0 0 10px 0">Lista zakupów (wspólna)</h3>
-    ...
-  </section>
-
-  <div style="height:10px"></div>
-
-  <section class="card">
-    <h3 style="margin:0 0 10px 0">Do kupienia</h3>
-    <!-- TU DODAJ -->
-    <div id="shopCats"></div>
-    <!-- /TU DODAJ -->
-    <div id="shopListContainer" class="shop-grid"></div>
-  </section>
-</div><!-- /view-shopping -->
-
+  <!-- ====== WIDOK: ZAKUPY ====== -->
+  <div id="view-shopping" style="display:none">
+    <section class="card">
+      <h3 style="margin:0 0 10px 0">Lista zakupów (wspólna)</h3>
+      <div class="row" style="flex-direction:column;gap:10px;width:100%">
+        <div class="row" style="width:100%">
+          <input id="shopTitle" type="text" placeholder="np. Mleko 2%"/>
+          <input id="shopQty" type="text" placeholder="ilość (opcjonalnie)" style="width:160px"/>
+        </div>
+        <div class="row" style="width:100%">
+          <select id="shopSection" style="flex:1"></select>
+          <select id="shopAssignee" style="flex:1"></select>
+          <select id="shopPriority" style="width:160px">
+            <option value="high">🔥 Pilne</option>
+            <option value="med" selected>• Normalne</option>
+            <option value="low">… Luźne</option>
+          </select>
+        </div>
+        <div class="row">
+          <button id="shopAddBtn" class="btn">➕ Dodaj pozycję</button>
+          <button id="shopClearDoneBtn" class="btn">🧹 Usuń kupione</button>
+          <button id="shopExportBtn" class="btn">📋 Kopiuj listę</button>
+        </div>
+      </div>
+    </section>
 
     <div style="height:10px"></div>
 
     <section class="card">
       <h3 style="margin:0 0 10px 0">Do kupienia</h3>
+      <!-- Pasek kategorii (poziomy scroll) -->
+      <div id="shopCats"></div>
+      <!-- Lista pozycji -->
       <div id="shopListContainer" class="shop-grid"></div>
     </section>
   </div><!-- /view-shopping -->
-
 </div><!-- /wrap -->
 
 <div id="overlay" class="overlay"><div id="dialog" class="dialog"></div></div>
@@ -510,15 +507,12 @@ async function pushToFirebase(){
     const payloadStr = JSON.stringify(db);
     const snap = await fbDoc.get();
     if (snap.exists) {
-      // jest dokument w chmurze — sprawdź stempel czasu
       const data = snap.data() || {};
       const cloud = (typeof data.payload==='string') ? JSON.parse(data.payload) : (data.payload||{});
       const cloudMillis = data.updatedAt?.toMillis?.() ?? cloud.updatedAt ?? 0;
       const localMillis = db.updatedAt ?? 0;
-      // tylko jeśli lokalne jest nowsze lub puste w chmurze — wykonaj merge
       if (localMillis && localMillis <= cloudMillis) {
-        // chmura nowsza — nie nadpisuj
-        return;
+        return; // chmura nowsza — nie nadpisuj
       }
     }
     await fbDoc.set(
@@ -573,9 +567,8 @@ let db = load();
 if(!db.currentPersonId && db.people.length) db.currentPersonId = db.people[0].id;
 /* Bezpiecznik zakupów przy starych zapisach lokalnych/chmurowych */
 if(!Array.isArray(db.shopping)) db.shopping = [];
-if(!Array.isArray(db.shoppingSections)) db.shoppingSections = ['Jedzenie','Szkoła','Praca','Przyjemności','Chemia','Kosmetyki','Samochód','Inne'];
+if(!Array.isArray(db.shoppingSections)) db.shoppingSections = defaultShoppingSections.slice();
 if(!db.shoppingActive) db.shoppingActive = 'Wszystko';
-
 
 /* ===== HEADER & TABS ===== */
 function renderDate(){todayEl.textContent=fmtDate(new Date())}
@@ -754,13 +747,12 @@ function addTask(){
   $('#taskTitle').value=''; $('#taskPoints').value='1'; $('#taskPenalty').value='1'; $$('#weeklyPicker input:checked').forEach(el=>el.checked=false);
   save(); renderAllCore();
 }
+
 /* ===== ZAKUPY (kategorie + lista) ===== */
-// Struktura elementu: { id, title, section, who, done }
 function renderShopCategories(){
   const host = document.getElementById('shopCats');
   if(!host) return;
   host.innerHTML = '';
-
   const cats = ['Wszystko', ...db.shoppingSections];
   cats.forEach(cat=>{
     const b = document.createElement('button');
@@ -768,16 +760,68 @@ function renderShopCategories(){
     b.textContent = cat;
     b.onclick = ()=>{
       db.shoppingActive = cat;
-      save();          // zapisze i zsynchro do Firestore (payload)
-      renderShoppingList();
-      renderShopCategories();  // odśwież podświetlenia
+      save();
+      renderShopCategories();
+      renderShopping(); // odśwież listę wg nowej kategorii
     };
     host.appendChild(b);
   });
 }
 
+/* Selectory i osoby do zakupów */
+function shoppingPeopleOptions(){
+  const arr = ['—'].concat(db.people.map(p=>p.name));
+  return arr.map(n=>`<option value="${n}">${n}</option>`).join('');
+}
+function renderShoppingSelectors(){
+  $('#shopSection').innerHTML = (db.shoppingSections||defaultShoppingSections).map(s=>`<option value="${s}">${s}</option>`).join('');
+  $('#shopAssignee').innerHTML = shoppingPeopleOptions();
+}
+/* CRUD zakupów */
+function addShoppingItem(){
+  const title = $('#shopTitle').value.trim();
+  if(!title){ alert('Podaj nazwę pozycji.'); return; }
+  const qty = $('#shopQty').value.trim();
+  const section = ($('#shopSection').value || db.shoppingActive || 'Inne') === 'Wszystko'
+    ? 'Inne'
+    : ($('#shopSection').value || db.shoppingActive || 'Inne');
+  const who = $('#shopAssignee').value || '—';
+  const prio = $('#shopPriority').value || 'med';
+  const item = { id:crypto.randomUUID(), title, qty, section, assignee:who, priority:prio, done:false, createdAt: Date.now() };
+  db.shopping = db.shopping || [];
+  db.shopping.push(item);
+  $('#shopTitle').value=''; $('#shopQty').value='';
+  save(); renderShopping();
+}
+function toggleShoppingItem(id, on){
+  const it = (db.shopping||[]).find(x=>x.id===id);
+  if(!it) return;
+  it.done = !!on;
+  save(); renderShopping();
+}
+function removeShoppingItem(id){
+  if(!confirm('Usunąć pozycję z listy?')) return;
+  db.shopping = (db.shopping||[]).filter(x=>x.id!==id);
+  save(); renderShopping();
+}
+function clearBought(){
+  db.shopping = (db.shopping||[]).filter(x=>!x.done);
+  save(); renderShopping();
+}
+async function exportShoppingText(){
+  const lines = (db.shopping||[]).map(x=>{
+    const mark = x.done ? '[x]' : '[ ]';
+    const qty = x.qty ? ` × ${x.qty}` : '';
+    const sec = x.section ? ` (${x.section})` : '';
+    const who = x.assignee && x.assignee!=='—' ? ` — ${x.assignee}` : '';
+    const pr = x.priority==='high'?' 🔥':'';
+    return `${mark} ${x.title}${qty}${sec}${who}${pr}`;
+  });
+  try{ await copy(lines.join('\n')); alert('Skopiowano listę.'); }catch(_){ prompt('Kopiuj ręcznie:', lines.join('\n')); }
+}
 function renderShopping(){
   renderShoppingSelectors();
+  renderShopCategories();
 
   const host = $('#shopListContainer');
   host.innerHTML = '';
@@ -785,7 +829,6 @@ function renderShopping(){
   // FILTR wg aktywnej kategorii
   const active = db.shoppingActive || 'Wszystko';
   let items = (db.shopping||[]);
-
   if (active !== 'Wszystko') {
     items = items.filter(x => (x.section || 'Inne') === active);
   }
@@ -819,53 +862,6 @@ function renderShopping(){
     row.appendChild(cb); row.appendChild(title); row.appendChild(del);
     host.appendChild(row);
   });
-}
-
-
-    const delBtn = document.createElement('button');
-    delBtn.className = 'btn';
-    delBtn.textContent = '🗑️';
-    delBtn.title = 'Usuń';
-    delBtn.onclick = ()=>{
-      if(!confirm('Usunąć pozycję?')) return;
-      db.shopping = db.shopping.filter(x=>x.id!==it.id);
-      save(); renderShoppingList();
-    };
-
-    actions.appendChild(editBtn);
-    actions.appendChild(delBtn);
-
-    row.appendChild(cb);
-    row.appendChild(label);
-    row.appendChild(actions);
-    listEl.appendChild(row);
-  });
-}
-
-// Dodawanie pozycji (korzysta z aktywnej kategorii)
-function bindShoppingInputs(){
-  const inp = document.getElementById('shoppingInput');
-  const add = document.getElementById('shoppingAddBtn');
-  if(!inp || !add) return;
-
-  function doAdd(){
-    const title = (inp.value||'').trim();
-    if(!title) return;
-    const section = db.shoppingActive && db.shoppingActive!=='Wszystko'
-      ? db.shoppingActive : 'Inne';
-    db.shopping.push({
-      id: crypto.randomUUID(),
-      title, section,
-      who:'', done:false
-    });
-    inp.value='';
-    save();
-    renderShoppingList();
-    renderShopCategories(); // liczba w kategoriach się nie wyświetla, ale class active odświeżamy
-  }
-
-  add.onclick = doAdd;
-  inp.onkeydown = (e)=>{ if(e.key==='Enter') doAdd(); };
 }
 
 /* ===== DAY/WEEK END ===== */
@@ -1069,102 +1065,46 @@ function setGoal(){
 function setIcs(){const p=currentPerson();if(!p)return;const cur=p.icsTime||'07:00';const t=prompt('Godzina .ics (HH:MM, 24h):',cur);if(!t)return;if(!/^\d{2}:\d{2}$/.test(t))return alert('Format HH:MM');p.icsTime=t;save();renderLeaderboard()}
 function pinDialog(){const p=currentPerson();if(!p)return;showDialog(`<h3 style="margin-top:0">PIN i Tryb dziecka — ${p.name}</h3><div class="row" style="flex-direction:column;align-items:stretch"><label class="muted">Ustaw/zmień PIN (4–8 cyfr)</label><input id="pinSet" type="password" placeholder="${p.pin?'(obecny istnieje)':'brak'}"/><label class="muted" style="margin-top:8px">Tryb dziecka (blokada zmian)</label><div class="row"><button class="btn" onclick="setChildMode(true)">👶 Włącz</button><button class="btn" onclick="setChildMode(false)">🔓 Wyłącz</button></div></div><div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn" onclick="closeDialog()">Zamknij</button><button class="btn" onclick="savePin()">✅ Zapisz PIN</button></div>`);window.savePin=function(){const v=$('#pinSet').value.trim();if(v&&!/^\d{4,8}$/.test(v))return alert('PIN 4–8 cyfr.');p.pin=v;save();alert('Zapisano PIN.');closeDialog()};window.setChildMode=function(on){if(p.pin){const entered=prompt('Podaj PIN:');if(entered!==p.pin)return alert('Zły PIN.')}p.childMode=!!on;save();renderTabs();alert(on?'Tryb dziecka WŁĄCZONY.':'Tryb dziecka WYŁĄCZONY.')}}
 
-/* ===== WIDOK ZAKUPÓW ===== */
-function shoppingPeopleOptions(){
-  // osoby z db.people (+ pusta „—”)
-  const arr = ['—'].concat(db.people.map(p=>p.name));
-  return arr.map(n=>`<option value="${n}">${n}</option>`).join('');
-}
-function renderShoppingSelectors(){
-  $('#shopSection').innerHTML = (db.shoppingSections||defaultShoppingSections).map(s=>`<option value="${s}">${s}</option>`).join('');
-  $('#shopAssignee').innerHTML = shoppingPeopleOptions();
-}
-function addShoppingItem(){
-  const title = $('#shopTitle').value.trim();
-  if(!title){ alert('Podaj nazwę pozycji.'); return; }
-  const qty = $('#shopQty').value.trim();
- const section = ($('#shopSection').value || db.shoppingActive || 'Inne') === 'Wszystko'
-  ? 'Inne'
-  : ($('#shopSection').value || db.shoppingActive || 'Inne');
+/* ===== WIDOKI: przełączanie Obowiązki / Zakupy ===== */
+(function tabsInit(){
+  const tabChores = document.getElementById('tabChores');
+  const tabShopping = document.getElementById('tabShopping');
+  const viewChores = document.getElementById('view-chores');
+  const viewShopping = document.getElementById('view-shopping');
 
-  const who = $('#shopAssignee').value || '—';
-  const prio = $('#shopPriority').value || 'med';
-  const item = { id:crypto.randomUUID(), title, qty, section, assignee:who, priority:prio, done:false, createdAt: Date.now() };
-  db.shopping = db.shopping || [];
-  db.shopping.push(item);
-  $('#shopTitle').value=''; $('#shopQty').value='';
-  save(); renderShopping();
-}
-function toggleShoppingItem(id, on){
-  const it = (db.shopping||[]).find(x=>x.id===id);
-  if(!it) return;
-  it.done = !!on;
-  save(); renderShopping();
-}
-function removeShoppingItem(id){
-  if(!confirm('Usunąć pozycję z listy?')) return;
-  db.shopping = (db.shopping||[]).filter(x=>x.id!==id);
-  save(); renderShopping();
-}
-function clearBought(){
-  db.shopping = (db.shopping||[]).filter(x=>!x.done);
-  save(); renderShopping();
-}
-async function exportShoppingText(){
-  const lines = (db.shopping||[]).map(x=>{
-    const mark = x.done ? '[x]' : '[ ]';
-    const qty = x.qty ? ` × ${x.qty}` : '';
-    const sec = x.section ? ` (${x.section})` : '';
-    const who = x.assignee && x.assignee!=='—' ? ` — ${x.assignee}` : '';
-    const pr = x.priority==='high'?' 🔥':''; 
-    return `${mark} ${x.title}${qty}${sec}${who}${pr}`;
-  });
-  try{ await copy(lines.join('\n')); alert('Skopiowano listę.'); }catch(_){ prompt('Kopiuj ręcznie:', lines.join('\n')); }
-}
-function renderShopping(){
-  renderShoppingSelectors();
-  const host = $('#shopListContainer');
-  host.innerHTML = '';
-  const items = (db.shopping||[]).slice().sort((a,b)=>{
-    // sort: niekupione najpierw, potem priority high/med/low, potem sekcja, tytuł
-    const done = (a.done===b.done)?0:(a.done?1:-1);
-    if(done!==0) return done;
-    const pmap={high:0,med:1,low:2};
-    const pr=(pmap[a.priority]??1)-(pmap[b.priority]??1);
-    if(pr!==0) return pr;
-    const sec=(a.section||'').localeCompare(b.section||'','pl');
-    if(sec!==0) return sec;
-    return (a.title||'').localeCompare(b.title||'','pl');
-  });
-  items.forEach(x=>{
-    const row=document.createElement('div'); row.className='shop-item'+(x.done?' shop-done':'');
-    const cb=document.createElement('input'); cb.type='checkbox'; cb.checked=!!x.done; cb.onchange=()=>toggleShoppingItem(x.id, cb.checked);
-    const title=document.createElement('div'); title.style.flex='1'; title.innerHTML = `<b>${x.title}</b>${x.qty?` <span class="muted">× ${x.qty}</span>`:''}<br><small class="muted">${x.section||'Inne'}${x.assignee&&x.assignee!=='—'?` • ${x.assignee}`:''}${x.priority==='high'?' • 🔥':''}</small>`;
-    const del=document.createElement('button'); del.className='btn'; del.textContent='🗑️'; del.onclick=()=>removeShoppingItem(x.id);
-    row.appendChild(cb); row.appendChild(title); row.appendChild(del);
-    host.appendChild(row);
-  });
-}
+  function activate(which){
+    if(which==='shopping'){
+      tabChores.classList.remove('active'); tabShopping.classList.add('active');
+      viewChores.style.display='none'; viewShopping.style.display='';
+      renderShopping();
+    } else {
+      tabShopping.classList.remove('active'); tabChores.classList.add('active');
+      viewShopping.style.display='none'; viewChores.style.display='';
+      renderAllCore();
+    }
+  }
+  tabChores.addEventListener('click', ()=>activate('chores'));
+  tabShopping.addEventListener('click', ()=>activate('shopping'));
+
+  // Bind przyciski zakupów
+  document.getElementById('shopAddBtn').onclick = addShoppingItem;
+  document.getElementById('shopClearDoneBtn').onclick = clearBought;
+  document.getElementById('shopExportBtn').onclick = exportShoppingText;
+})();
 
 /* ===== RENDER ROOT ===== */
 function renderLeaderboardAndStats(){renderLeaderboard();renderHeat();renderTopZones()}
 function renderAllCore(){
   renderTabs();
   renderZones();
-  renderShop();           // sklepik nagród (bez zmian logiki)
+  renderShop();
   renderTasks();
   renderScores();
   renderWeek();
   renderLeaderboardAndStats();
-
-  // ZAKUPY:
+  // Zakupy (gdy jesteś na tej zakładce, i tak wywołamy renderShopping()):
   renderShopCategories();
-  renderShopping();
 }
-
-
-  // jeśli widok zakupów aktywny – też odśwież
-  if (document.getElementById('view-shopping').style.display!=='none') renderShopping();
 function renderAll(){renderDate();renderAllCore()}
 
 /* ===== BINDINGS ===== */
@@ -1182,10 +1122,9 @@ document.getElementById('changeFamilyBtn').onclick = async () => {
   const curr = localStorage.getItem('familyId') || '';
   const next = prompt('ID rodziny (wspólna nazwa grupy):', curr);
   if (!next) return;
-  await subscribeToFamily(next.trim()); // przełącz subskrypcję
-  pushToFirebase();                      // zapisz aktualny stan jako startowy (nie kasujemy nic)
+  await subscribeToFamily(next.trim());
+  pushToFirebase();
 };
-
 
 /* THEME TOGGLE */
 (function themeInit(){
@@ -1261,36 +1200,6 @@ document.addEventListener('DOMContentLoaded', () => {
     ttsBtn.style.marginLeft = '8px';
   }
 });
-
-/* ===== WIDOKI: przełączanie Obowiązki / Zakupy ===== */
-(function tabsInit(){
-  const tabChores = document.getElementById('tabChores');
-  const tabShopping = document.getElementById('tabShopping');
-  const viewChores = document.getElementById('view-chores');
-  const viewShopping = document.getElementById('view-shopping');
-
-  function activate(which){
-    if(which==='shopping'){
-  tabChores.classList.remove('active'); tabShopping.classList.add('active');
-  viewChores.style.display='none'; viewShopping.style.display='';
-  renderShopCategories();
-  renderShopping();
-}
-
-    }else{
-      tabShopping.classList.remove('active'); tabChores.classList.add('active');
-      viewShopping.style.display='none'; viewChores.style.display='';
-      renderAllCore();
-    }
-  }
-  tabChores.addEventListener('click', ()=>activate('chores'));
-  tabShopping.addEventListener('click', ()=>activate('shopping'));
-
-  // Bind przyciski zakupów
-  document.getElementById('shopAddBtn').onclick = addShoppingItem;
-  document.getElementById('shopClearDoneBtn').onclick = clearBought;
-  document.getElementById('shopExportBtn').onclick = exportShoppingText;
-})();
 
 /* ===== PWA SW ===== */
 const skipSW = location.search.includes('nosw=1');
