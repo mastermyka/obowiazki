@@ -414,9 +414,13 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
 
     <section class="card">
       <div class="exp-head">
-        <h3 style="margin:0">Podsumowania</h3>
-        <div class="muted" id="expMonthLabel">—</div>
-      </div>
+  <h3 style="margin:0">Podsumowania</h3>
+  <div class="row" style="gap:8px">
+    <input id="expMonthPick" type="month" style="width:180px"/>
+    <div class="muted" id="expMonthLabel">—</div>
+  </div>
+</div>
+
       <div class="row" style="gap:12px; align-items:flex-start; flex-wrap:wrap">
         <div class="exp-section" style="flex:1 1 260px">
           <div class="exp-head"><div>Ten miesiąc — razem</div><div class="exp-total" id="expMonthTotal">0,00 zł</div></div>
@@ -426,7 +430,8 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
           </table>
         </div>
         <div class="exp-section" style="flex:2 1 420px">
-          <div class="exp-head"><div>Wszystkie wydatki (ostatnie 60 dni)</div><div></div></div>
+         <div class="exp-head"><div>Wydatki w miesiącu</div><div></div></div>
+
           <div id="expList"></div>
         </div>
       </div>
@@ -1135,7 +1140,16 @@ function renderExpenseSelectors(){
   $('#expSection').innerHTML = (db.expenseSections||defaultExpenseSections).map(s=>`<option value="${s}">${s}</option>`).join('');
   $('#expCatsSelect').innerHTML = (db.expenseSections||defaultExpenseSections).map(s=>`<option value="${s}">${s}</option>`).join('');
   const d = $('#expDate'); if(d && !d.value){ d.value = nowYMD(); }
+
+  // Ustaw domyślnie bieżący miesiąc w pickerze
+  const mp = $('#expMonthPick');
+  if (mp && !mp.value){
+    const now = new Date();
+    const ym = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+    mp.value = ym;
+  }
 }
+
 function addExpense(){
   const p=currentPerson(); if(!guardAction(p,'addExpense')) return;
   const title = $('#expTitle').value.trim();
@@ -1179,13 +1193,30 @@ function renderExpenses(){
   const monthLabel = $('#expMonthLabel');
   hostList.innerHTML=''; tbody.innerHTML='';
 
-  const now = new Date();
-  const thisMonth = (db.expenses||[]).filter(e=>isSameMonth(e.date, now));
+  // --- wybrany miesiąc (YYYY-MM) ---
+  const mp = $('#expMonthPick');
+  const ym = (mp?.value || nowYMD().slice(0,7)); // np. "2025-11"
+  const [yStr,mStr] = ym.split('-');
+  const y = parseInt(yStr,10), m = parseInt(mStr,10)-1;
+  const monthStart = new Date(y, m, 1);
+  const monthEnd   = new Date(y, m+1, 1);
+
+  // Etykieta "listopad 2025"
+  monthLabel.textContent = monthStart.toLocaleDateString('pl-PL',{month:'long',year:'numeric'});
+
+  // Pomocnicze
+  const inSelectedMonth = (dStr)=>{
+    const d = new Date(dStr);
+    return d >= monthStart && d < monthEnd;
+  };
+  const sum = (arr, sel=()=>true, map=v=>v)=>arr.filter(sel).reduce((a,x)=>a+map(x),0);
+  const money = n => (n||0).toLocaleString('pl-PL',{style:'currency',currency:'PLN'});
+
+  // --- Suma miesiąca i per kategoria ---
+  const thisMonth = (db.expenses||[]).filter(e=> inSelectedMonth(e.date));
   const monthTotal = sum(thisMonth, ()=>true, e=>e.amount);
   $('#expMonthTotal').textContent = money(monthTotal);
-  monthLabel.textContent = now.toLocaleDateString('pl-PL',{month:'long',year:'numeric'});
 
-  // Suma per kategoria (miesiąc)
   const cats = db.expenseSections||defaultExpenseSections;
   cats.forEach(c=>{
     const s = sum(thisMonth, e=> (e.section||'Inne')===c, e=>e.amount);
@@ -1193,6 +1224,46 @@ function renderExpenses(){
     tr.innerHTML = `<td>${c}</td><td>${money(s)}</td>`;
     tbody.appendChild(tr);
   });
+
+  // --- Lista wydatków: WYBRANY MIESIĄC (zamiast "ostatnie 60 dni") ---
+  const monthItems = thisMonth
+    .slice()
+    .sort((a,b)=> (a.section||'').localeCompare(b.section||'','pl') || (b.date||'').localeCompare(a.date||''));
+
+  // Nagłówek tej sekcji
+  const headerBox = document.querySelector('#view-expenses .exp-section:nth-of-type(2) .exp-head div:first-child');
+  if (headerBox) headerBox.textContent = 'Wydatki w miesiącu';
+
+  // Grupowanie po kategorii
+  const groupBy = (arr, key)=>arr.reduce((acc,x)=>((acc[x[key]||'Inne']=acc[x[key]||'Inne']||[]).push(x),acc),{});
+  const grouped = groupBy(monthItems, 'section');
+
+  Object.keys(grouped).sort((a,b)=>a.localeCompare(b,'pl')).forEach(sec=>{
+    const box=document.createElement('div'); box.className='exp-section';
+    const total = sum(grouped[sec], ()=>true, e=>e.amount);
+    const head=document.createElement('div'); head.className='exp-head';
+    head.innerHTML=`<div><b>${sec}</b></div><div class="exp-total">${money(total)}</div>`;
+    box.appendChild(head);
+
+    grouped[sec].forEach(e=>{
+      const row=document.createElement('div'); row.className='shop-item';
+      const meta=`<small class="muted">${e.date} • ${e.section}</small>`;
+      row.innerHTML=`<div style="flex:1"><b>${e.title}</b><br>${meta}</div><div style="min-width:100px;text-align:right"><b>${money(e.amount)}</b></div>`;
+      const del=document.createElement('button'); del.className='btn'; del.textContent='🗑️'; del.onclick=()=>delExpense(e.id);
+      row.appendChild(del);
+      box.appendChild(row);
+    });
+
+    hostList.appendChild(box);
+  });
+
+  // Reakcja na zmianę miesiąca
+  if (mp && !mp._bound){
+    mp.addEventListener('change', renderExpenses, {passive:true});
+    mp._bound = true;
+  }
+}
+
 
   // Lista wszystkich (ostatnie 60 dni), grupowana po kategorii
   const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-60);
