@@ -113,7 +113,7 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
 .day .drop{ overflow:hidden; }
 
 /* Splash overlay */
-#splash { position: fixed; inset: 0; z-index: 9999; display:flex; align-items:center; justify-content:center; background: var(--bg, #0f1113); }
+#splash { position: fixed; inset: 0; z-index: 9999; display:flex; align-items:center; justify-content:center; background: var(--bg, #0f1113); transition: opacity .35s ease; }
 #splash .logo { width: 120px; height: 120px; border-radius: 24px; display:flex; align-items:center; justify-content:center; font-size: 56px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.08); box-shadow: 0 8px 30px rgba(0,0,0,.35); }
 
 /* Zakładki top */
@@ -497,6 +497,17 @@ function showDialog(html){$('#dialog').innerHTML=html;$('#overlay').style.displa
 function closeDialog(){ $('#overlay').style.display='none' }
 function PLN(n){return (n||0).toLocaleString('pl-PL',{minimumFractionDigits:2,maximumFractionDigits:2})}
 function yyyymm(d){return (d||'').slice(0,7)}
+
+/* >>> DODANE: bezpieczne chowanie splash-a <<< */
+function hideSplash(){
+  try{
+    const el = document.getElementById('splash');
+    if(!el) return;
+    el.style.opacity = '0';
+    el.style.pointerEvents = 'none';
+    setTimeout(()=>{ try{ el.remove(); }catch(_){ el.style.display='none'; } }, 400);
+  }catch(_){}
+}
 
 /* ===== FIREBASE (opcjonalny) ===== */
 let fbApp=null, fs=null, fbDoc=null, __unsub=null;
@@ -973,7 +984,7 @@ async function shareICSForCurrentPerson(){
   if(navigator.canShare&&navigator.canShare({files:[file]})){ try{ await navigator.share({files:[file], title:`Obowiązki — ${p.name}`}); }catch(e){} }
   else { const url=URL.createObjectURL(file); const a=document.createElement('a'); a.href=url; a.download=file.name; a.click(); URL.revokeObjectURL(a.href); }
 }
-function exportJSON(){const p=currentPerson(); if(p.childMode && !canProceedPrivileged(p)) return; const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='obowiazki-backup.json'; a.click(); URL.revokeObjectURL(a.href); }
+function exportJSON(){const p=currentPerson(); if(p.childMode && !canProceedPrivileged(p)) return; const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='obowiazki-backup.json'; a.click();URL.revokeObjectURL(a.href); }
 function importJSONFromFile(file){ const p=currentPerson(); if(p.childMode && !canProceedPrivileged(p)) return;
   const r=new FileReader(); r.onload=()=>{ try{ const j=JSON.parse(r.result); db=j; save(); renderAll(); alert('Zaimportowano.'); }catch(e){ alert('Nieprawidłowy JSON.'); } }; r.readAsText(file); }
 
@@ -1218,7 +1229,7 @@ function renderShopping(){
     const cb=document.createElement('input'); cb.type='checkbox'; cb.checked=!!x.done; cb.onchange=()=>toggleShoppingItem(x.id, cb.checked);
     const title=document.createElement('div'); title.style.flex='1'; title.innerHTML = `<b>${x.title}</b>${x.qty?` <span class="muted">× ${x.qty}</span>`:''}<br><small class="muted">${x.section||'Inne'}${x.assignee&&x.assignee!=='—'?` • ${x.assignee}`:''}${x.priority==='high'?' • 🔥':''}</small>`;
     const del=document.createElement('button'); del.className='btn'; del.textContent='🗑️'; del.onclick=()=>removeShoppingItem(x.id);
-    row.appendChild(cb); row.appendChild(title); row.appendChild(del);
+    row.appendChild(cb); row.appendChild(title); row.appendChild(del); 
     host.appendChild(row);
   });
 }
