@@ -1157,10 +1157,11 @@ if (mp && !mp.onchange) mp.onchange = renderExpenses;   // prze-renderuj po zmia
 
   // Ustaw domyślnie bieżący miesiąc w pickerze
   // wybrany miesiąc z pickera (YYYY-MM)
-const mp = document.getElementById('expMonthPick');
+const mp2 = document.getElementById('expMonthPick');
+
 let monthBase = new Date();
-if (mp && mp.value && /^\d{4}-\d{2}$/.test(mp.value)) {
-  const [y,m] = mp.value.split('-').map(n=>parseInt(n,10));
+if (mp2 && mp2.value && /^\d{4}-\d{2}$/.test(mp2.value)) {
+    const [y,m] = mp2.value.split('-').map(n=>parseInt(n,10));
   monthBase = new Date(y, m-1, 1);
 }
 
