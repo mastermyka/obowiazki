@@ -1548,7 +1548,7 @@ if('serviceWorker' in navigator && !skipSW){
 /* ===== INIT ===== */
 function hideSplash(){
   const el = document.getElementById('splash');
-  if (el) el remove();
+  if (el) el.remove();
 }
 document.addEventListener('DOMContentLoaded', () => {
   renderAll();
