@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Domowe obowiązki (full)</title>
 
+
+ 
 <!-- PWA -->
 <meta name="theme-color" content="#0a84ff"/>
 <link rel="manifest" href="manifest.webmanifest" />
@@ -23,6 +25,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-check-compat.js"></script>
 <script src="firebase-config.js"></script>
+
 
 <style>
 /* ====== BAZA (Twoje oryginalne style, nietknięte) ====== */
@@ -88,11 +91,12 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
 @media (max-width: 640px) {
   .week { grid-template-columns: 1fr 1fr; }
   .day  { min-height: 96px; }
+  /* wąskie ekrany: drobne przycięcie stałych szerokości */
   #taskTime { width: 110px !important; }
 }
+/* --- LIGHT THEME --- */
 
-/* --- LIGHT THEME (Twój wariant) --- */
-:root.light{
+  :root.light{
   --bg:#eef2ff;
   --card:#EDEDED;
   --border:#242F51;
@@ -110,84 +114,62 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
 }
 .task .editable { cursor:text; border-radius:8px; padding:2px 4px; }
 .task .editable:focus { outline:2px solid rgba(99,102,241,.35); background:rgba(255,255,255,.06); }
-
-/* Mobile: w "Strefy domu" selektor na pełną szerokość i pierwszy wiersz */
+/* Mobile: w "Strefy domu" selektor na pełną szerokość i jako pierwszy wiersz */
 @media (max-width: 640px){
   #zonesSelect{
     flex: 1 1 100% !important;
     min-width: 100%;
-    order: -1;
+    order: -1;               /* przenieś na samą górę w wierszu */
     margin-bottom: 8px;
   }
-  #newZone{ flex: 1 1 100%; min-width: 100%; }
+  #newZone{                  /* pole "Nowa strefa" też wygodniej szerzej */
+    flex: 1 1 100%;
+    min-width: 100%;
+  }
 }
 /* Mobile: w formularzu dodawania zadania strefa na osobnej linii */
 @media (max-width: 640px){
   #taskZone{
-    display:block; flex: 1 1 100% !important; min-width:100%; margin-bottom:8px;
+    display:block;
+    flex: 1 1 100% !important;
+    min-width:100%;
+    margin-bottom:8px;
   }
 }
 /* Pigułki w tygodniu — jednowierszowo, z elipsą i bez przepływu */
-.week .pill{ display:block; box-sizing:border-box; max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.day .drop{ overflow:hidden; }
-
-/* Splash overlay */
-#splash {
-  position: fixed; inset: 0; z-index: 9999;
-  display:flex; align-items:center; justify-content:center;
-  background: var(--bg, #0f1113);
-}
-#splash .logo {
-  width: 120px; height: 120px; border-radius: 24px;
-  display:flex; align-items:center; justify-content:center;
-  font-size: 56px;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.08);
-  box-shadow: 0 8px 30px rgba(0,0,0,.35);
-}
-
-/* Zakładki „Obowiązki / Zakupy” */
-.top-tabs { display:flex; gap:8px; flex-wrap:wrap; }
-.top-tabs .tab { padding:8px 12px; border-radius:999px; border:1px solid var(--border); background:rgba(255,255,255,.06); cursor:pointer; }
-.top-tabs .tab.active { background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.06)); border-color:rgba(99,102,241,.35); }
-
-/* Widok zakupów */
-.shop-grid { display:grid; grid-template-columns:1fr; gap:12px; }
-.shop-item { display:flex; gap:8px; align-items:center; border:1px solid var(--border); border-radius:12px; padding:10px; background:rgba(255,255,255,.03) }
-.shop-badge { display:inline-block; padding:2px 8px; border-radius:999px; border:1px solid var(--border); background:rgba(255,255,255,.06); font-size:.8rem; }
-.shop-done { opacity:.55; text-decoration: line-through; }
-/* === Zakupy: pasek kategorii (poziomy scroll) === */
-#shopCats{
-  display:grid;
-  grid-auto-flow:column;
-  grid-auto-columns:max-content;
-  gap:.5rem;
-  overflow-x:auto;
-  padding:4px 2px 8px;
-  -webkit-overflow-scrolling:touch;
-  overscroll-behavior-x:contain;
-}
-#shopCats::-webkit-scrollbar{ height:6px }
-#shopCats::-webkit-scrollbar-thumb{ background:#444; border-radius:3px }
-
-.catBtn{
-  border:1px solid var(--border);
-  background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
-  color:var(--text);
-  padding:8px 12px;
-  border-radius:999px;
-  cursor:pointer;
+.week .pill{
+  display:block;
+  box-sizing:border-box;
+  max-width:100%;
   white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
-.catBtn.is-active{
-  border-color: var(--accent);
-  box-shadow: 0 8px 24px -12px rgba(10,132,255,.5);
+
+/* Kontener w dniu nie wypuszcza zawartości na boki */
+.day .drop{
+  overflow:hidden;
 }
+
+  /* Splash overlay */
+  #splash {
+    position: fixed; inset: 0; z-index: 9999;
+    display:flex; align-items:center; justify-content:center;
+    background: var(--bg, #0f1113);  /* pasuje do motywu */
+  }
+  #splash .logo {
+    width: 120px; height: 120px; border-radius: 24px;
+    display:flex; align-items:center; justify-content:center;
+    font-size: 56px;
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.08);
+    box-shadow: 0 8px 30px rgba(0,0,0,.35);
+  }
 
 </style>
 </head>
 <body>
-<div id="splash"><div class="logo">🧹</div></div>
+ <div id="splash"><div class="logo">🧹</div></div>
 
 <div class="wrap">
   <header>
@@ -196,235 +178,189 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
       <div class="subtitle" id="today"></div>
       <div class="subtitle">Rodzina: <strong id="familyLabel">—</strong></div>
     </div>
-    <div class="row">
-      <div class="top-tabs">
-        <button id="tabChores" class="tab active">🧺 Obowiązki</button>
-        <button id="tabShopping" class="tab">🛒 Zakupy</button>
-      </div>
-      <button id="themeToggle" class="btn" title="Jasny / ciemny">☀️ / 🌙</button>
-    </div>
+    <button id="themeToggle" class="btn" title="Jasny / ciemny">☀️ / 🌙</button>
+
   </header>
 
-  <!-- ====== WIDOK: OBOWIĄZKI ====== -->
-  <div id="view-chores">
-    <div class="card">
-      <div class="row" style="justify-content:space-between;align-items:flex-start">
-        <div>
-          <div class="muted">Zakładki domowników</div>
-          <div id="peopleTabs" class="row" style="gap:8px;flex-wrap:wrap"></div>
-          <div class="row" style="margin-top:8px">
-            <button id="addPersonBtn" class="btn">➕ Dodaj osobę</button>
-            <button id="renamePersonBtn" class="btn">✏️ Zmień</button>
-            <button id="setGoalBtn" class="btn">🎯 Cel</button>
-            <button id="setIcsBtn" class="btn">⏰ Godzina .ics</button>
-            <button id="pinBtn" class="btn">🔒 PIN / Tryb dziecka</button>
-            <button id="removePersonBtn" class="btn" style="border-color:rgba(255,69,58,.35);color:#ffd1cc">🗑️ Usuń</button>
-          </div>
-        </div>
-        <div class="row">
-          <button id="endDayBtn" class="btn">🌙 Zakończ dzień</button>
-          <button id="endWeekBtn" class="btn">🏁 Zakończ tydzień</button>
-          <button id="changeFamilyBtn" class="btn" title="Ustaw / zmień rodzinę">👪 Zmień rodzinę</button>
+  <div class="card">
+    <div class="row" style="justify-content:space-between;align-items:flex-start">
+      <div>
+        <div class="muted">Zakładki domowników</div>
+        <div id="peopleTabs" class="row" style="gap:8px;flex-wrap:wrap"></div>
+        <div class="row" style="margin-top:8px">
+          <button id="addPersonBtn" class="btn">➕ Dodaj osobę</button>
+          <button id="renamePersonBtn" class="btn">✏️ Zmień</button>
+          <button id="setGoalBtn" class="btn">🎯 Cel</button>
+          <button id="setIcsBtn" class="btn">⏰ Godzina .ics</button>
+          <button id="pinBtn" class="btn">🔒 PIN / Tryb dziecka</button>
+          <button id="removePersonBtn" class="btn" style="border-color:rgba(255,69,58,.35);color:#ffd1cc">🗑️ Usuń</button>
         </div>
       </div>
+      <div class="row">
+        <button id="endDayBtn" class="btn">🌙 Zakończ dzień</button>
+        <button id="endWeekBtn" class="btn">🏁 Zakończ tydzień</button>
+        <button id="changeFamilyBtn" class="btn" title="Ustaw / zmień rodzinę">👪 Zmień rodzinę</button>
+      </div>
     </div>
+  </div>
 
-    <div style="height:10px"></div>
+  <div style="height:10px"></div>
 
-    <div class="grid">
-      <section class="card">
-        <div class="row" style="justify-content:space-between;align-items:center">
-          <h3 style="margin:0">Zadania <span id="personTitle" class="muted"></span></h3>
-          <div class="row" id="taskToolbar">
-            <label class="muted">Sortuj</label>
-            <select id="sortBy"><option value="status">Status</option><option value="priority">Priorytet</option><option value="title">Tytuł A→Z</option><option value="zone">Strefa</option></select>
-            <button id="resetDailyBtn" class="btn">🔁 Reset</button>
-            <button id="clearDoneBtn" class="btn">🧹 Usuń wykonane</button>
-            <!-- TTS zostanie tu przeniesiony skryptem -->
-          </div>
-        </div>
-        <div id="tasksList" style="margin-top:10px;display:flex;flex-direction:column;gap:10px"></div>
-      </section>
-
-      <aside class="card">
-        <h3 style="margin-top:0">Dodaj zadanie</h3>
-        <div class="row" style="flex-direction:column;gap:10px;width:100%">
-          <input id="taskTitle" type="text" placeholder="np. odkurzyć salon"/>
-          <div class="row" style="width:100%">
-            <select id="planType" style="flex:1">
-              <option value="daily" selected>Codziennie</option>
-              <option value="once">W konkretnym dniu</option>
-              <option value="weekly">Co tydzień</option>
-              <option value="monthly">Co miesiąc</option>
-              <option value="yearly">Co rok</option>
-            </select>
-            <input id="taskTime" type="time" value="07:00" style="width:140px"/>
-          </div>
-          <div class="row" id="oncePicker" style="display:none;width:100%"><label class="muted">Data:</label><input id="taskDate" type="date" style="flex:1"/></div>
-          <div class="row" id="monthlyPicker" style="display:none;width:100%"><label class="muted">Dzień miesiąca:</label><input id="dayOfMonth" type="number" min="1" max="31" value="1" style="width:120px"/></div>
-          <div class="row" id="yearlyPicker" style="display:none;width:100%"><label class="muted">Data w roku:</label><input id="yearlyDate" type="date" style="flex:1"/></div>
-          <div class="row" id="weeklyPicker" style="display:none;width:100%"><label class="muted">Dni:</label>
-            <label><input type="checkbox" value="1">Pn</label><label><input type="checkbox" value="2">Wt</label><label><input type="checkbox" value="3">Śr</label><label><input type="checkbox" value="4">Cz</label><label><input type="checkbox" value="5">Pt</label><label><input type="checkbox" value="6">So</label><label><input type="checkbox" value="0">Nd</label>
-          </div>
-          <div class="row" style="width:100%">
-            <select id="taskZone" style="flex:1"></select>
-            <select id="taskPriority" style="flex:1">
-              <option value="high">🔥 Wysoki</option>
-              <option value="med" selected>• Średni</option>
-              <option value="low">… Niski</option>
-            </select>
-            <input id="taskPoints" type="number" min="1" step="1" value="1" style="width:120px"/>
-          </div>
-          <div class="row" style="width:100%">
-            <label class="muted">Kara gdy nie zrobione (⭐):</label>
-            <input id="taskPenalty" type="number" min="0" step="1" value="1" style="width:120px" />
-          </div>
-          <div class="row" style="width:100%"><label class="muted">Przypomnij wcześniej:</label>
-            <input id="remNum" type="number" min="0" step="1" value="10" style="width:100px"/>
-            <select id="remUnit" style="width:150px"><option value="minutes" selected>minuty</option><option value="hours">godziny</option><option value="days">dni</option><option value="weeks">tygodnie</option><option value="months">miesiące</option><option value="years">lata</option></select>
-          </div>
-          <button id="addTaskBtn" class="btn">✅ Dodaj</button>
-        </div>
-
-        <hr style="border-color:var(--border);margin:14px 0"/>
-
-        <h3 style="margin-top:0">Punktacja i cele</h3>
-        <div class="row" style="justify-content:space-between;width:100%">
-          <div style="flex:1">
-            <div class="row" style="justify-content:space-between">
-              <div>Dzisiejsze: <span class="score" id="todayScore">0</span> / <span id="goalScore">0</span> ⭐</div>
-              <div class="muted">Tydzień: <span class="score" id="weekScore">0</span></div>
-            </div>
-            <div class="progress" style="margin-top:6px"><div id="goalBar"></div></div>
-          </div>
-          <div class="row"><label class="muted">Kara globalna (nieużywana)</label>
-            <select id="penaltyPolicy" disabled><option value="1" selected>-100%</option></select>
-          </div>
-        </div>
-
-        <div class="card" style="margin-top:10px">
-          <h4 style="margin:0 0 6px 0">Szybkie korekty (nagrody/kary)</h4>
-          <div class="row" style="width:100%">
-            <input id="deltaPoints" type="number" value="1" min="1" step="1" style="width:120px"/>
-            <select id="deltaScope" style="width:160px">
-              <option value="week">Tydzień</option>
-              <option value="today">Dziś</option>
-            </select>
-            <button id="deltaMinus" class="btn">➖ Odejmij</button>
-            <button id="deltaPlus" class="btn">➕ Dodaj</button>
-          </div>
-        </div>
-
-        <hr style="border-color:var(--border);margin:14px 0"/>
-
-        <h3 style="margin-top:0">Sklepik nagród 🎁</h3>
-        <div id="shopList" style="display:flex;flex-direction:column;gap:8px"></div>
-        <div class="row"><input id="rewardName" type="text" placeholder="np. seans filmu" style="flex:1"/><input id="rewardCost" type="number" min="1" step="1" value="10" style="width:120px"/><button id="addRewardBtn" class="btn">➕</button></div>
-
-        <hr style="border-color:var(--border);margin:14px 0"/>
-
-        <h3 style="margin-top:0">Udostępnij / Eksport</h3>
-        <div class="row">
-          <button id="mailBtn" class="btn">📧 Podsumowanie</button>
-          <button id="copyBtn" class="btn">📋 Kopiuj</button>
-          <button id="icsBtn" class="btn">📆 .ics (osoba)</button>
-        </div>
-        <div class="row" style="margin-top:8px">
-          <button id="exportCSVPersonBtn" class="btn">⬇️ CSV (osoba)</button>
-          <button id="exportCSVAllBtn" class="btn">⬇️ CSV (wszyscy)</button>
-        </div>
-        <div class="row" style="margin-top:8px">
-          <button id="exportBtn" class="btn">☁️ Zapisz JSON</button>
-          <input id="importFile" type="file" accept="application/json" style="display:none"/>
-          <button id="importBtn" class="btn">☁️ Wczytaj JSON</button>
-        </div>
-        <div class="row" style="margin-top:8px">
-          <button id="remindersBtn" class="btn">📝 Do Przypomnień (Shortcuts)</button>
-          <button id="ttsBtn" class="btn">🔊 Czytaj teraz</button>
-        </div>
-
-        <hr style="border-color:var(--border);margin:14px 0"/>
-
-        <h3 style="margin-top:0">Strefy domu</h3>
-        <div class="row">
-          <select id="zonesSelect" style="flex:1"></select>
-          <input id="newZone" type="text" placeholder="Nowa strefa" style="flex:1"/>
-          <button id="addZoneBtn" class="btn">➕</button>
-          <button id="delZoneBtn" class="btn" title="Usuń wybraną">🗑️</button>
-          <button id="randomZoneBtn" class="btn">🎲 Losuj</button>
-        </div>
-        <div id="zonesBadges" class="row" style="margin-top:8px;flex-wrap:wrap"></div>
-      </aside>
-    </div>
-
-    <div style="height:10px"></div>
-
+  <div class="grid">
     <section class="card">
-      <h3 style="margin:0 0 10px 0">Widok tygodnia (przeciągnij zadanie na dzień tygodnia)</h3>
-      <div id="weekGrid" class="week"></div>
-    </section>
-
-    <div style="height:10px"></div>
-
-    <section class="card">
-      <h3 style="margin:0 0 10px 0">Statystyki</h3>
-      <div class="statsGrid">
-        <div>
-          <h4 style="margin:0 0 6px 0" class="muted">Heatmapa 6 tygodni (⭐ na dzień)</h4>
-          <canvas id="heat" width="600" height="240"></canvas>
-        </div>
-        <div>
-          <h4 style="margin:0 0 6px 0" class="muted">Top strefy (ostatnie 30 dni)</h4>
-          <ul id="topZones" style="margin:0;padding-left:18px"></ul>
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <h3 style="margin:0">Zadania <span id="personTitle" class="muted"></span></h3>
+        <div class="row">
+          <label class="muted">Sortuj</label>
+          <select id="sortBy"><option value="status">Status</option><option value="priority">Priorytet</option><option value="title">Tytuł A→Z</option><option value="zone">Strefa</option></select>
+          <button id="resetDailyBtn" class="btn">🔁 Reset</button>
+          <button id="clearDoneBtn" class="btn">🧹 Usuń wykonane</button>
         </div>
       </div>
+      <div id="tasksList" style="margin-top:10px;display:flex;flex-direction:column;gap:10px"></div>
     </section>
-
-    <div style="height:10px"></div>
 
     <aside class="card">
-      <h3 style="margin:0 0 6px 0">Tablica wyników</h3>
-      <table id="leaderboard" style="width:100%;border-collapse:collapse"></table>
-    </aside>
-  </div><!-- /view-chores -->
-
-  <!-- ====== WIDOK: ZAKUPY ====== -->
-  <div id="view-shopping" style="display:none">
-    <section class="card">
-      <h3 style="margin:0 0 10px 0">Lista zakupów (wspólna)</h3>
+      <h3 style="margin-top:0">Dodaj zadanie</h3>
       <div class="row" style="flex-direction:column;gap:10px;width:100%">
+        <input id="taskTitle" type="text" placeholder="np. odkurzyć salon"/>
         <div class="row" style="width:100%">
-          <input id="shopTitle" type="text" placeholder="np. Mleko 2%"/>
-          <input id="shopQty" type="text" placeholder="ilość (opcjonalnie)" style="width:160px"/>
-        </div>
-        <div class="row" style="width:100%">
-          <select id="shopSection" style="flex:1"></select>
-          <select id="shopAssignee" style="flex:1"></select>
-          <select id="shopPriority" style="width:160px">
-            <option value="high">🔥 Pilne</option>
-            <option value="med" selected>• Normalne</option>
-            <option value="low">… Luźne</option>
+          <select id="planType" style="flex:1">
+            <option value="daily" selected>Codziennie</option>
+            <option value="once">W konkretnym dniu</option>
+            <option value="weekly">Co tydzień</option>
+            <option value="monthly">Co miesiąc</option>
+            <option value="yearly">Co rok</option>
           </select>
+          <input id="taskTime" type="time" value="07:00" style="width:140px"/>
         </div>
-        <div class="row">
-          <button id="shopAddBtn" class="btn">➕ Dodaj pozycję</button>
-          <button id="shopClearDoneBtn" class="btn">🧹 Usuń kupione</button>
-          <button id="shopExportBtn" class="btn">📋 Kopiuj listę</button>
+        <div class="row" id="oncePicker" style="display:none;width:100%"><label class="muted">Data:</label><input id="taskDate" type="date" style="flex:1"/></div>
+        <div class="row" id="monthlyPicker" style="display:none;width:100%"><label class="muted">Dzień miesiąca:</label><input id="dayOfMonth" type="number" min="1" max="31" value="1" style="width:120px"/></div>
+        <div class="row" id="yearlyPicker" style="display:none;width:100%"><label class="muted">Data w roku:</label><input id="yearlyDate" type="date" style="flex:1"/></div>
+        <div class="row" id="weeklyPicker" style="display:none;width:100%"><label class="muted">Dni:</label>
+          <label><input type="checkbox" value="1">Pn</label><label><input type="checkbox" value="2">Wt</label><label><input type="checkbox" value="3">Śr</label><label><input type="checkbox" value="4">Cz</label><label><input type="checkbox" value="5">Pt</label><label><input type="checkbox" value="6">So</label><label><input type="checkbox" value="0">Nd</label>
+        </div>
+        <div class="row" style="width:100%">
+          <select id="taskZone" style="flex:1"></select>
+          <select id="taskPriority" style="flex:1">
+            <option value="high">🔥 Wysoki</option>
+            <option value="med" selected>• Średni</option>
+            <option value="low">… Niski</option>
+          </select>
+          <input id="taskPoints" type="number" min="1" step="1" value="1" style="width:120px"/>
+        </div>
+        <div class="row" style="width:100%">
+          <label class="muted">Kara gdy nie zrobione (⭐):</label>
+          <input id="taskPenalty" type="number" min="0" step="1" value="1" style="width:120px" />
+        </div>
+        <div class="row" style="width:100%"><label class="muted">Przypomnij wcześniej:</label>
+          <input id="remNum" type="number" min="0" step="1" value="10" style="width:100px"/>
+          <select id="remUnit" style="width:150px"><option value="minutes" selected>minuty</option><option value="hours">godziny</option><option value="days">dni</option><option value="weeks">tygodnie</option><option value="months">miesiące</option><option value="years">lata</option></select>
+        </div>
+        <button id="addTaskBtn" class="btn">✅ Dodaj</button>
+      </div>
+
+      <hr style="border-color:var(--border);margin:14px 0"/>
+
+      <h3 style="margin-top:0">Punktacja i cele</h3>
+      <div class="row" style="justify-content:space-between;width:100%">
+        <div style="flex:1">
+          <div class="row" style="justify-content:space-between">
+            <div>Dzisiejsze: <span class="score" id="todayScore">0</span> / <span id="goalScore">0</span> ⭐</div>
+            <div class="muted">Tydzień: <span class="score" id="weekScore">0</span></div>
+          </div>
+          <div class="progress" style="margin-top:6px"><div id="goalBar"></div></div>
+        </div>
+        <div class="row"><label class="muted">Kara globalna (nieużywana)</label>
+          <select id="penaltyPolicy" disabled><option value="1" selected>-100%</option></select>
         </div>
       </div>
-    </section>
 
-    <div style="height:10px"></div>
+      <div class="card" style="margin-top:10px">
+        <h4 style="margin:0 0 6px 0">Szybkie korekty (nagrody/kary)</h4>
+        <div class="row" style="width:100%">
+          <input id="deltaPoints" type="number" value="1" min="1" step="1" style="width:120px"/>
+          <select id="deltaScope" style="width:160px">
+            <option value="week">Tydzień</option>
+            <option value="today">Dziś</option>
+          </select>
+          <button id="deltaMinus" class="btn">➖ Odejmij</button>
+          <button id="deltaPlus" class="btn">➕ Dodaj</button>
+        </div>
+      </div>
 
-    <section class="card">
-      <h3 style="margin:0 0 10px 0">Do kupienia</h3>
-      <div id="shopListContainer" class="shop-grid"></div>
-    </section>
-  </div><!-- /view-shopping -->
-<!-- Pasek kategorii (poziomy scroll) -->
-<div id="shopCats"></div>
+      <hr style="border-color:var(--border);margin:14px 0"/>
 
-</div><!-- /wrap -->
+      <h3 style="margin-top:0">Sklepik nagród 🎁</h3>
+      <div id="shopList" style="display:flex;flex-direction:column;gap:8px"></div>
+      <div class="row"><input id="rewardName" type="text" placeholder="np. seans filmu" style="flex:1"/><input id="rewardCost" type="number" min="1" step="1" value="10" style="width:120px"/><button id="addRewardBtn" class="btn">➕</button></div>
+
+      <hr style="border-color:var(--border);margin:14px 0"/>
+
+      <h3 style="margin-top:0">Udostępnij / Eksport</h3>
+      <div class="row">
+        <button id="mailBtn" class="btn">📧 Podsumowanie</button>
+        <button id="copyBtn" class="btn">📋 Kopiuj</button>
+        <button id="icsBtn" class="btn">📆 .ics (osoba)</button>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button id="exportCSVPersonBtn" class="btn">⬇️ CSV (osoba)</button>
+        <button id="exportCSVAllBtn" class="btn">⬇️ CSV (wszyscy)</button>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button id="exportBtn" class="btn">☁️ Zapisz JSON</button>
+        <input id="importFile" type="file" accept="application/json" style="display:none"/>
+        <button id="importBtn" class="btn">☁️ Wczytaj JSON</button>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button id="remindersBtn" class="btn">📝 Do Przypomnień (Shortcuts)</button>
+        <button id="ttsBtn" class="btn">🔊 Czytaj teraz</button>
+      </div>
+
+      <hr style="border-color:var(--border);margin:14px 0"/>
+
+      <h3 style="margin-top:0">Strefy domu</h3>
+      <div class="row">
+        <select id="zonesSelect" style="flex:1"></select>
+        <input id="newZone" type="text" placeholder="Nowa strefa" style="flex:1"/>
+        <button id="addZoneBtn" class="btn">➕</button>
+        <button id="delZoneBtn" class="btn" title="Usuń wybraną">🗑️</button>
+        <button id="randomZoneBtn" class="btn">🎲 Losuj</button>
+      </div>
+      <div id="zonesBadges" class="row" style="margin-top:8px;flex-wrap:wrap"></div>
+    </aside>
+  </div>
+
+  <div style="height:10px"></div>
+
+  <section class="card">
+    <h3 style="margin:0 0 10px 0">Widok tygodnia (przeciągnij zadanie na dzień tygodnia)</h3>
+    <div id="weekGrid" class="week"></div>
+  </section>
+
+  <div style="height:10px"></div>
+
+  <section class="card">
+    <h3 style="margin:0 0 10px 0">Statystyki</h3>
+    <div class="statsGrid">
+      <div>
+        <h4 style="margin:0 0 6px 0" class="muted">Heatmapa 6 tygodni (⭐ na dzień)</h4>
+        <canvas id="heat" width="600" height="240"></canvas>
+      </div>
+      <div>
+        <h4 style="margin:0 0 6px 0" class="muted">Top strefy (ostatnie 30 dni)</h4>
+        <ul id="topZones" style="margin:0;padding-left:18px"></ul>
+      </div>
+    </div>
+  </section>
+
+  <div style="height:10px"></div>
+
+  <aside class="card">
+    <h3 style="margin:0 0 6px 0">Tablica wyników</h3>
+    <table id="leaderboard" style="width:100%;border-collapse:collapse"></table>
+  </aside>
+</div>
 
 <div id="overlay" class="overlay"><div id="dialog" class="dialog"></div></div>
 
@@ -507,29 +443,14 @@ async function tryFirebaseInit(){
     setFamilyLabel(family);
 
     await subscribeToFamily(family);
-    // UWAGA: pushToFirebase już sam sprawdza, czy nie nadpisze chmury.
-    pushToFirebase();
+    pushToFirebase(); // utwórz dokument jeśli go nie ma
   }catch(e){ console.warn('Firebase init error', e); }
 }
 
-/* ---- BEZPIECZNY ZAPIS: nie nadpisuje danych z innego urządzenia ---- */
 async function pushToFirebase(){
   if(!fbDoc) return;
   try{
     const payloadStr = JSON.stringify(db);
-    const snap = await fbDoc.get();
-    if (snap.exists) {
-      // jest dokument w chmurze — sprawdź stempel czasu
-      const data = snap.data() || {};
-      const cloud = (typeof data.payload==='string') ? JSON.parse(data.payload) : (data.payload||{});
-      const cloudMillis = data.updatedAt?.toMillis?.() ?? cloud.updatedAt ?? 0;
-      const localMillis = db.updatedAt ?? 0;
-      // tylko jeśli lokalne jest nowsze lub puste w chmurze — wykonaj merge
-      if (localMillis && localMillis <= cloudMillis) {
-        // chmura nowsza — nie nadpisuj
-        return;
-      }
-    }
     await fbDoc.set(
       { payload: payloadStr, updatedAt: firebase.firestore.FieldValue.serverTimestamp() },
       { merge:true }
@@ -547,44 +468,19 @@ const defaultRewards=[
   {id:crypto.randomUUID(),name:'Seans filmu',cost:20},
   {id:crypto.randomUUID(),name:'Godzina gry',cost:25}
 ];
-/* NOWE: sekcje zakupów (domyślne) */
-const defaultShoppingSections=['Jedzenie','Szkoła','Praca','Przyjemności','Chemia','Kosmetyki','Samochód','Inne'];
-
-const defaultData={
-  zones:defaultZones,
-  rewards:defaultRewards,
-  /* NOWE: stan zakupów */
-  shopping: [],
-  shoppingSections: defaultShoppingSections,
-  people:[
-    {id:crypto.randomUUID(),name:'Ja',goal:5,streak:0,icsTime:'07:00',scoreToday:0,scoreWeek:0,latePenaltyPerHour:1,pin:'',childMode:false,tasks:[
-      {id:crypto.randomUUID(),title:'Wyrzucić śmieci',schedType:'daily',time:'07:00',points:1,penalty:1,priority:'med',zone:'Kuchnia',done:false,sub:[]},
-      {id:crypto.randomUUID(),title:'Nakarmić kota',schedType:'daily',time:'07:10',points:1,penalty:1,priority:'med',zone:'Kuchnia',done:false,sub:[]}
-    ]},
-    {id:crypto.randomUUID(),name:'Ania',goal:5,streak:0,icsTime:'07:10',scoreToday:0,scoreWeek:0,latePenaltyPerHour:1,pin:'',childMode:false,tasks:[
-      {id:crypto.randomUUID(),title:'Zmywarka — rozładuj',schedType:'daily',time:'07:30',points:2,penalty:1,priority:'high',zone:'Kuchnia',done:false,sub:[]},
-      {id:crypto.randomUUID(),title:'Podlać kwiaty',schedType:'weekly',dows:[3],time:'18:00',points:2,penalty:1,priority:'low',zone:'Salon',done:false,sub:[]}
-    ]}
-  ],
-  ],
-currentPersonId:null,
-penaltyFactor:1,
-history:[],
-/* === Zakupy: dane domyślne === */
-shopping: [],
-shoppingSections: ['Jedzenie','Szkoła','Praca','Przyjemności','Chemia','Kosmetyki','Samochód','Inne'],
-shoppingActive: 'Wszystko',
-updatedAt: Date.now()
-};
+const defaultData={zones:defaultZones,rewards:defaultRewards,people:[
+  {id:crypto.randomUUID(),name:'Ja',goal:5,streak:0,icsTime:'07:00',scoreToday:0,scoreWeek:0,latePenaltyPerHour:1,pin:'',childMode:false,tasks:[
+    {id:crypto.randomUUID(),title:'Wyrzucić śmieci',schedType:'daily',time:'07:00',points:1,penalty:1,priority:'med',zone:'Kuchnia',done:false,sub:[]},
+    {id:crypto.randomUUID(),title:'Nakarmić kota',schedType:'daily',time:'07:10',points:1,penalty:1,priority:'med',zone:'Kuchnia',done:false,sub:[]}
+  ]},
+  {id:crypto.randomUUID(),name:'Ania',goal:5,streak:0,icsTime:'07:10',scoreToday:0,scoreWeek:0,latePenaltyPerHour:1,pin:'',childMode:false,tasks:[
+    {id:crypto.randomUUID(),title:'Zmywarka — rozładuj',schedType:'daily',time:'07:30',points:2,penalty:1,priority:'high',zone:'Kuchnia',done:false,sub:[]},
+    {id:crypto.randomUUID(),title:'Podlać kwiaty',schedType:'weekly',dows:[3],time:'18:00',points:2,penalty:1,priority:'low',zone:'Salon',done:false,sub:[]}
+  ]}
+],currentPersonId:null,penaltyFactor:1,history:[],updatedAt: Date.now()};
 function load(){try{return JSON.parse(localStorage.getItem(stateKey))||defaultData}catch(e){return defaultData}}
 function save(){ db.updatedAt=Date.now(); localStorage.setItem(stateKey,JSON.stringify(db)); pushToFirebase(); }
-let db = load();
-if(!db.currentPersonId && db.people.length) db.currentPersonId = db.people[0].id;
-/* Bezpiecznik zakupów przy starych zapisach lokalnych/chmurowych */
-if(!Array.isArray(db.shopping)) db.shopping = [];
-if(!Array.isArray(db.shoppingSections)) db.shoppingSections = ['Jedzenie','Szkoła','Praca','Przyjemności','Chemia','Kosmetyki','Samochód','Inne'];
-if(!db.shoppingActive) db.shoppingActive = 'Wszystko';
-
+let db=load(); if(!db.currentPersonId && db.people.length) db.currentPersonId=db.people[0].id;
 
 /* ===== HEADER & TABS ===== */
 function renderDate(){todayEl.textContent=fmtDate(new Date())}
@@ -601,8 +497,8 @@ function addZone(){const z=$('#newZone').value.trim(); if(!z) return; if(!db.zon
 function delZone(){const val=$('#zonesSelect').value; if(!val) return; if(!confirm(`Usunąć strefę „${val}”?`)) return; db.zones=db.zones.filter(z=>z!==val); save(); renderZones()}
 function randomZone(){ if(!db.zones.length) return alert('Brak stref'); const z=db.zones[Math.floor(Math.random()*db.zones.length)]; alert('🎲 Dzisiejsza strefa: '+z) }
 
-/* ===== SHOP (sklepik nagród) ===== */
-function renderShop(){const host=$('#shopList');host.innerHTML='';const p=currentPerson();if(!p)return;db.rewards.forEach(r=>{const row=document.createElement('div');row.className='shopItem';row.innerHTML=`<div>${r.name} — <b>${r.cost}⭐</b></div>`;const box=document.createElement('div');box.style.display='flex';box.style.gap='6px';const btn=document.createElement('button');btn.className='btn';btn.textContent='Zrealizuj';btn.onclick=()=>{if(p.childMode){alert('Tryb dziecka — realizacja nagród zablokowana.');return}if(p.scoreWeek<r.cost){alert('Za mało ⭐');return}showDialog(`<h3 style="margin-top:0">Potwierdź nagrodę</h3><p>${p.name} wymienia <b>${r.cost}⭐</b> na „${r.name}”. Kontynuować?</p><div class="row" style="justify-content:flex-end"><button class="btn" onclick="closeDialog()">Anuluj</button><button class="btn" onclick="redeem('${r.id}')">✅ OK</button></div>`)};const del=document.createElement('button');del.className='btn';del.textContent='🗑️';del.title='Usuń nagrodę';del.onclick=()=>{if(!confirm(`Usunąć nagrodę „${r.name}”?`))return;db.rewards=(db.rewards||[]).filter(x=>x.id!==r.id);save();renderShop();};box.appendChild(btn);box.appendChild(del);row.appendChild(box);host.appendChild(row)})}
+/* ===== SHOP ===== */
+function renderShop(){const host=$('#shopList');host.innerHTML='';const p=currentPerson();if(!p)return;db.rewards.forEach(r=>{const row=document.createElement('div');row.className='shopItem';row.innerHTML=`<div>${r.name} — <b>${r.cost}⭐</b></div>`;const btn=document.createElement('button');btn.className='btn';btn.textContent='Zrealizuj';btn.onclick=()=>{if(p.childMode){alert('Tryb dziecka — realizacja nagród zablokowana.');return}if(p.scoreWeek<r.cost){alert('Za mało ⭐');return}showDialog(`<h3 style="margin-top:0">Potwierdź nagrodę</h3><p>${p.name} wymienia <b>${r.cost}⭐</b> na „${r.name}”. Kontynuować?</p><div class="row" style="justify-content:flex-end"><button class="btn" onclick="closeDialog()">Anuluj</button><button class="btn" onclick="redeem('${r.id}')">✅ OK</button></div>`)};row.appendChild(btn);host.appendChild(row)})}
 function redeem(id){const p=currentPerson();const r=db.rewards.find(x=>x.id===id);if(!p||!r)return;p.scoreWeek-=r.cost;if(p.scoreWeek<0)p.scoreWeek=0;db.history.push({date:nowYMD(),personId:p.id,earned:0,missed:0,reward:r.name});save();closeDialog();renderScores();renderTabs()}
 
 /* ===== SCORES ===== */
@@ -621,7 +517,7 @@ function renderScores(){
 function latePenaltyForTask(p,t){
   if(!t.time) return 0;
   const now=new Date();
-  const {H,M}=hmToParts(t.time||'07:00');
+  const {H,M}=hmToParts(t.time);
   const sched=new Date(now.getFullYear(),now.getMonth(),now.getDate(),H,M,0);
   if(now<=sched) return 0;
   const hoursLate=Math.floor((now-sched)/(60*60*1000));
@@ -720,10 +616,24 @@ function renderTasks(){
     cb.onchange=()=>{ if(p.childMode){ cb.checked=!cb.checked; alert('Tryb dziecka — blokada zmiany.'); return; }
                       toggleTask(p,t,cb.checked); save(); renderAllCore(); };
     const label=document.createElement('label');
-    label.innerHTML = `<strong class="editable" contenteditable="true" spellcheck="false">${t.title}</strong><br><small>${taskBadge(t)} ${dueToday(t)?'':"<span style='color:var(--warn)'> (nie dziś)</span>"}</small>`;
-    const titleEl = label.querySelector('.editable');
-    titleEl.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); titleEl.blur(); }});
-    titleEl.addEventListener('blur', ()=>{ const v = titleEl.textContent.trim(); if(v && v !== t.title){ t.title = v; save(); renderTasks(); } else { titleEl.textContent = t.title; } });
+   label.innerHTML = `
+  <strong class="editable" contenteditable="true" spellcheck="false">${t.title}</strong>
+  <br><small>${taskBadge(t)} ${dueToday(t)?'':"<span style='color:var(--warn)'> (nie dziś)</span>"}</small>
+`;
+const titleEl = label.querySelector('.editable');
+titleEl.addEventListener('keydown', (e)=>{
+  if(e.key==='Enter'){ e.preventDefault(); titleEl.blur(); }
+});
+titleEl.addEventListener('blur', ()=>{
+  const v = titleEl.textContent.trim();
+  if(v && v !== t.title){
+    t.title = v;
+    save(); // zachowuje i zsynchronizuje
+    renderTasks(); // odśwież znacznik (badge itp.)
+  }else{
+    titleEl.textContent = t.title; // przywróć oryginał, jeśli puste
+  }
+});
 
     const actions=document.createElement('div'); actions.className='actions';
     const editBtn=document.createElement('button'); editBtn.className='btn'; editBtn.textContent='✏️'; editBtn.onclick=()=>{ if(p.childMode){alert('Tryb dziecka.'); return;} editTask(t); save(); renderTasks(); };
@@ -762,126 +672,6 @@ function addTask(){
   p.tasks.push(t);
   $('#taskTitle').value=''; $('#taskPoints').value='1'; $('#taskPenalty').value='1'; $$('#weeklyPicker input:checked').forEach(el=>el.checked=false);
   save(); renderAllCore();
-}
-/* ===== ZAKUPY (kategorie + lista) ===== */
-// Struktura elementu: { id, title, section, who, done }
-function renderShopCategories(){
-  const host = document.getElementById('shopCats');
-  if(!host) return;
-  host.innerHTML = '';
-
-  const cats = ['Wszystko', ...db.shoppingSections];
-  cats.forEach(cat=>{
-    const b = document.createElement('button');
-    b.className = 'catBtn' + (db.shoppingActive===cat ? ' is-active' : '');
-    b.textContent = cat;
-    b.onclick = ()=>{
-      db.shoppingActive = cat;
-      save();          // zapisze i zsynchro do Firestore (payload)
-      renderShoppingList();
-      renderShopCategories();  // odśwież podświetlenia
-    };
-    host.appendChild(b);
-  });
-}
-
-function renderShoppingList(){
-  // Zakładam, że masz w zakładce „Zakupy”:
-  // - kontener listy o id="shoppingList"
-  // - pole tekstowe id="shoppingInput"
-  // - przycisk dodania id="shoppingAddBtn"
-  const listEl = document.getElementById('shoppingList');
-  if(!listEl) return;
-
-  listEl.innerHTML = '';
-
-  const active = db.shoppingActive || 'Wszystko';
-  const items = db.shopping
-    .filter(it => active==='Wszystko' ? true : (it.section||'Inne')===active);
-
-  if(!items.length){
-    const empty = document.createElement('div');
-    empty.className = 'muted';
-    empty.textContent = 'Brak pozycji w tej kategorii.';
-    listEl.appendChild(empty);
-    return;
-  }
-
-  items.forEach(it=>{
-    const row = document.createElement('div');
-    row.className = 'task';   // reuse stylu taska
-    row.style.alignItems = 'center';
-
-    const cb = document.createElement('input');
-    cb.type = 'checkbox';
-    cb.checked = !!it.done;
-    cb.onchange = ()=>{ it.done = cb.checked; save(); };
-
-    const label = document.createElement('label');
-    label.style.flex = '1';
-    label.innerHTML = `<strong>${it.title}</strong><br><small class="muted">${it.section||'Inne'}${it.who?(' • '+it.who):''}</small>`;
-
-    const actions = document.createElement('div');
-    actions.className = 'actions';
-
-    const editBtn = document.createElement('button');
-    editBtn.className = 'btn';
-    editBtn.textContent = '✏️';
-    editBtn.title = 'Edytuj';
-    editBtn.onclick = ()=>{
-      const nt = prompt('Nazwa:', it.title) ?? it.title;
-      const ns = prompt('Kategoria:', it.section || 'Inne') ?? (it.section||'Inne');
-      const nw = prompt('Dla kogo (opcjonalnie):', it.who || '') ?? (it.who||'');
-      it.title = String(nt).trim() || it.title;
-      it.section = String(ns).trim() || 'Inne';
-      it.who = String(nw).trim();
-      save(); renderShoppingList();
-    };
-
-    const delBtn = document.createElement('button');
-    delBtn.className = 'btn';
-    delBtn.textContent = '🗑️';
-    delBtn.title = 'Usuń';
-    delBtn.onclick = ()=>{
-      if(!confirm('Usunąć pozycję?')) return;
-      db.shopping = db.shopping.filter(x=>x.id!==it.id);
-      save(); renderShoppingList();
-    };
-
-    actions.appendChild(editBtn);
-    actions.appendChild(delBtn);
-
-    row.appendChild(cb);
-    row.appendChild(label);
-    row.appendChild(actions);
-    listEl.appendChild(row);
-  });
-}
-
-// Dodawanie pozycji (korzysta z aktywnej kategorii)
-function bindShoppingInputs(){
-  const inp = document.getElementById('shoppingInput');
-  const add = document.getElementById('shoppingAddBtn');
-  if(!inp || !add) return;
-
-  function doAdd(){
-    const title = (inp.value||'').trim();
-    if(!title) return;
-    const section = db.shoppingActive && db.shoppingActive!=='Wszystko'
-      ? db.shoppingActive : 'Inne';
-    db.shopping.push({
-      id: crypto.randomUUID(),
-      title, section,
-      who:'', done:false
-    });
-    inp.value='';
-    save();
-    renderShoppingList();
-    renderShopCategories(); // liczba w kategoriach się nie wyświetla, ale class active odświeżamy
-  }
-
-  add.onclick = doAdd;
-  inp.onkeydown = (e)=>{ if(e.key==='Enter') doAdd(); };
 }
 
 /* ===== DAY/WEEK END ===== */
@@ -1085,99 +875,9 @@ function setGoal(){
 function setIcs(){const p=currentPerson();if(!p)return;const cur=p.icsTime||'07:00';const t=prompt('Godzina .ics (HH:MM, 24h):',cur);if(!t)return;if(!/^\d{2}:\d{2}$/.test(t))return alert('Format HH:MM');p.icsTime=t;save();renderLeaderboard()}
 function pinDialog(){const p=currentPerson();if(!p)return;showDialog(`<h3 style="margin-top:0">PIN i Tryb dziecka — ${p.name}</h3><div class="row" style="flex-direction:column;align-items:stretch"><label class="muted">Ustaw/zmień PIN (4–8 cyfr)</label><input id="pinSet" type="password" placeholder="${p.pin?'(obecny istnieje)':'brak'}"/><label class="muted" style="margin-top:8px">Tryb dziecka (blokada zmian)</label><div class="row"><button class="btn" onclick="setChildMode(true)">👶 Włącz</button><button class="btn" onclick="setChildMode(false)">🔓 Wyłącz</button></div></div><div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn" onclick="closeDialog()">Zamknij</button><button class="btn" onclick="savePin()">✅ Zapisz PIN</button></div>`);window.savePin=function(){const v=$('#pinSet').value.trim();if(v&&!/^\d{4,8}$/.test(v))return alert('PIN 4–8 cyfr.');p.pin=v;save();alert('Zapisano PIN.');closeDialog()};window.setChildMode=function(on){if(p.pin){const entered=prompt('Podaj PIN:');if(entered!==p.pin)return alert('Zły PIN.')}p.childMode=!!on;save();renderTabs();alert(on?'Tryb dziecka WŁĄCZONY.':'Tryb dziecka WYŁĄCZONY.')}}
 
-/* ===== WIDOK ZAKUPÓW ===== */
-function shoppingPeopleOptions(){
-  // osoby z db.people (+ pusta „—”)
-  const arr = ['—'].concat(db.people.map(p=>p.name));
-  return arr.map(n=>`<option value="${n}">${n}</option>`).join('');
-}
-function renderShoppingSelectors(){
-  $('#shopSection').innerHTML = (db.shoppingSections||defaultShoppingSections).map(s=>`<option value="${s}">${s}</option>`).join('');
-  $('#shopAssignee').innerHTML = shoppingPeopleOptions();
-}
-function addShoppingItem(){
-  const title = $('#shopTitle').value.trim();
-  if(!title){ alert('Podaj nazwę pozycji.'); return; }
-  const qty = $('#shopQty').value.trim();
-  const section = $('#shopSection').value || 'Inne';
-  const who = $('#shopAssignee').value || '—';
-  const prio = $('#shopPriority').value || 'med';
-  const item = { id:crypto.randomUUID(), title, qty, section, assignee:who, priority:prio, done:false, createdAt: Date.now() };
-  db.shopping = db.shopping || [];
-  db.shopping.push(item);
-  $('#shopTitle').value=''; $('#shopQty').value='';
-  save(); renderShopping();
-}
-function toggleShoppingItem(id, on){
-  const it = (db.shopping||[]).find(x=>x.id===id);
-  if(!it) return;
-  it.done = !!on;
-  save(); renderShopping();
-}
-function removeShoppingItem(id){
-  if(!confirm('Usunąć pozycję z listy?')) return;
-  db.shopping = (db.shopping||[]).filter(x=>x.id!==id);
-  save(); renderShopping();
-}
-function clearBought(){
-  db.shopping = (db.shopping||[]).filter(x=>!x.done);
-  save(); renderShopping();
-}
-async function exportShoppingText(){
-  const lines = (db.shopping||[]).map(x=>{
-    const mark = x.done ? '[x]' : '[ ]';
-    const qty = x.qty ? ` × ${x.qty}` : '';
-    const sec = x.section ? ` (${x.section})` : '';
-    const who = x.assignee && x.assignee!=='—' ? ` — ${x.assignee}` : '';
-    const pr = x.priority==='high'?' 🔥':''; 
-    return `${mark} ${x.title}${qty}${sec}${who}${pr}`;
-  });
-  try{ await copy(lines.join('\n')); alert('Skopiowano listę.'); }catch(_){ prompt('Kopiuj ręcznie:', lines.join('\n')); }
-}
-function renderShopping(){
-  renderShoppingSelectors();
-  const host = $('#shopListContainer');
-  host.innerHTML = '';
-  const items = (db.shopping||[]).slice().sort((a,b)=>{
-    // sort: niekupione najpierw, potem priority high/med/low, potem sekcja, tytuł
-    const done = (a.done===b.done)?0:(a.done?1:-1);
-    if(done!==0) return done;
-    const pmap={high:0,med:1,low:2};
-    const pr=(pmap[a.priority]??1)-(pmap[b.priority]??1);
-    if(pr!==0) return pr;
-    const sec=(a.section||'').localeCompare(b.section||'','pl');
-    if(sec!==0) return sec;
-    return (a.title||'').localeCompare(b.title||'','pl');
-  });
-  items.forEach(x=>{
-    const row=document.createElement('div'); row.className='shop-item'+(x.done?' shop-done':'');
-    const cb=document.createElement('input'); cb.type='checkbox'; cb.checked=!!x.done; cb.onchange=()=>toggleShoppingItem(x.id, cb.checked);
-    const title=document.createElement('div'); title.style.flex='1'; title.innerHTML = `<b>${x.title}</b>${x.qty?` <span class="muted">× ${x.qty}</span>`:''}<br><small class="muted">${x.section||'Inne'}${x.assignee&&x.assignee!=='—'?` • ${x.assignee}`:''}${x.priority==='high'?' • 🔥':''}</small>`;
-    const del=document.createElement('button'); del.className='btn'; del.textContent='🗑️'; del.onclick=()=>removeShoppingItem(x.id);
-    row.appendChild(cb); row.appendChild(title); row.appendChild(del);
-    host.appendChild(row);
-  });
-}
-
 /* ===== RENDER ROOT ===== */
 function renderLeaderboardAndStats(){renderLeaderboard();renderHeat();renderTopZones()}
-function renderAllCore(){
-  renderTabs();
-  renderZones();
-  renderShop();                 // (to Twój sklepik nagród)
-  renderTasks();
-  renderScores();
-  renderWeek();
-  renderLeaderboardAndStats();
-  // --- NOWE: Zakupy ---
-  renderShopCategories();
-  renderShoppingList();
-  bindShoppingInputs();         // bezpiecznie – tylko raz zadziała handlers
-}
-
-  // jeśli widok zakupów aktywny – też odśwież
-  if (document.getElementById('view-shopping').style.display!=='none') renderShopping();
-}
+function renderAllCore(){renderTabs();renderZones();renderShop();renderTasks();renderScores();renderWeek();renderLeaderboardAndStats()}
 function renderAll(){renderDate();renderAllCore()}
 
 /* ===== BINDINGS ===== */
@@ -1195,11 +895,9 @@ document.getElementById('changeFamilyBtn').onclick = async () => {
   const curr = localStorage.getItem('familyId') || '';
   const next = prompt('ID rodziny (wspólna nazwa grupy):', curr);
   if (!next) return;
-  await subscribeToFamily(next.trim()); // przełącz subskrypcję
-  pushToFirebase();                      // zapisz aktualny stan jako startowy (nie kasujemy nic)
+  await subscribeToFamily(next.trim());
+  pushToFirebase();
 };
-
-
 /* THEME TOGGLE */
 (function themeInit(){
   const saved = localStorage.getItem('ui-theme') || 'dark';
@@ -1214,93 +912,83 @@ document.getElementById('changeFamilyBtn').onclick = async () => {
     };
   }
 })();
-
 /* SWIPE GESTURES FOR TASKS (mobile) */
 (function enableSwipe(){
   let startX=0, startY=0, active=null, moved=false;
-  const THRESH = 48, MAX = 96;
+  const THRESH = 48;      // ile pikseli, by uznać gest
+  const MAX = 96;         // maks. przesunięcie
+
   function attach(row, onRight, onLeft){
     row.addEventListener('touchstart', (e)=>{
-      startX = e.touches[0].clientX; startY = e.touches[0].clientY;
-      active = row; moved=false; row.style.transition = 'none';
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      active = row; moved=false;
+      row.style.transition = 'none';
     }, {passive:true});
+
     row.addEventListener('touchmove', (e)=>{
       if(!active) return;
       const dx = e.touches[0].clientX - startX;
       const dy = e.touches[0].clientY - startY;
-      if(Math.abs(dy) > Math.abs(dx)) return;
+      if(Math.abs(dy) > Math.abs(dx)) return; // przewijanie pionowe
       moved=true;
       const off = Math.max(-MAX, Math.min(MAX, dx));
       active.style.transform = `translateX(${off}px)`;
       active.style.opacity = String(1 - Math.min(0.35, Math.abs(off)/300));
     }, {passive:true});
+
     row.addEventListener('touchend', ()=>{
       if(!active) return;
       const matrix = new WebKitCSSMatrix(getComputedStyle(active).transform);
       const off = matrix.m41 || 0;
-      active.style.transition = ''; active.style.transform = ''; active.style.opacity = '';
-      if(moved && off > THRESH){ onRight && onRight(); }
-      else if(moved && off < -THRESH){ onLeft && onLeft(); }
+      active.style.transition = '';
+      active.style.transform = '';
+      active.style.opacity = '';
+      if(moved && off > THRESH){ onRight && onRight(); }     // w prawo = complete
+      else if(moved && off < -THRESH){ onLeft && onLeft(); } // w lewo = delete
       active=null; moved=false;
     });
   }
+
+  // Podpinamy po każdym renderze listy
   const _origRenderTasks = renderTasks;
   renderTasks = function(){
     _origRenderTasks();
+    // znajdź węzły i podepnij gesty
     const p = currentPerson(); if(!p) return;
     const rows = document.querySelectorAll('#tasksList .task');
-    const tasks = p.tasks;
+    const tasks = p.tasks; // kolejność zgodna z renderem po sort
     rows.forEach((row, idx)=>{
-      const cb = row.querySelector('input[type="checkbox"]');
+      const tNode = rows[idx];
+      const titleEl = tNode.querySelector('strong');
+      // „complete” = toggle checkbox
+      const cb = tNode.querySelector('input[type="checkbox"]');
       attach(row,
         ()=>{ if(cb){ cb.checked = true; cb.dispatchEvent(new Event('change')); } },
-        ()=>{ if (p.childMode) { alert('Tryb dziecka.'); return; }
-              if(confirm('Usunąć zadanie?')){
-                const id = tasks[idx]?.id;
-                if(id){ p.tasks = p.tasks.filter(z=>z.id!==id); save(); renderAllCore(); }
-              }
+        ()=>{ // delete
+          if (p.childMode) { alert('Tryb dziecka.'); return; }
+          if(confirm('Usunąć zadanie?')){
+            const id = tasks[idx]?.id;
+            if(id){ p.tasks = p.tasks.filter(z=>z.id!==id); save(); renderAllCore(); }
+          }
         }
       );
     });
   };
 })();
 
-/* --- Przenieś "Czytaj teraz" z eksportów do paska narzędzi zadań --- */
+// --- Przenieś "Czytaj teraz" z eksportów do panelu z zadaniami ---
 document.addEventListener('DOMContentLoaded', () => {
   const ttsBtn  = document.getElementById('ttsBtn');
-  const taskToolbar = document.getElementById('taskToolbar');
+  // to jest wiersz z: Sortuj / Reset / Usuń wykonane
+  const taskToolbar = document.querySelector('section.card > div.row > div.row'); 
   if (ttsBtn && taskToolbar) {
     taskToolbar.appendChild(ttsBtn);
+    // delikatny odstęp, żeby ładnie siadł obok przycisków
     ttsBtn.style.marginLeft = '8px';
   }
 });
 
-/* ===== WIDOKI: przełączanie Obowiązki / Zakupy ===== */
-(function tabsInit(){
-  const tabChores = document.getElementById('tabChores');
-  const tabShopping = document.getElementById('tabShopping');
-  const viewChores = document.getElementById('view-chores');
-  const viewShopping = document.getElementById('view-shopping');
-
-  function activate(which){
-    if(which==='shopping'){
-      tabChores.classList.remove('active'); tabShopping.classList.add('active');
-      viewChores.style.display='none'; viewShopping.style.display='';
-      renderShopping();
-    }else{
-      tabShopping.classList.remove('active'); tabChores.classList.add('active');
-      viewShopping.style.display='none'; viewChores.style.display='';
-      renderAllCore();
-    }
-  }
-  tabChores.addEventListener('click', ()=>activate('chores'));
-  tabShopping.addEventListener('click', ()=>activate('shopping'));
-
-  // Bind przyciski zakupów
-  document.getElementById('shopAddBtn').onclick = addShoppingItem;
-  document.getElementById('shopClearDoneBtn').onclick = clearBought;
-  document.getElementById('shopExportBtn').onclick = exportShoppingText;
-})();
 
 /* ===== PWA SW ===== */
 const skipSW = location.search.includes('nosw=1');
@@ -1313,16 +1001,182 @@ if('serviceWorker' in navigator && !skipSW){
 /* ===== INIT ===== */
 function hideSplash(){
   const el = document.getElementById('splash');
-  if (el) el.remove();
+  if (el) el.remove();               // usuwamy całkiem; bez migotania
 }
+
 document.addEventListener('DOMContentLoaded', () => {
   renderAll();
   tryFirebaseInit();
+  // schowaj splash chwile po wyrenderowaniu UI
   setTimeout(hideSplash, 200);
 });
+
+// dodatkowy bezpiecznik gdyby coś się dłuużej ładowało
 window.addEventListener('load', hideSplash);
+
 </script>
+<!-- ===== UI HOTFIX (tylko wygląd; nie zmienia logiki Firebase/FamilyID) ===== -->
+<style id="ui-hotfix">
+  /* 1) Wiersz zadania na telefonie: zawijanie, akcje pod spodem, kosz nie wyjeżdża */
+  @media (max-width: 480px){
+    #tasksList .task{
+      display:flex; flex-wrap:wrap; align-items:flex-start; gap:.5rem;
+    }
+    #tasksList .task label{ flex:1 1 100%; min-width:100%; }
+    #tasksList .task .actions{
+      flex:1 1 100%; min-width:100%;
+      display:flex; justify-content:flex-end; gap:.5rem;
+    }
+    #tasksList .task .actions .btn{
+      width:42px; height:42px; padding:0; line-height:42px;
+      transform:none !important;
+    }
+  }
+
+  /* 2) „Strefa domu” – na telefonie pełna szerokość i osobna linia */
+  @media (max-width: 640px){
+    .zone-field, .strefa-input{
+      display:block; width:100% !important; min-width:100%;
+      margin-top:.25rem;
+    }
+    .zone-field input, .strefa-input input{ width:100%; }
+  }
+
+  /* 3) Widok tygodnia – poziomy scroll (jak tablica wyników) */
+  #weekGrid.week-scroll{
+    display:grid;
+    grid-auto-flow:column;
+    grid-auto-columns:minmax(160px, 1fr);
+    gap:.5rem;
+    overflow-x:auto;
+    padding-bottom:.5rem;
+    overscroll-behavior-x:contain;
+    -webkit-overflow-scrolling:touch;
+  }
+  #weekGrid.week-scroll::-webkit-scrollbar{ height:6px }
+  #weekGrid.week-scroll::-webkit-scrollbar-thumb{ background:#444; border-radius:3px }
+</style>
+
+<script>
+/* Tydzień przewijany poziomo — tylko klasę dokładamy */
+document.addEventListener('DOMContentLoaded', () => {
+  const grid = document.getElementById('weekGrid');
+  if (grid) grid.classList.add('week-scroll');
+});
+</script>
+
+<script>
+/* Sklepik: dodaj „Usuń nagrodę” — używa wyłącznie Twojego save()/db, nie dotyka Firebase bezpośrednio */
+(function attachRewardDelete(){
+  // nadpisujemy istniejącą renderShop, ale wyłącznie UI; zapis leci przez save()
+  const originalSave = (typeof save === 'function') ? save : function(){};
+  window.renderShop = function(){
+    const host = document.getElementById('shopList');
+    if(!host) return;
+    host.innerHTML = '';
+    const p = (typeof currentPerson === 'function') ? currentPerson() : null;
+    if(!p) return;
+
+    (db?.rewards || []).forEach(r=>{
+      const row = document.createElement('div');
+      row.className = 'shopItem';
+      row.innerHTML = `<div>${r.name} — <b>${r.cost}⭐</b></div>`;
+
+      const box = document.createElement('div');
+      box.style.display = 'flex';
+      box.style.gap = '6px';
+
+      // Zrealizuj (jak wcześniej)
+      const useBtn = document.createElement('button');
+      useBtn.className = 'btn';
+      useBtn.textContent = 'Zrealizuj';
+      useBtn.onclick = ()=>{
+        if(p.childMode){ alert('Tryb dziecka — realizacja nagród zablokowana.'); return; }
+        if(p.scoreWeek < r.cost){ alert('Za mało ⭐'); return; }
+        if(typeof showDialog === 'function'){
+          showDialog(
+            `<h3 style="margin-top:0">Potwierdź nagrodę</h3>
+             <p>${p.name} wymienia <b>${r.cost}⭐</b> na „${r.name}”. Kontynuować?</p>
+             <div class="row" style="justify-content:flex-end">
+               <button class="btn" onclick="closeDialog()">Anuluj</button>
+               <button class="btn" onclick="redeem('${r.id}')">✅ OK</button>
+             </div>`
+          );
+        }
+      };
+
+      // Usuń
+      const delBtn = document.createElement('button');
+      delBtn.className = 'btn';
+      delBtn.title = 'Usuń nagrodę';
+      delBtn.textContent = '🗑️';
+      delBtn.onclick = ()=>{
+        if(!confirm(`Usunąć nagrodę „${r.name}”?`)) return;
+        db.rewards = (db.rewards || []).filter(x => x.id !== r.id);
+        originalSave();
+        window.renderShop(); // odśwież listę
+      };
+
+      box.appendChild(useBtn);
+      box.appendChild(delBtn);
+      row.appendChild(box);
+      host.appendChild(row);
+    });
+  };
+})();
+</script>
+
+<script>
+/* Przenieś sekcję „Udostępnij / Eksport” na sam dół strony (bez zmian HTML) */
+document.addEventListener('DOMContentLoaded', () => {
+  try{
+    const wrap = document.querySelector('.wrap');
+    if(!wrap) return;
+
+    // Znajdź kartę, która ma nagłówek zaczynający się od „Udostępnij”
+    const cards = Array.from(document.querySelectorAll('.card'));
+    const exportsCard = cards.find(c => (c.querySelector('h3')?.textContent || '').trim().startsWith('Udostępnij'));
+    if(exportsCard){
+      wrap.appendChild(exportsCard);           // na koniec
+      exportsCard.classList.add('exports--moved');
+    }
+  }catch(_){}
+});
+</script>
+<!-- ===== /UI HOTFIX ===== -->
+<script>
+/* Przenieś kartę "Udostępnij / Eksport" na sam dół po każdym renderze */
+(function(){
+  function moveExports(){
+    const wrap = document.querySelector('.wrap') || document.body;
+    const h3s = Array.from(document.querySelectorAll('h3'));
+    const expH = h3s.find(h => /Udostępnij\s*\/\s*Eksport/i.test(h.textContent));
+    if(!expH) return;
+    const card = expH.closest('.card') || expH.parentElement;
+    if(card && wrap && card.parentElement !== wrap){
+      wrap.appendChild(card);
+      card.classList.add('exports--moved');
+    }
+  }
+
+  // raz po załadowaniu
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', moveExports);
+  } else {
+    moveExports();
+  }
+
+  // i po każdym re-renderze aplikacji
+  const orig = window.renderAllCore;
+  if (typeof orig === 'function'){
+    window.renderAllCore = function(){
+      const r = orig.apply(this, arguments);
+      moveExports();
+      return r;
+    };
+  }
+})();
+</script>
+
 </body>
 </html>
-
-tu jest wszystko z Twoimi wklejkami oprócz tej o ktorej napisałem, ale sprawdz jeszcze te wklejki
