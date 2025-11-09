@@ -25,7 +25,7 @@
 <script src="firebase-config.js"></script>
 
 <style>
-/* ====== BAZA (Twoje oryginalne style, nietknięte) ====== */
+/* ====== BAZA ====== */
 :root{--bg:#0f1113;--card:rgba(28,28,30,.72);--border:rgba(255,255,255,.08);--muted:#8e8e93;--text:#f5f5f7;--accent:#0a84ff;--ok:#30d158;--warn:#ffd60a;--danger:#ff453a;--shadow:0 8px 30px rgba(0,0,0,.35)}
 *{box-sizing:border-box}
 body{margin:0;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"Apple Color Emoji";color:var(--text);background:radial-gradient(1200px 800px at 20% -10%,#1b1d20 0%,#0f1113 60%)}
@@ -67,86 +67,43 @@ canvas{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--border
 .dialog{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;width:min(520px,92vw)}
 .zoneTag{border:1px solid var(--border);background:rgba(255,255,255,.06);border-radius:999px;padding:4px 10px}
 
-/* drobne udoskonalenia spacingu, nagłówków i tabeli */
+/* drobne udoskonalenia */
 h3{font-weight:700}
 .card h3{display:flex;align-items:center;gap:8px}
 table#leaderboard th, table#leaderboard td{border-bottom:1px solid var(--border)}
-/* --- iPhone horizontal scroll fix --- */
 html, body { width:100%; max-width:100%; overflow-x:hidden; }
-
-/* nic nie wymusza większej szerokości niż rodzic */
 .wrap, .card, .row, .grid, .week, .statsGrid { min-width:0; }
 .btn { white-space:nowrap; }
-
-/* tabela przewija się w swoim pudełku, nie cała strona */
 table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
-
-/* pigułki w widoku tygodnia nie wyjeżdżają */
 .pill { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
-/* „Widok tygodnia” – na małych ekranach w 2 kolumny */
 @media (max-width: 640px) {
   .week { grid-template-columns: 1fr 1fr; }
   .day  { min-height: 96px; }
   #taskTime { width: 110px !important; }
 }
 
-/* --- LIGHT THEME (Twój wariant) --- */
-:root.light{
-  --bg:#eef2ff;
-  --card:#EDEDED;
-  --border:#242F51;
-  --muted:#5b6477;
-  --text:#0f172a;
-  --accent:#0a84ff;
-  --ok:#34c759;
-  --warn:#ffd60a;
-  --danger:#ff3b30;
-  --shadow:0 12px 28px rgba(2,6,23,.14);
-}
-:root.light body{
-  color:var(--text);
-  background:radial-gradient(1400px 900px at 20% -10%,#eef2ff 0%,#f8fafc 60%);
-}
+/* LIGHT THEME */
+:root.light{ --bg:#eef2ff; --card:#EDEDED; --border:#242F51; --muted:#5b6477; --text:#0f172a; --accent:#0a84ff; --ok:#34c759; --warn:#ffd60a; --danger:#ff3b30; --shadow:0 12px 28px rgba(2,6,23,.14); }
+:root.light body{ color:var(--text); background:radial-gradient(1400px 900px at 20% -10%,#eef2ff 0%,#f8fafc 60%); }
 .task .editable { cursor:text; border-radius:8px; padding:2px 4px; }
 .task .editable:focus { outline:2px solid rgba(99,102,241,.35); background:rgba(255,255,255,.06); }
 
-/* Mobile: w "Strefy domu" selektor na pełną szerokość i pierwszy wiersz */
 @media (max-width: 640px){
-  #zonesSelect{
-    flex: 1 1 100% !important;
-    min-width: 100%;
-    order: -1;
-    margin-bottom: 8px;
-  }
+  #zonesSelect{ flex: 1 1 100% !important; min-width: 100%; order: -1; margin-bottom: 8px; }
   #newZone{ flex: 1 1 100%; min-width: 100%; }
 }
-/* Mobile: w formularzu dodawania zadania strefa na osobnej linii */
 @media (max-width: 640px){
-  #taskZone{
-    display:block; flex: 1 1 100% !important; min-width:100%; margin-bottom:8px;
-  }
+  #taskZone{ display:block; flex: 1 1 100% !important; min-width:100%; margin-bottom:8px; }
 }
-/* Pigułki w tygodniu — jednowierszowo, z elipsą i bez przepływu */
 .week .pill{ display:block; box-sizing:border-box; max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .day .drop{ overflow:hidden; }
 
 /* Splash overlay */
-#splash {
-  position: fixed; inset: 0; z-index: 9999;
-  display:flex; align-items:center; justify-content:center;
-  background: var(--bg, #0f1113);
-}
-#splash .logo {
-  width: 120px; height: 120px; border-radius: 24px;
-  display:flex; align-items:center; justify-content:center;
-  font-size: 56px;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.08);
-  box-shadow: 0 8px 30px rgba(0,0,0,.35);
-}
+#splash { position: fixed; inset: 0; z-index: 9999; display:flex; align-items:center; justify-content:center; background: var(--bg, #0f1113); }
+#splash .logo { width: 120px; height: 120px; border-radius: 24px; display:flex; align-items:center; justify-content:center; font-size: 56px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.08); box-shadow: 0 8px 30px rgba(0,0,0,.35); }
 
-/* Zakładki „Obowiązki / Zakupy” */
+/* Zakładki top */
 .top-tabs { display:flex; gap:8px; flex-wrap:wrap; }
 .top-tabs .tab { padding:8px 12px; border-radius:999px; border:1px solid var(--border); background:rgba(255,255,255,.06); cursor:pointer; }
 .top-tabs .tab.active { background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.06)); border-color:rgba(99,102,241,.35); }
@@ -157,7 +114,7 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
 .shop-badge { display:inline-block; padding:2px 8px; border-radius:999px; border:1px solid var(--border); background:rgba(255,255,255,.06); font-size:.8rem; }
 .shop-done { opacity:.55; text-decoration: line-through; }
 
-/* --- NOWE: przewijany pasek zakładek kategorii w zakupach --- */
+/* Pasek zakładek kategorii (poziomy scroll) */
 .scroll-tabs { display:flex; gap:8px; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:4px; margin:6px 0 4px 0; }
 .scroll-tabs .tab { white-space:nowrap; flex:0 0 auto; }
 </style>
@@ -216,7 +173,6 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
             <select id="sortBy"><option value="status">Status</option><option value="priority">Priorytet</option><option value="title">Tytuł A→Z</option><option value="zone">Strefa</option></select>
             <button id="resetDailyBtn" class="btn">🔁 Reset</button>
             <button id="clearDoneBtn" class="btn">🧹 Usuń wykonane</button>
-            <!-- TTS zostanie tu przeniesiony skryptem -->
           </div>
         </div>
         <div id="tasksList" style="margin-top:10px;display:flex;flex-direction:column;gap:10px"></div>
@@ -387,6 +343,16 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
           <button id="shopClearDoneBtn" class="btn">🧹 Usuń kupione</button>
           <button id="shopExportBtn" class="btn">📋 Kopiuj listę</button>
         </div>
+
+        <hr style="border-color:var(--border);margin:10px 0 6px 0"/>
+
+        <!-- NOWE: Zarządzanie kategoriami -->
+        <h4 style="margin:0">Kategorie zakupów</h4>
+        <div class="row" style="width:100%; margin-top:6px">
+          <input id="newShopSection" type="text" placeholder="Nowa kategoria (np. Warzywa)" style="flex:1"/>
+          <button id="addShopSectionBtn" class="btn">➕ Dodaj kategorię</button>
+        </div>
+        <div id="shopSectionsBadges" class="row" style="margin-top:8px;flex-wrap:wrap"></div>
       </div>
     </section>
 
@@ -395,7 +361,7 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
     <section class="card">
       <h3 style="margin:0 0 10px 0">Do kupienia</h3>
 
-      <!-- NOWE: przewijane zakładki kategorii -->
+      <!-- Pasek zakładek kategorii -->
       <div id="shopTabs" class="top-tabs scroll-tabs"></div>
 
       <div id="shopListContainer" class="shop-grid"></div>
@@ -407,7 +373,7 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
 <div id="overlay" class="overlay"><div id="dialog" class="dialog"></div></div>
 
 <script>
-/* ---------- AWARYJNY RESET: ?reset=1 lub #reset ---------- */
+/* ---------- AWARYJNY RESET ---------- */
 (function(){
   if (location.search.includes('reset=1') || location.hash === '#reset') {
     try {
@@ -436,27 +402,22 @@ function closeDialog(){ $('#overlay').style.display='none' }
 let fbApp=null, fs=null, fbDoc=null, __unsub=null;
 const FIREBASE_COLLECTION = 'organizer';
 function setFamilyLabel(id){ const l=document.getElementById('familyLabel'); if(l) l.textContent=id || '—'; }
-
 async function subscribeToFamily(id){
   if(!fs || !id) return;
   id = String(id).trim();
   localStorage.setItem('familyId', id);
   setFamilyLabel(id);
-
   if (__unsub) { try{ __unsub(); }catch(_){ } __unsub=null; }
   fbDoc = fs.collection(FIREBASE_COLLECTION).doc(id);
-
   __unsub = fbDoc.onSnapshot((snap)=>{
     const data = snap.data();
     if(!data || !data.payload) return;
     try{
       const payload = (typeof data.payload === 'string') ? JSON.parse(data.payload) : data.payload;
       if(!payload) return;
-
       const local = (()=>{ try { return JSON.parse(localStorage.getItem(stateKey)||'{}'); } catch { return {}; }})();
       const cloudMillis = data.updatedAt?.toMillis?.() ?? payload.updatedAt ?? 0;
       const localMillis = local.updatedAt ?? 0;
-
       if (!localMillis || cloudMillis > localMillis) {
         db = payload;
         localStorage.setItem(stateKey, JSON.stringify(db));
@@ -465,15 +426,12 @@ async function subscribeToFamily(id){
     }catch(e){ console.warn('Snapshot parse error', e); }
   }, (err)=>console.error('onSnapshot error', err));
 }
-
 async function tryFirebaseInit(){
   try{
     if(!window.firebaseConfig || !window.firebaseConfig.apiKey) return;
     if(!firebase.apps?.length){ fbApp = firebase.initializeApp(window.firebaseConfig); }
     firebase.appCheck().activate("6LffMAQsAAAAAHaO0TzmnQHwSA3SPNOxJOOIFCk1", true);
-
     fs = firebase.firestore();
-
     let family = localStorage.getItem('familyId');
     if(!family){
       const prev = localStorage.getItem('familyId') || '';
@@ -483,35 +441,23 @@ async function tryFirebaseInit(){
       localStorage.setItem('familyId', family);
     }
     setFamilyLabel(family);
-
     await subscribeToFamily(family);
-    // UWAGA: pushToFirebase już sam sprawdza, czy nie nadpisze chmury.
     pushToFirebase();
   }catch(e){ console.warn('Firebase init error', e); }
 }
-
-/* ---- BEZPIECZNY ZAPIS: nie nadpisuje danych z innego urządzenia ---- */
 async function pushToFirebase(){
   if(!fbDoc) return;
   try{
     const payloadStr = JSON.stringify(db);
     const snap = await fbDoc.get();
     if (snap.exists) {
-      // jest dokument w chmurze — sprawdź stempel czasu
       const data = snap.data() || {};
       const cloud = (typeof data.payload==='string') ? JSON.parse(data.payload) : (data.payload||{});
       const cloudMillis = data.updatedAt?.toMillis?.() ?? cloud.updatedAt ?? 0;
       const localMillis = db.updatedAt ?? 0;
-      // tylko jeśli lokalne jest nowsze lub puste w chmurze — wykonaj merge
-      if (localMillis && localMillis <= cloudMillis) {
-        // chmura nowsza — nie nadpisuj
-        return;
-      }
+      if (localMillis && localMillis <= cloudMillis) return;
     }
-    await fbDoc.set(
-      { payload: payloadStr, updatedAt: firebase.firestore.FieldValue.serverTimestamp() },
-      { merge:true }
-    );
+    await fbDoc.set({ payload: payloadStr, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge:true });
   }catch(e){
     console.error('[Firestore] zapis ERROR', e);
     alert('Błąd zapisu do Firestore: ' + (e?.message || e));
@@ -525,13 +471,11 @@ const defaultRewards=[
   {id:crypto.randomUUID(),name:'Seans filmu',cost:20},
   {id:crypto.randomUUID(),name:'Godzina gry',cost:25}
 ];
-/* NOWE: sekcje zakupów (domyślne) */
 const defaultShoppingSections=['Jedzenie','Szkoła','Praca','Przyjemności','Chemia','Kosmetyki','Samochód','Inne'];
 
 const defaultData={
   zones:defaultZones,
   rewards:defaultRewards,
-  /* NOWE: stan zakupów */
   shopping: [],
   shoppingSections: defaultShoppingSections,
   people:[
@@ -939,7 +883,7 @@ function renderShoppingSelectors(){
   $('#shopAssignee').innerHTML = shoppingPeopleOptions();
 }
 
-/* --- NOWE: zakładki kategorii w zakupach (filtr + auto-przypisanie) --- */
+/* NOWE: zakładki kategorii (filtr) + manager kategorii */
 function ensureShoppingActiveSection(){
   if(!db.shoppingActiveSection) db.shoppingActiveSection = 'Wszystko';
 }
@@ -968,14 +912,48 @@ function renderShoppingTabs(){
   });
 }
 
+/* Dodawanie / usuwanie kategorii */
+function hasSectionName(name){
+  const arr = db.shoppingSections || [];
+  return arr.some(s=>s.toLowerCase()===name.toLowerCase());
+}
+function addShoppingSection(){
+  const inp = $('#newShopSection');
+  if(!inp) return;
+  const name = (inp.value||'').trim();
+  if(!name) { alert('Podaj nazwę kategorii.'); return; }
+  db.shoppingSections = db.shoppingSections || [];
+  if(hasSectionName(name)){ alert('Taka kategoria już istnieje.'); return; }
+  db.shoppingSections.push(name);
+  inp.value='';
+  save(); renderShopping();
+}
+function removeShoppingSection(name){
+  if(!confirm(`Usunąć kategorię „${name}”? Pozycje z tej kategorii zostaną przeniesione do „Inne”.`)) return;
+  db.shoppingSections = (db.shoppingSections||[]).filter(s=>s!==name);
+  (db.shopping||[]).forEach(x=>{ if(x.section===name) x.section='Inne'; });
+  if(db.shoppingActiveSection===name) db.shoppingActiveSection='Wszystko';
+  save(); renderShopping();
+}
+function renderShoppingSectionsManager(){
+  const host = $('#shopSectionsBadges');
+  if(!host) return;
+  host.innerHTML='';
+  (db.shoppingSections||defaultShoppingSections).forEach(s=>{
+    const wrap=document.createElement('div'); wrap.className='row'; wrap.style.margin='2px 0';
+    const chip=document.createElement('span'); chip.className='zoneTag'; chip.textContent=s;
+    const del=document.createElement('button'); del.className='btn'; del.textContent='🗑️'; del.title='Usuń kategorię'; del.onclick=()=>removeShoppingSection(s);
+    wrap.appendChild(chip); wrap.appendChild(del); host.appendChild(wrap);
+  });
+}
+
+/* Dodawanie pozycji zakupów (uwzględnia aktywną zakładkę) */
 function addShoppingItem(){
   const title = $('#shopTitle').value.trim();
   if(!title){ alert('Podaj nazwę pozycji.'); return; }
   const qty = $('#shopQty').value.trim();
 
-  // domyślna sekcja z selektora...
   let section = $('#shopSection').value || 'Inne';
-  // ...ale jeśli aktywna zakładka to konkretna kategoria, to nadpisujemy
   ensureShoppingActiveSection();
   if(db.shoppingActiveSection && db.shoppingActiveSection !== 'Wszystko'){
     section = db.shoppingActiveSection;
@@ -1017,6 +995,7 @@ async function exportShoppingText(){
 }
 function renderShopping(){
   renderShoppingSelectors();
+  renderShoppingSectionsManager();
   renderShoppingTabs();
 
   const host = $('#shopListContainer');
@@ -1029,7 +1008,6 @@ function renderShopping(){
     .filter(x => active==='Wszystko' || (x.section || 'Inne') === active)
     .slice()
     .sort((a,b)=>{
-      // sort: niekupione najpierw, potem priority high/med/low, potem sekcja, tytuł
       const done = (a.done===b.done)?0:(a.done?1:-1);
       if(done!==0) return done;
       const pmap={high:0,med:1,low:2};
@@ -1076,6 +1054,12 @@ document.getElementById('changeFamilyBtn').onclick = async () => {
   await subscribeToFamily(next.trim());
   pushToFirebase();
 };
+
+/* BIND: zakupy */
+document.getElementById('shopAddBtn').onclick = addShoppingItem;
+document.getElementById('shopClearDoneBtn').onclick = clearBought;
+document.getElementById('shopExportBtn').onclick = exportShoppingText;
+document.getElementById('addShopSectionBtn').onclick = addShoppingSection;
 
 /* THEME TOGGLE */
 (function themeInit(){
@@ -1142,7 +1126,7 @@ document.getElementById('changeFamilyBtn').onclick = async () => {
   };
 })();
 
-/* --- Przenieś "Czytaj teraz" z eksportów do paska narzędzi zadań --- */
+/* Przenieś "Czytaj teraz" do paska zadań */
 document.addEventListener('DOMContentLoaded', () => {
   const ttsBtn  = document.getElementById('ttsBtn');
   const taskToolbar = document.getElementById('taskToolbar');
@@ -1172,11 +1156,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   tabChores.addEventListener('click', ()=>activate('chores'));
   tabShopping.addEventListener('click', ()=>activate('shopping'));
-
-  // Bind przyciski zakupów
-  document.getElementById('shopAddBtn').onclick = addShoppingItem;
-  document.getElementById('shopClearDoneBtn').onclick = clearBought;
-  document.getElementById('shopExportBtn').onclick = exportShoppingText;
 })();
 
 /* ===== PWA SW ===== */
