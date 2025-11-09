@@ -129,6 +129,8 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
 </style>
 </head>
 <body>
+<!-- USUNIĘTO: splash z ikonką miotły -->
+
 <div class="wrap">
   <header>
     <div class="title"><span class="dot"></span> Domowy organizer — PRO 3</div>
@@ -1542,9 +1544,8 @@ if('serviceWorker' in navigator && !skipSW){
 document.addEventListener('DOMContentLoaded', () => {
   try { renderAll(); } catch(e) { console.error(e); }
   try { tryFirebaseInit(); } catch(e) { console.warn('FB init fail', e); }
-  // (splash usunięty)
+  // Splash usunięty — brak wywołań hideSplash itp.
 });
-
 </script>
 </body>
 </html>
