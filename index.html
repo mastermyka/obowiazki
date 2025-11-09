@@ -78,6 +78,20 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
   .day  { min-height: 96px; }
   #taskTime { width: 110px !important; }
 }
+  /* Override: na mobile tydzień przewijany poziomo */
+@media (max-width: 640px){
+  #weekGrid{
+    overflow-x:auto;                  /* własny h-scroll wewnątrz sekcji */
+    -webkit-overflow-scrolling:touch;
+    display:grid;
+    grid-auto-flow:column;            /* kolumny płyną w bok */
+    grid-auto-columns:minmax(240px,1fr);
+    gap:8px;
+    padding-bottom:6px;               /* żeby nie zasłaniał pasek przewijania */
+  }
+  #weekGrid .day{ min-width:240px; }  /* pewna szerokość każdej kolumny */
+}
+
 :root.light{
   --bg:#eef2ff; --card:#EDEDED; --border:#242F51; --muted:#5b6477; --text:#0f172a; --accent:#0a84ff; --ok:#34c759; --warn:#ffd60a; --danger:#ff3b30; --shadow:0 12px 28px rgba(2,6,23,.14);
 }
@@ -92,7 +106,13 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
   #taskZone{ display:block; flex: 1 1 100% !important; min-width:100%; margin-bottom:8px; }
 }
 .week .pill{ display:block; box-sizing:border-box; max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.day .drop{ overflow:hidden; }
+.day .drop{
+  overflow:auto;                 /* pozwól przewijać listę pigułek */
+  max-height:260px;              /* żeby nie rozpychało karty w nieskończoność */
+  -webkit-overflow-scrolling:touch;
+  padding-right:4px;
+}
+
 
 /* Splash overlay */
 #splash { position: fixed; inset: 0; z-index: 9999; display:flex; align-items:center; justify-content:center; background: var(--bg, #0f1113); }
