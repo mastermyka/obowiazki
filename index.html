@@ -169,7 +169,8 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
         <div class="row">
           <button id="endDayBtn" class="btn">🌙 Zakończ dzień</button>
           <button id="endWeekBtn" class="btn">🏁 Zakończ tydzień</button>
-          <button id="changeFamilyBtn" class="btn" title="Ustaw / zmień rodzinę">👪 Zmień rodzinę</button>
+          <button id="changeFamilyBtn" class="btn" title="Ustaw / zmień rodzinę" onclick="(async()=>{const curr=localStorage.getItem('familyId')||'';const next=prompt('ID rodziny (wspólna nazwa grupy):',curr);if(!next)return;await subscribeToFamily(next.trim());pushToFirebase();})()">👪 Zmień rodzinę</button>
+
         </div>
       </div>
     </div>
@@ -511,11 +512,11 @@ async function subscribeToFamily(id){
 
 async function tryFirebaseInit(){
   try{
-    if (!window.firebaseConfig || !window.firebaseConfig.apiKey) {
-  // Firebase nieaktywny: przynajmniej pokaż etykietę rodziny
+    if(!window.firebaseConfig || !window.firebaseConfig.apiKey){
   setFamilyLabel(localStorage.getItem('familyId'));
   return;
 }
+
 
     if(!firebase.apps?.length){ fbApp = firebase.initializeApp(window.firebaseConfig); }
     firebase.appCheck().activate("6LffMAQsAAAAAHaO0TzmnQHwSA3SPNOxJOOIFCk1", true);
@@ -1204,13 +1205,13 @@ $('#addZoneBtn').onclick=addZone;$('#delZoneBtn').onclick=delZone;$('#randomZone
 $('#deltaMinus').onclick=()=>manualDelta(-1);
 $('#deltaPlus').onclick=()=>manualDelta(1);
 document.getElementById('changeFamilyBtn').onclick = async () => {
-  const p=currentPerson(); if(!guardAction(p,'changeFamily')) return;
   const curr = localStorage.getItem('familyId') || '';
   const next = prompt('ID rodziny (wspólna nazwa grupy):', curr);
   if (!next) return;
   await subscribeToFamily(next.trim());
   pushToFirebase();
 };
+
 
 /* THEME TOGGLE */
 (function themeInit(){
@@ -1347,21 +1348,21 @@ function hideSplash(){
   if (el) el.remove();
 }
 document.addEventListener('DOMContentLoaded', () => {
-  // [FAMILY-ID FALLBACK] — upewnij się, że mamy familyId nawet bez Firebasa
-  let fam = localStorage.getItem('familyId');
-  if (!fam) {
-    const prev = fam || '';
-    fam = prompt('ID rodziny (np. rodzina-kowalscy) — wspólna dla wszystkich urządzeń:', prev || 'rodzina-demo');
+  // [FALLBACK] – prompt o familyId jeszcze przed Firebase (niczego w Firebase nie rusza)
+  if (!localStorage.getItem('familyId')) {
+    const prev = localStorage.getItem('familyId') || '';
+    const fam = prompt('ID rodziny (np. rodzina-kowalscy) — wspólna dla wszystkich urządzeń:', prev || 'rodzina-demo');
     if (fam) {
       localStorage.setItem('familyId', String(fam).trim());
+      setFamilyLabel(String(fam).trim());
     }
   }
-  setFamilyLabel(localStorage.getItem('familyId'));
 
   renderAll();
   tryFirebaseInit();
   setTimeout(hideSplash, 200);
 });
+
 window.addEventListener('load', hideSplash);
 </script>
 </body>
