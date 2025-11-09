@@ -1546,16 +1546,32 @@ if('serviceWorker' in navigator && !skipSW){
 }
 
 /* ===== INIT ===== */
-function hideSplash(){
-  const el = document.getElementById('splash');
-  if (el) el.remove();
-}
 document.addEventListener('DOMContentLoaded', () => {
-  renderAll();
-  tryFirebaseInit();
+  try { renderAll(); } catch(e) { console.error(e); }
+  try { tryFirebaseInit(); } catch(e) { console.warn('FB init fail', e); }
+  // 1) szybkie ukrycie po starcie
   setTimeout(hideSplash, 200);
 });
-window.addEventListener('load', hideSplash);
+
+// 2) jak tylko wszystkie zasoby się załadują – ukryj
+window.addEventListener('load', () => {
+  hideSplash();
+});
+
+// 3) watchdog: co 400 ms sprawdzaj i chowaj, max 5s (na wypadek SW/cache/starego JS)
+(function(){
+  const t0 = Date.now();
+  const timer = setInterval(()=>{
+    const done = !document.getElementById('splash');
+    const tooLong = Date.now() - t0 > 5000;
+    if (!done) hideSplash();
+    if (done || tooLong) clearInterval(timer);
+  }, 400);
+})();
+
+// 4) awaryjne: jeśli coś totalnie padło w JS, po 2.5 s spróbuj usunąć splash
+setTimeout(()=>{ try{ hideSplash(); }catch(_){} }, 2500);
+
 </script>
 </body>
 </html>
