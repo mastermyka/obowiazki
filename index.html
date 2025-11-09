@@ -639,14 +639,18 @@ function renderShop(){
     box.appendChild(btn);box.appendChild(del);row.appendChild(box);host.appendChild(row)
   })
 }
-function redeem(id){const p=currentPerson();const r=db.rewards.find(x=>x.id===id);if(!p||!r)return;p.scoreWeek=Math.max(0,p.scoreWeek-r.cost);db.history.push({date:nowYMD(),personId:p.id,earned:0,missed:0,reward:r.name});save();closeDialog();renderScores();renderTabs()}
+function redeem(id){
+  const p=currentPerson();
+  const r=db.rewards.find(x=>x.id===id);
+  if(!p||!r) return;
+  p.scoreWeek = Math.max(0, p.scoreWeek - r.cost);
+  db.history.push({date:nowYMD(), personId:p.id, earned:0, missed:0, reward:r.name});
+  save(); closeDialog(); renderScores(); renderTabs();
+}
 
----
-
-## ▶️ Część B (druga połowa skryptu do końca pliku)
-
-```html
 /* ===== SCORES ===== */
+const personTitleEl=$('#personTitle'),todayScoreEl=$('#todayScore'),weekScoreEl=$('#weekScore'),goalScoreEl=$('#goalScore'),goalBarEl=$('#goalBar'),leaderboardEl=$('#leaderboard');
+
 const personTitleEl=$('#personTitle'),todayScoreEl=$('#todayScore'),weekScoreEl=$('#weekScore'),goalScoreEl=$('#goalScore'),goalBarEl=$('#goalBar'),leaderboardEl=$('#leaderboard');
 function goalForToday(p){ return p.tasks.filter(dueToday).length; }
 function renderScores(){
