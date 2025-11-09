@@ -414,14 +414,9 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
 
     <section class="card">
       <div class="exp-head">
-  <h3 style="margin:0">Podsumowania</h3>
-  <div class="row" style="gap:8px">
-    <input id="expMonthPick" type="month" style="background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:8px;padding:6px;color:var(--text)">
-    <div class="muted" id="expMonthLabel">—</div>
-  </div>
-</div>
-
-
+        <h3 style="margin:0">Podsumowania</h3>
+        <div class="muted" id="expMonthLabel">—</div>
+      </div>
       <div class="row" style="gap:12px; align-items:flex-start; flex-wrap:wrap">
         <div class="exp-section" style="flex:1 1 260px">
           <div class="exp-head"><div>Ten miesiąc — razem</div><div class="exp-total" id="expMonthTotal">0,00 zł</div></div>
@@ -431,8 +426,7 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
           </table>
         </div>
         <div class="exp-section" style="flex:2 1 420px">
-         <div class="exp-head"><div>Wydatki w miesiącu</div><div></div></div>
-
+          <div class="exp-head"><div>Wszystkie wydatki (ostatnie 60 dni)</div><div></div></div>
           <div id="expList"></div>
         </div>
       </div>
@@ -640,21 +634,7 @@ function addPerson(){
   const p=currentPerson();
   if(p && !guardAction(p,'addPerson')) return;
   /* PATCH: dopisany bank:0 w nowej osobie */
-  const name=prompt('Imię domownika:');if(!name)return;const np={
-  id:crypto.randomUUID(),
-  name:name.trim(),
-  goal:5,
-  streak:0,
-  icsTime:'07:00',
-  scoreToday:0,
-  scoreWeek:0,
-  bank:0,                 // ⬅️ DODANE
-  latePenaltyPerHour:1,
-  pin:'',
-  childMode:false,
-  tasks:[]
-};
-db.people.push(np);db.currentPersonId=np.id;save();renderAll()}
+  const name=prompt('Imię domownika:');if(!name)return;const np={id:crypto.randomUUID(),name:name.trim(),goal:5,streak:0,icsTime:'07:00',scoreToday:0,scoreWeek:0,bank:0,latePenaltyPerHour:1,pin:'',childMode:false,tasks:[]};db.people.push(np);db.currentPersonId=np.id;save();renderAll()}
 function renamePerson(){const p=currentPerson();if(!p)return;if(!guardAction(p,'renamePerson'))return;const n=prompt('Nowa nazwa:',p.name);if(!n)return;p.name=n.trim();save();renderTabs()}
 function removePerson(){const p=currentPerson();if(!p)return;if(!guardAction(p,'removePerson'))return;if(!confirm(`Usunąć osobę „${p.name}”?`))return;db.people=db.people.filter(x=>x.id!==p.id);db.currentPersonId=db.people[0]?.id||null;save();renderAll()}
 
@@ -688,14 +668,11 @@ function redeem(id){
   const p=currentPerson();
   const r=db.rewards.find(x=>x.id===id);
   if(!p||!r) return;
-
-  if((p.bank||0) < r.cost){ alert('Za mało ⭐ w puli ogólnej.'); return; }
-
-  p.bank = Math.max(0, (p.bank||0) - r.cost);  // ⬅️ schodzi z banku
+  /* PATCH: schodzimy z banku, nie z tygodnia */
+  p.bank = Math.max(0, (p.bank||0) - r.cost);
   db.history.push({date:nowYMD(), personId:p.id, earned:0, missed:0, reward:r.name});
-  save(); closeDialog(); renderScores(); renderTabs(); renderLeaderboard();   // odśwież także tabelę
+  save(); closeDialog(); renderScores(); renderTabs();
 }
-
 /* ===== SCORES ===== */
 
 const personTitleEl=$('#personTitle'),todayScoreEl=$('#todayScore'),weekScoreEl=$('#weekScore'),goalScoreEl=$('#goalScore'),goalBarEl=$('#goalBar'),leaderboardEl=$('#leaderboard');
@@ -884,8 +861,6 @@ function endDay(){
     });
     p.scoreToday = Math.max(0, p.scoreToday - penaltySum);
     p.scoreWeek += p.scoreToday;
-    p.bank = Math.max(0, (p.bank||0) + p.scoreToday);   // ⬅️ dopisz do puli ogólnej
-
     /* PATCH: dopiszemy też do puli ogólnej (nie kasuje się w endWeek) */
     p.bank = Math.max(0, (p.bank||0) + p.scoreToday);
     p.streak = allDone ? (p.streak||0)+1 : 0;
@@ -1029,31 +1004,43 @@ function renderWeek(){
 
 /* ===== LEADERBOARD & STATS ===== */
 function renderLeaderboard(){
-  const rows=[`<tr style="border-bottom:1px solid var(--border)">
-    <th style="text-align:left;padding:6px">Domownik</th>
-    <th style="text-align:left;padding:6px">🔥 Streak</th>
-    <th style="text-align:left;padding:6px">Tydzień (⭐)</th>
-    <th style="text-align:left;padding:6px">💰 Pula (⭐)</th>   <!-- ⬅️ NOWA KOLUMNA -->
-    <th style="text-align:left;padding:6px">Dziś</th>
-    <th style="text-align:left;padding:6px">⏰ .ics</th>
-  </tr>`];
-
-  [...db.people]
-    .sort((a,b)=> b.scoreWeek-a.scoreWeek || (b.streak||0)-(a.streak||0))
-    .forEach(p=>{
-      rows.push(`<tr>
-        <td style="padding:6px">${p.name}${p.childMode?' 👶':''}</td>
-        <td style="padding:6px">${p.streak||0}</td>
-        <td style="padding:6px">${p.scoreWeek||0}</td>
-        <td style="padding:6px">${p.bank||0}</td>                 <!-- ⬅️ WARTOŚĆ PULI -->
-        <td style="padding:6px">${p.scoreToday||0}</td>
-        <td style="padding:6px">${p.icsTime||'07:00'}</td>
-      </tr>`);
-    });
-
-  document.getElementById('leaderboard').innerHTML = rows.join('');
+  /* PATCH: dodany „Bank (⭐)” w tabeli i wierszach */
+  const rows=[`<tr style="border-bottom:1px solid var(--border)"><th style="text-align:left;padding:6px">Domownik</th><th style="text-align:left;padding:6px">🔥 Streak</th><th style="text-align:left;padding:6px">Tydzień (⭐)</th><th style="text-align:left;padding:6px">Dziś</th><th style="text-align:left;padding:6px">Bank (⭐)</th><th style="text-align:left;padding:6px">⏰ .ics</th></tr>`];
+  [...db.people].sort((a,b)=> b.scoreWeek-a.scoreWeek || (b.streak||0)-(a.streak||0)).forEach(p=>{
+    rows.push(`<tr><td style="padding:6px">${p.name}${p.childMode?' 👶':''}</td><td style="padding:6px">${p.streak||0}</td><td style="padding:6px">${p.scoreWeek}</td><td style="padding:6px">${p.scoreToday}</td><td style="padding:6px">${p.bank||0}</td><td style="padding:6px">${p.icsTime||'07:00'}</td></tr>`);
+  });
+  $('#leaderboard').innerHTML = rows.join('');
 }
 
+function renderHeat(){
+  const cvs=$('#heat'), ctx=cvs.getContext('2d'), W=cvs.width, H=cvs.height;
+  ctx.clearRect(0,0,W,H);
+  const cols=7, rows=6, pad=12, cw=(W-pad*2)/cols, ch=(H-pad*2)/rows;
+  const map={}; const last=new Date();
+  for(let i=0;i<42;i++){ const d=new Date(last.getFullYear(), last.getMonth(), last.getDate()-i); map[d.toISOString().slice(0,10)]=0; }
+  db.history.forEach(h=>{
+    if(h.date in map){
+      const add = (typeof h.earned === 'number') ? h.earned : ((h.delta>0) ? h.delta : 0);
+      map[h.date] += add;
+    }
+  });
+  const keys=Object.keys(map).sort(); const vals=Object.values(map); const max=Math.max(1,...vals);
+  let idx=0; for(let r=0;r<rows;r++){ for(let c=0;c<cols;c++){ const k=keys[idx++]; const v=map[k]||0; const x=pad+c*cw, y=pad+r*ch, a=v/max; ctx.fillStyle=`rgba(10,132,255,${0.15+0.75*a})`; ctx.fillRect(x+3,y+3,cw-6,ch-6); } }
+}
+function renderTopZones(){
+  const list=$('#topZones'); list.innerHTML='';
+  const cutoff=new Date(); cutoff.setDate(cutoff.getDate()-30);
+  const agg={};
+  db.history.forEach(h=>{
+    if(new Date(h.date)>=cutoff){
+      const zp=h.zonePoints||{};
+      Object.entries(zp).forEach(([z,v])=> agg[z]=(agg[z]||0)+v );
+    }
+  });
+  const top=Object.entries(agg).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  if(!top.length){ list.innerHTML='<li class="muted">Brak danych jeszcze.</li>'; return; }
+  top.forEach(([z,v])=>{ const li=document.createElement('li'); li.textContent=`${z}: ${v}⭐`; list.appendChild(li); });
+}
 
 /* ===== PEOPLE SETTINGS ===== */
 function setGoal(){const p=currentPerson(); if(!p)return; if(!guardAction(p,'setGoal')) return; const g=prompt('Cel dzienny (informacyjny):', String(p.goal||goalForToday(p))); if(g!==null){ const v=Math.max(0,parseInt(g,10)||0); p.goal=v; save(); renderScores(); }}
@@ -1148,29 +1135,7 @@ function renderExpenseSelectors(){
   $('#expSection').innerHTML = (db.expenseSections||defaultExpenseSections).map(s=>`<option value="${s}">${s}</option>`).join('');
   $('#expCatsSelect').innerHTML = (db.expenseSections||defaultExpenseSections).map(s=>`<option value="${s}">${s}</option>`).join('');
   const d = $('#expDate'); if(d && !d.value){ d.value = nowYMD(); }
-const mp = document.getElementById('expMonthPick');
-if (mp && !mp.value) {
-  const d = new Date();
-  mp.value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
 }
-if (mp && !mp.onchange) mp.onchange = renderExpenses;   // prze-renderuj po zmianie
-
-  // Ustaw domyślnie bieżący miesiąc w pickerze
-  // wybrany miesiąc z pickera (YYYY-MM)
-const mp2 = document.getElementById('expMonthPick');
-
-let monthBase = new Date();
-if (mp2 && mp2.value && /^\d{4}-\d{2}$/.test(mp2.value)) {
-    const [y,m] = mp2.value.split('-').map(n=>parseInt(n,10));
-  monthBase = new Date(y, m-1, 1);
-}
-
-const thisMonth = (db.expenses||[]).filter(e=>isSameMonth(e.date, monthBase));
-const monthTotal = sum(thisMonth, ()=>true, e=>e.amount);
-$('#expMonthTotal').textContent = money(monthTotal);
-monthLabel.textContent = monthBase.toLocaleDateString('pl-PL',{month:'long',year:'numeric'});
-
-
 function addExpense(){
   const p=currentPerson(); if(!guardAction(p,'addExpense')) return;
   const title = $('#expTitle').value.trim();
@@ -1214,30 +1179,13 @@ function renderExpenses(){
   const monthLabel = $('#expMonthLabel');
   hostList.innerHTML=''; tbody.innerHTML='';
 
-  // --- wybrany miesiąc (YYYY-MM) ---
-  const mp = $('#expMonthPick');
-  const ym = (mp?.value || nowYMD().slice(0,7)); // np. "2025-11"
-  const [yStr,mStr] = ym.split('-');
-  const y = parseInt(yStr,10), m = parseInt(mStr,10)-1;
-  const monthStart = new Date(y, m, 1);
-  const monthEnd   = new Date(y, m+1, 1);
-
-  // Etykieta "listopad 2025"
-  monthLabel.textContent = monthStart.toLocaleDateString('pl-PL',{month:'long',year:'numeric'});
-
-  // Pomocnicze
-  const inSelectedMonth = (dStr)=>{
-    const d = new Date(dStr);
-    return d >= monthStart && d < monthEnd;
-  };
-  const sum = (arr, sel=()=>true, map=v=>v)=>arr.filter(sel).reduce((a,x)=>a+map(x),0);
-  const money = n => (n||0).toLocaleString('pl-PL',{style:'currency',currency:'PLN'});
-
-  // --- Suma miesiąca i per kategoria ---
-  const thisMonth = (db.expenses||[]).filter(e=> inSelectedMonth(e.date));
+  const now = new Date();
+  const thisMonth = (db.expenses||[]).filter(e=>isSameMonth(e.date, now));
   const monthTotal = sum(thisMonth, ()=>true, e=>e.amount);
   $('#expMonthTotal').textContent = money(monthTotal);
+  monthLabel.textContent = now.toLocaleDateString('pl-PL',{month:'long',year:'numeric'});
 
+  // Suma per kategoria (miesiąc)
   const cats = db.expenseSections||defaultExpenseSections;
   cats.forEach(c=>{
     const s = sum(thisMonth, e=> (e.section||'Inne')===c, e=>e.amount);
@@ -1246,54 +1194,9 @@ function renderExpenses(){
     tbody.appendChild(tr);
   });
 
-  // --- Lista wydatków: WYBRANY MIESIĄC (zamiast "ostatnie 60 dni") ---
-  const monthItems = thisMonth
-    .slice()
-    .sort((a,b)=> (a.section||'').localeCompare(b.section||'','pl') || (b.date||'').localeCompare(a.date||''));
-
-  // Nagłówek tej sekcji
-  const headerBox = document.querySelector('#view-expenses .exp-section:nth-of-type(2) .exp-head div:first-child');
-  if (headerBox) headerBox.textContent = 'Wydatki w miesiącu';
-
-  // Grupowanie po kategorii
-  const groupBy = (arr, key)=>arr.reduce((acc,x)=>((acc[x[key]||'Inne']=acc[x[key]||'Inne']||[]).push(x),acc),{});
-  const grouped = groupBy(monthItems, 'section');
-
-  Object.keys(grouped).sort((a,b)=>a.localeCompare(b,'pl')).forEach(sec=>{
-    const box=document.createElement('div'); box.className='exp-section';
-    const total = sum(grouped[sec], ()=>true, e=>e.amount);
-    const head=document.createElement('div'); head.className='exp-head';
-    head.innerHTML=`<div><b>${sec}</b></div><div class="exp-total">${money(total)}</div>`;
-    box.appendChild(head);
-
-    grouped[sec].forEach(e=>{
-      const row=document.createElement('div'); row.className='shop-item';
-      const meta=`<small class="muted">${e.date} • ${e.section}</small>`;
-      row.innerHTML=`<div style="flex:1"><b>${e.title}</b><br>${meta}</div><div style="min-width:100px;text-align:right"><b>${money(e.amount)}</b></div>`;
-      const del=document.createElement('button'); del.className='btn'; del.textContent='🗑️'; del.onclick=()=>delExpense(e.id);
-      row.appendChild(del);
-      box.appendChild(row);
-    });
-
-    hostList.appendChild(box);
-  });
-
-  // Reakcja na zmianę miesiąca
-  if (mp && !mp._bound){
-    mp.addEventListener('change', renderExpenses, {passive:true});
-    mp._bound = true;
-  }
-}
-
-
-  // Lista z wybranego miesiąca, grupowana po kategorii
-const start = new Date(monthBase.getFullYear(), monthBase.getMonth(), 1);
-const end   = new Date(monthBase.getFullYear(), monthBase.getMonth()+1, 0);
-const recent = (db.expenses||[]).filter(e=>{
-  const d = new Date(e.date);
-  return d >= start && d <= end;
-})
-
+  // Lista wszystkich (ostatnie 60 dni), grupowana po kategorii
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-60);
+  const recent = (db.expenses||[]).filter(e=> new Date(e.date) >= cutoff)
                                   .sort((a,b)=> (a.section||'').localeCompare(b.section||'','pl') || (b.date||'').localeCompare(a.date||''));
   const grouped = groupBy(recent, 'section');
   Object.keys(grouped).sort((a,b)=>a.localeCompare(b,'pl')).forEach(sec=>{
