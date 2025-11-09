@@ -633,7 +633,8 @@ function renderTabs(){tabsEl.innerHTML='';db.people.forEach(p=>{const b=document
 function addPerson(){
   const p=currentPerson();
   if(p && !guardAction(p,'addPerson')) return;
-  const name=prompt('Imię domownika:');if(!name)return;const np={id:crypto.randomUUID(),name:name.trim(),goal:5,streak:0,icsTime:'07:00',scoreToday:0,scoreWeek:0,latePenaltyPerHour:1,pin:'',childMode:false,tasks:[]};db.people.push(np);db.currentPersonId=np.id;save();renderAll()}
+  /* PATCH: dopisany bank:0 w nowej osobie */
+  const name=prompt('Imię domownika:');if(!name)return;const np={id:crypto.randomUUID(),name:name.trim(),goal:5,streak:0,icsTime:'07:00',scoreToday:0,scoreWeek:0,bank:0,latePenaltyPerHour:1,pin:'',childMode:false,tasks:[]};db.people.push(np);db.currentPersonId=np.id;save();renderAll()}
 function renamePerson(){const p=currentPerson();if(!p)return;if(!guardAction(p,'renamePerson'))return;const n=prompt('Nowa nazwa:',p.name);if(!n)return;p.name=n.trim();save();renderTabs()}
 function removePerson(){const p=currentPerson();if(!p)return;if(!guardAction(p,'removePerson'))return;if(!confirm(`Usunąć osobę „${p.name}”?`))return;db.people=db.people.filter(x=>x.id!==p.id);db.currentPersonId=db.people[0]?.id||null;save();renderAll()}
 
@@ -653,7 +654,8 @@ function renderShop(){
     const box=document.createElement('div');box.style.display='flex';box.style.gap='6px';
     const btn=document.createElement('button');btn.className='btn';btn.textContent='Zrealizuj';
     btn.onclick=()=>{ // Dziecko MOŻE realizować
-      if(p.scoreWeek<r.cost){alert('Za mało ⭐');return}
+      /* PATCH: sprawdzamy bank, nie tydzień */
+      if((p.bank||0)<r.cost){alert('Za mało ⭐ w banku');return}
       showDialog(`<h3 style="margin-top:0">Potwierdź nagrodę</h3><p>${p.name} wymienia <b>${r.cost}⭐</b> na „${r.name}”. Kontynuować?</p><div class="row" style="justify-content:flex-end"><button class="btn" onclick="closeDialog()">Anuluj</button><button class="btn" onclick="redeem('${r.id}')">✅ OK</button></div>`)
     };
     const del=document.createElement('button');del.className='btn';del.textContent='🗑️';del.title='Usuń nagrodę';
@@ -666,7 +668,8 @@ function redeem(id){
   const p=currentPerson();
   const r=db.rewards.find(x=>x.id===id);
   if(!p||!r) return;
-  p.scoreWeek = Math.max(0, p.scoreWeek - r.cost);
+  /* PATCH: schodzimy z banku, nie z tygodnia */
+  p.bank = Math.max(0, (p.bank||0) - r.cost);
   db.history.push({date:nowYMD(), personId:p.id, earned:0, missed:0, reward:r.name});
   save(); closeDialog(); renderScores(); renderTabs();
 }
@@ -858,6 +861,8 @@ function endDay(){
     });
     p.scoreToday = Math.max(0, p.scoreToday - penaltySum);
     p.scoreWeek += p.scoreToday;
+    /* PATCH: dopiszemy też do puli ogólnej (nie kasuje się w endWeek) */
+    p.bank = Math.max(0, (p.bank||0) + p.scoreToday);
     p.streak = allDone ? (p.streak||0)+1 : 0;
     db.history.push({date, personId:p.id, earned:p.scoreToday, missed:penaltySum, zonePoints:zones});
     p.scoreToday = 0;
@@ -999,9 +1004,10 @@ function renderWeek(){
 
 /* ===== LEADERBOARD & STATS ===== */
 function renderLeaderboard(){
-  const rows=[`<tr style="border-bottom:1px solid var(--border)"><th style="text-align:left;padding:6px">Domownik</th><th style="text-align:left;padding:6px">🔥 Streak</th><th style="text-align:left;padding:6px">Tydzień (⭐)</th><th style="text-align:left;padding:6px">Dziś</th><th style="text-align:left;padding:6px">⏰ .ics</th></tr>`];
+  /* PATCH: dodany „Bank (⭐)” w tabeli i wierszach */
+  const rows=[`<tr style="border-bottom:1px solid var(--border)"><th style="text-align:left;padding:6px">Domownik</th><th style="text-align:left;padding:6px">🔥 Streak</th><th style="text-align:left;padding:6px">Tydzień (⭐)</th><th style="text-align:left;padding:6px">Dziś</th><th style="text-align:left;padding:6px">Bank (⭐)</th><th style="text-align:left;padding:6px">⏰ .ics</th></tr>`];
   [...db.people].sort((a,b)=> b.scoreWeek-a.scoreWeek || (b.streak||0)-(a.streak||0)).forEach(p=>{
-    rows.push(`<tr><td style="padding:6px">${p.name}${p.childMode?' 👶':''}</td><td style="padding:6px">${p.streak||0}</td><td style="padding:6px">${p.scoreWeek}</td><td style="padding:6px">${p.scoreToday}</td><td style="padding:6px">${p.icsTime||'07:00'}</td></tr>`);
+    rows.push(`<tr><td style="padding:6px">${p.name}${p.childMode?' 👶':''}</td><td style="padding:6px">${p.streak||0}</td><td style="padding:6px">${p.scoreWeek}</td><td style="padding:6px">${p.scoreToday}</td><td style="padding:6px">${p.bank||0}</td><td style="padding:6px">${p.icsTime||'07:00'}</td></tr>`);
   });
   $('#leaderboard').innerHTML = rows.join('');
 }
