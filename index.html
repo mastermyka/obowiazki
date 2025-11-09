@@ -125,6 +125,13 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
 </head>
 <body>
 <div id="splash"><div class="logo">🧹</div></div>
+<script>
+  // awaryjne zdjęcie splash po 2s, nawet jeśli wcześniejszy JS padł
+  setTimeout(function(){
+    var s=document.getElementById('splash');
+    if(s) s.remove();
+  }, 2000);
+</script>
 
 <div class="wrap">
   <header>
@@ -418,7 +425,17 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
 <div id="overlay" class="overlay"><div id="dialog" class="dialog"></div></div>
 
 <script>
-/* ---------- AWARYJNY RESET: ?reset=1 lub #reset ---------- */
+/* --- DEBUG: pokaż błąd zamiast stać na splashu --- */
+window.addEventListener('error', function(e){
+  console.error('[JS ERROR]', e.error || e.message || e);
+  alert('Błąd JS: ' + (e?.message || e));
+});
+window.addEventListener('unhandledrejection', function(e){
+  console.error('[PROMISE REJECTION]', e.reason);
+  alert('Błąd (obietnica): ' + (e?.reason?.message || e?.reason || 'unknown'));
+});
+
+  /* ---------- AWARYJNY RESET: ?reset=1 lub #reset ---------- */
 (function(){
   if (location.search.includes('reset=1') || location.hash === '#reset') {
     try {
@@ -950,9 +967,9 @@ function renderLeaderboard(){
   [...db.people].sort((a,b)=> b.scoreWeek-a.scoreWeek || (b.streak||0)-(a.streak||0)).forEach(p=>{
     rows.push(`<tr><td style="padding:6px">${p.name}${p.childMode?' 👶':''}</td><td style="padding:6px">${p.streak||0}</td><td style="padding:6px">${p.scoreWeek}</td><td style="padding:6px">${p.scoreToday}</td><td style="padding:6px">${p.icsTime||'07:00'}</td></tr>`);
   });
-  leaderBoardHTML = rows.join('');
-  $('#leaderboard').innerHTML=leaderBoardHTML;
+  $('#leaderboard').innerHTML = rows.join('');
 }
+
 function renderHeat(){
   const cvs=$('#heat'), ctx=cvs.getContext('2d'), W=cvs.width, H=cvs.height;
   ctx.clearRect(0,0,W,H);
