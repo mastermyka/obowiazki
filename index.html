@@ -55,8 +55,19 @@ input[type=text]:focus, input[type=number]:focus, input[type=time]:focus, input[
 .score{font-weight:700}
 .subtasks{margin:6px 0 0 26px;display:flex;flex-direction:column;gap:6px}
 .subAdd{margin-left:26px}
-.week{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+.week{
+  display:grid;
+  grid-auto-flow: column;              /* kolumny „po sobie” */
+  grid-auto-columns: minmax(220px,1fr);/* szerokość każdej kolumny */
+  gap:8px;
+  overflow-x:auto;                     /* włącz poziome przewijanie */
+  -webkit-overflow-scrolling:touch;    /* płynny scroll na iOS */
+  scroll-snap-type:x proximity;        /* przyklejanie do komórek (ładniejsze przewijanie) */
+  padding-bottom:6px;
+}
+
 .day{min-height:120px;border:1px dashed var(--border);border-radius:12px;padding:8px}
+  .day{ scroll-snap-align:start; min-width:0; } /* „łap” kolumny podczas przewijania */
 .day h4{margin:0 0 6px 0;font-size:.95rem;color:var(--muted)}
 .pill{display:inline-block;padding:4px 8px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,.06);font-size:.85rem;margin:2px 0;cursor:grab}
 .statsGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -78,10 +89,11 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
 .pill { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
 @media (max-width: 640px) {
-  .week { grid-template-columns: 1fr 1fr; }
+  .week { grid-auto-columns: minmax(180px,1fr); } /* węższe „kafelki” na małych ekranach */
   .day  { min-height: 96px; }
   #taskTime { width: 110px !important; }
 }
+
 
 /* LIGHT THEME */
 :root.light{ --bg:#eef2ff; --card:#EDEDED; --border:#242F51; --muted:#5b6477; --text:#0f172a; --accent:#0a84ff; --ok:#34c759; --warn:#ffd60a; --danger:#ff3b30; --shadow:0 12px 28px rgba(2,6,23,.14); }
