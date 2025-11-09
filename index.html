@@ -131,10 +131,44 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
   color:var(--text); padding:8px 12px; border-radius:999px; cursor:pointer; white-space:nowrap;
 }
 .catBtn.is-active{ border-color: var(--accent); box-shadow: 0 8px 24px -12px rgba(10,132,255,.5); }
+#splash { transition: opacity .18s ease; }
+
 </style>
 </head>
 <body>
 <div id="splash"><div class="logo">🧹</div></div>
+<script>
+(function(){
+  // Idempotentne ukrywanie splash’a + delikatne wygaszenie
+  function hideSplashSafe(){
+    var el = document.getElementById('splash');
+    if (!el) return;
+    try {
+      el.style.transition = 'opacity .18s ease';
+      el.style.opacity = '0';
+      setTimeout(function(){
+        if (el && el.parentNode) el.parentNode.removeChild(el);
+        else if (el) el.style.display = 'none';
+      }, 220);
+    } catch(_) {
+      // absolutny fallback
+      try { el.style.display = 'none'; } catch(__) {}
+    }
+  }
+
+  // Jeśli dokument już jest gotowy — chowaj od razu
+  if (document.readyState !== 'loading') {
+    hideSplashSafe();
+  } else {
+    // Zarejestruj 2 niezależne eventy
+    document.addEventListener('DOMContentLoaded', hideSplashSafe, { once: true });
+    window.addEventListener('load', hideSplashSafe, { once: true });
+  }
+
+  // Twardy timeout awaryjny (gdyby eventy nie doszły)
+  setTimeout(hideSplashSafe, 4000);
+})();
+</script>
 
 <div class="wrap">
   <header>
