@@ -169,7 +169,11 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
         <div class="row">
           <button id="endDayBtn" class="btn">🌙 Zakończ dzień</button>
           <button id="endWeekBtn" class="btn">🏁 Zakończ tydzień</button>
-          <button id="changeFamilyBtn" class="btn" title="Ustaw / zmień rodzinę" onclick="(async()=>{const curr=localStorage.getItem('familyId')||'';const next=prompt('ID rodziny (wspólna nazwa grupy):',curr);if(!next)return;await subscribeToFamily(next.trim());pushToFirebase();})()">👪 Zmień rodzinę</button>
+          <button id="changeFamilyBtn" class="btn" title="Ustaw / zmień rodzinę"
+  onclick="(async()=>{const curr=localStorage.getItem('familyId')||'';const next=prompt('ID rodziny (wspólna nazwa grupy):',curr);if(!next)return;await subscribeToFamily(String(next).trim());pushToFirebase();})()">
+  👪 Zmień rodzinę
+</button>
+
 
         </div>
       </div>
@@ -597,6 +601,7 @@ const defaultData={
 function load(){try{return JSON.parse(localStorage.getItem(stateKey))||defaultData}catch(e){return defaultData}}
 function save(){ db.updatedAt=Date.now(); localStorage.setItem(stateKey,JSON.stringify(db)); pushToFirebase(); }
 let db=load(); if(!db.currentPersonId && db.people.length) db.currentPersonId=db.people[0].id;
+setFamilyLabel(localStorage.getItem('familyId'));
 
 /* ===== HEADER & TABS ===== */
 function renderDate(){todayEl.textContent=fmtDate(new Date())}
@@ -1348,7 +1353,7 @@ function hideSplash(){
   if (el) el.remove();
 }
 document.addEventListener('DOMContentLoaded', () => {
-  // [FALLBACK] – prompt o familyId jeszcze przed Firebase (niczego w Firebase nie rusza)
+  // Awaryjnie ustaw familyId i label zanim dotkniemy Firebase
   if (!localStorage.getItem('familyId')) {
     const prev = localStorage.getItem('familyId') || '';
     const fam = prompt('ID rodziny (np. rodzina-kowalscy) — wspólna dla wszystkich urządzeń:', prev || 'rodzina-demo');
@@ -1362,6 +1367,7 @@ document.addEventListener('DOMContentLoaded', () => {
   tryFirebaseInit();
   setTimeout(hideSplash, 200);
 });
+
 
 window.addEventListener('load', hideSplash);
 </script>
