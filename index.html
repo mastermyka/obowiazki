@@ -112,10 +112,6 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
 .week .pill{ display:block; box-sizing:border-box; max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .day .drop{ overflow:hidden; }
 
-/* Splash overlay */
-#splash { position: fixed; inset: 0; z-index: 9999; display:flex; align-items:center; justify-content:center; background: var(--bg, #0f1113); }
-#splash .logo { width: 120px; height: 120px; border-radius: 24px; display:flex; align-items:center; justify-content:center; font-size: 56px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.08); box-shadow: 0 8px 30px rgba(0,0,0,.35); }
-
 /* Zakładki top */
 .top-tabs { display:flex; gap:8px; flex-wrap:wrap; }
 .top-tabs .tab { padding:8px 12px; border-radius:999px; border:1px solid var(--border); background:rgba(255,255,255,.06); cursor:pointer; }
@@ -133,8 +129,6 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
 </style>
 </head>
 <body>
-<div id="splash"><div class="logo">🧹</div></div>
-
 <div class="wrap">
   <header>
     <div class="title"><span class="dot"></span> Domowy organizer — PRO 3</div>
@@ -250,7 +244,7 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
         </div>
 
         <div class="card" style="margin-top:10px">
-          <h4 style="margin:0 0 6px 0">Szybkie korekty (nagrody/kary)</h4>
+          <h4 style="margin-top:0;margin-bottom:6px">Szybkie korekty (nagrody/kary)</h4>
           <div class="row" style="width:100%">
             <input id="deltaPoints" type="number" value="1" min="1" step="1" style="width:120px"/>
             <select id="deltaScope" style="width:160px">
@@ -497,18 +491,6 @@ function showDialog(html){$('#dialog').innerHTML=html;$('#overlay').style.displa
 function closeDialog(){ $('#overlay').style.display='none' }
 function PLN(n){return (n||0).toLocaleString('pl-PL',{minimumFractionDigits:2,maximumFractionDigits:2})}
 function yyyymm(d){return (d||'').slice(0,7)}
-
-/* >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-   DODANE: funkcja chowająca splash, którego wcześniej brakowało
-   <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
-function hideSplash(){
-  const el = document.getElementById('splash');
-  if(!el) return;
-  try { el.style.transition = 'opacity .25s ease'; } catch(_) {}
-  el.style.opacity = '0';
-  el.style.pointerEvents = 'none';
-  setTimeout(()=>{ try{ el.remove(); } catch(_){ el.style.display='none'; } }, 300);
-}
 
 /* ===== FIREBASE (opcjonalny) ===== */
 let fbApp=null, fs=null, fbDoc=null, __unsub=null;
@@ -983,7 +965,7 @@ async function shareICSForCurrentPerson(){
   const now=new Date(); const when=new Date(now.getFullYear(), now.getMonth(), now.getDate(), H||7, M||0, 0);
   const file = makeICSForPerson(p, when);
   if(navigator.canShare&&navigator.canShare({files:[file]})){ try{ await navigator.share({files:[file], title:`Obowiązki — ${p.name}`}); }catch(e){} }
-  else { const url=URL.createObjectURL(file); const a=document.createElement('a'); a.href=url; a.download=file.name; a.click(); URL.revokeObjectURL(a.href); }
+  else { const url=URL.createObjectURL(file); const a=document.createElement('a'); a.href=url; a.download=file.name; a.click();URL.revokeObjectURL(a.href); }
 }
 function exportJSON(){const p=currentPerson(); if(p.childMode && !canProceedPrivileged(p)) return; const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='obowiazki-backup.json'; a.click();URL.revokeObjectURL(a.href); }
 function importJSONFromFile(file){ const p=currentPerson(); if(p.childMode && !canProceedPrivileged(p)) return;
@@ -1413,7 +1395,7 @@ $('#resetDailyBtn').onclick=()=>{const p=currentPerson(); if(p.childMode && !can
 $('#clearDoneBtn').onclick=()=>{const p=currentPerson(); if(p.childMode && !canProceedPrivileged(p)) return;
   const cp=currentPerson();cp.tasks=cp.tasks.filter(t=>!((t.schedType==='once'||t.repeat==='once')&&t.done));save();renderTasks()};
 $('#mailBtn').onclick=sendMail;$('#copyBtn').onclick=copyToClipboard;$('#icsBtn').onclick=shareICSForCurrentPerson;$('#ttsBtn').onclick=speakNow;
-$('#remindersBtn').onclick=()=>{const p=currentPerson(); if(p.childMode && !canProceedPrivileged(p)) return; const payload={date:nowYMD(),people:db.people.map(p=>({name:p.name,items:p.tasks.filter(dueToday).map(t=>({title:t.title,time:t.time||'07:00',zone:t.zone||'',points:t.points||1}))}))};const text='CHORES_PAYLOAD\n'+JSON.stringify(payload);copy(text).then(()=>{location.href='shortcuts://run-shortcut?name=Chores%20Import'}).catch(()=>alert('Skopiuj ręcznie:\n\n'+text))};
+$('#remindersBtn').onclick=()=>{const p=currentPerson(); if(p.childMode && !canProceedPrivileged(p)) return; const payload={date:nowYMD(),people:db.people.map(p=>({name:p.name,items:p.tasks.filter(dueToday).map(t=>({title:t.title,time:t.time||'07:00',zone:t.zone||'',points:t.points||1}))}))};const text='CHORES_PAYLOAD\n'+JSON.stringify(payload);copy(text).then(()=>{location.href='shortcuts://run-shortcut?name=Chores%20Import'}).catch(()=>alert('Kopiuj ręcznie:\n\n'+text))};
 $('#exportBtn').onclick=exportJSON;$('#importBtn').onclick=()=>{const p=currentPerson(); if(p.childMode && !canProceedPrivileged(p)) return; $('#importFile').click();};
 $('#importFile').onchange=e=>{const f=e.target.files[0];if(f)importJSONFromFile(f)};
 $('#exportCSVPersonBtn').onclick=()=>{const p=currentPerson(); if(p.childMode && !canProceedPrivileged(p)) return;
@@ -1560,28 +1542,8 @@ if('serviceWorker' in navigator && !skipSW){
 document.addEventListener('DOMContentLoaded', () => {
   try { renderAll(); } catch(e) { console.error(e); }
   try { tryFirebaseInit(); } catch(e) { console.warn('FB init fail', e); }
-  // 1) szybkie ukrycie po starcie
-  setTimeout(hideSplash, 200);
+  // (splash usunięty)
 });
-
-// 2) jak tylko wszystkie zasoby się załadują – ukryj
-window.addEventListener('load', () => {
-  hideSplash();
-});
-
-// 3) watchdog: co 400 ms sprawdzaj i chowaj, max 5s (na wypadek SW/cache/starego JS)
-(function(){
-  const t0 = Date.now();
-  const timer = setInterval(()=>{
-    const done = !document.getElementById('splash');
-    const tooLong = Date.now() - t0 > 5000;
-    if (!done) hideSplash();
-    if (done || tooLong) clearInterval(timer);
-  }, 400);
-})();
-
-// 4) awaryjne: jeśli coś totalnie padło w JS, po 2.5 s spróbuj usunąć splash
-setTimeout(()=>{ try{ hideSplash(); }catch(_){} }, 2500);
 
 </script>
 </body>
