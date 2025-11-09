@@ -156,6 +156,10 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
 .shop-item { display:flex; gap:8px; align-items:center; border:1px solid var(--border); border-radius:12px; padding:10px; background:rgba(255,255,255,.03) }
 .shop-badge { display:inline-block; padding:2px 8px; border-radius:999px; border:1px solid var(--border); background:rgba(255,255,255,.06); font-size:.8rem; }
 .shop-done { opacity:.55; text-decoration: line-through; }
+
+/* --- NOWE: przewijany pasek zakładek kategorii w zakupach --- */
+.scroll-tabs { display:flex; gap:8px; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:4px; margin:6px 0 4px 0; }
+.scroll-tabs .tab { white-space:nowrap; flex:0 0 auto; }
 </style>
 </head>
 <body>
@@ -390,6 +394,10 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
 
     <section class="card">
       <h3 style="margin:0 0 10px 0">Do kupienia</h3>
+
+      <!-- NOWE: przewijane zakładki kategorii -->
+      <div id="shopTabs" class="top-tabs scroll-tabs"></div>
+
       <div id="shopListContainer" class="shop-grid"></div>
     </section>
   </div><!-- /view-shopping -->
@@ -923,7 +931,6 @@ function pinDialog(){const p=currentPerson();if(!p)return;showDialog(`<h3 style=
 
 /* ===== WIDOK ZAKUPÓW ===== */
 function shoppingPeopleOptions(){
-  // osoby z db.people (+ pusta „—”)
   const arr = ['—'].concat(db.people.map(p=>p.name));
   return arr.map(n=>`<option value="${n}">${n}</option>`).join('');
 }
@@ -931,11 +938,49 @@ function renderShoppingSelectors(){
   $('#shopSection').innerHTML = (db.shoppingSections||defaultShoppingSections).map(s=>`<option value="${s}">${s}</option>`).join('');
   $('#shopAssignee').innerHTML = shoppingPeopleOptions();
 }
+
+/* --- NOWE: zakładki kategorii w zakupach (filtr + auto-przypisanie) --- */
+function ensureShoppingActiveSection(){
+  if(!db.shoppingActiveSection) db.shoppingActiveSection = 'Wszystko';
+}
+function renderShoppingTabs(){
+  ensureShoppingActiveSection();
+  const host = $('#shopTabs');
+  if(!host) return;
+
+  const sections = ['Wszystko'].concat(db.shoppingSections || defaultShoppingSections);
+  const counts = {};
+  (db.shopping||[]).forEach(x=>{
+    const sec = x.section || 'Inne';
+    counts[sec] = (counts[sec]||0) + (x.done?0:1);
+  });
+
+  host.innerHTML = '';
+  sections.forEach(s=>{
+    const btn = document.createElement('button');
+    btn.className = 'tab' + (db.shoppingActiveSection===s ? ' active' : '');
+    const badge = s==='Wszystko'
+      ? (db.shopping||[]).filter(i=>!i.done).length
+      : (counts[s]||0);
+    btn.textContent = badge ? `${s} (${badge})` : s;
+    btn.onclick = ()=>{ db.shoppingActiveSection = s; save(); renderShopping(); };
+    host.appendChild(btn);
+  });
+}
+
 function addShoppingItem(){
   const title = $('#shopTitle').value.trim();
   if(!title){ alert('Podaj nazwę pozycji.'); return; }
   const qty = $('#shopQty').value.trim();
-  const section = $('#shopSection').value || 'Inne';
+
+  // domyślna sekcja z selektora...
+  let section = $('#shopSection').value || 'Inne';
+  // ...ale jeśli aktywna zakładka to konkretna kategoria, to nadpisujemy
+  ensureShoppingActiveSection();
+  if(db.shoppingActiveSection && db.shoppingActiveSection !== 'Wszystko'){
+    section = db.shoppingActiveSection;
+  }
+
   const who = $('#shopAssignee').value || '—';
   const prio = $('#shopPriority').value || 'med';
   const item = { id:crypto.randomUUID(), title, qty, section, assignee:who, priority:prio, done:false, createdAt: Date.now() };
@@ -972,19 +1017,29 @@ async function exportShoppingText(){
 }
 function renderShopping(){
   renderShoppingSelectors();
+  renderShoppingTabs();
+
   const host = $('#shopListContainer');
   host.innerHTML = '';
-  const items = (db.shopping||[]).slice().sort((a,b)=>{
-    // sort: niekupione najpierw, potem priority high/med/low, potem sekcja, tytuł
-    const done = (a.done===b.done)?0:(a.done?1:-1);
-    if(done!==0) return done;
-    const pmap={high:0,med:1,low:2};
-    const pr=(pmap[a.priority]??1)-(pmap[b.priority]??1);
-    if(pr!==0) return pr;
-    const sec=(a.section||'').localeCompare(b.section||'','pl');
-    if(sec!==0) return sec;
-    return (a.title||'').localeCompare(b.title||'','pl');
-  });
+
+  ensureShoppingActiveSection();
+  const active = db.shoppingActiveSection;
+
+  const items = (db.shopping||[])
+    .filter(x => active==='Wszystko' || (x.section || 'Inne') === active)
+    .slice()
+    .sort((a,b)=>{
+      // sort: niekupione najpierw, potem priority high/med/low, potem sekcja, tytuł
+      const done = (a.done===b.done)?0:(a.done?1:-1);
+      if(done!==0) return done;
+      const pmap={high:0,med:1,low:2};
+      const pr=(pmap[a.priority]??1)-(pmap[b.priority]??1);
+      if(pr!==0) return pr;
+      const sec=(a.section||'').localeCompare(b.section||'','pl');
+      if(sec!==0) return sec;
+      return (a.title||'').localeCompare(b.title||'','pl');
+    });
+
   items.forEach(x=>{
     const row=document.createElement('div'); row.className='shop-item'+(x.done?' shop-done':'');
     const cb=document.createElement('input'); cb.type='checkbox'; cb.checked=!!x.done; cb.onchange=()=>toggleShoppingItem(x.id, cb.checked);
@@ -999,7 +1054,6 @@ function renderShopping(){
 function renderLeaderboardAndStats(){renderLeaderboard();renderHeat();renderTopZones()}
 function renderAllCore(){
   renderTabs();renderZones();renderShop();renderTasks();renderScores();renderWeek();renderLeaderboardAndStats();
-  // jeśli widok zakupów aktywny – też odśwież
   if (document.getElementById('view-shopping').style.display!=='none') renderShopping();
 }
 function renderAll(){renderDate();renderAllCore()}
