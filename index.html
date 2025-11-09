@@ -18,14 +18,14 @@
 
 <script>window.process = window.process || { env: {} };</script>
 
-<!-- Firebase compat (prawidłowa kolejnoość) -->
+<!-- Firebase compat (prawidłowa kolejność) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-check-compat.js"></script>
 <script src="firebase-config.js"></script>
 
 <style>
-/* ====== BAZA (Twoje oryginalne style, nietknięte) ====== */
+/* ====== BAZA (oryginalne) ====== */
 :root{--bg:#0f1113;--card:rgba(28,28,30,.72);--border:rgba(255,255,255,.08);--muted:#8e8e93;--text:#f5f5f7;--accent:#0a84ff;--ok:#30d158;--warn:#ffd60a;--danger:#ff453a;--shadow:0 8px 30px rgba(0,0,0,.35)}
 *{box-sizing:border-box}
 body{margin:0;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"Apple Color Emoji";color:var(--text);background:radial-gradient(1200px 800px at 20% -10%,#1b1d20 0%,#0f1113 60%)}
@@ -67,42 +67,25 @@ canvas{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--border
 .dialog{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;width:min(520px,92vw)}
 .zoneTag{border:1px solid var(--border);background:rgba(255,255,255,.06);border-radius:999px;padding:4px 10px}
 
-/* drobne udoskonalenia spacingu, nagłówków i tabeli */
+/* drobne udoskonalenia / mobilne */
 h3{font-weight:700}
 .card h3{display:flex;align-items:center;gap:8px}
 table#leaderboard th, table#leaderboard td{border-bottom:1px solid var(--border)}
-/* --- iPhone horizontal scroll fix --- */
 html, body { width:100%; max-width:100%; overflow-x:hidden; }
-
-/* nic nie wymusza większej szerokości niż rodzic */
 .wrap, .card, .row, .grid, .week, .statsGrid { min-width:0; }
 .btn { white-space:nowrap; }
-
-/* tabela przewija się w swoim pudełku, nie cała strona */
 table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
-
-/* pigułki w widoku tygodnia nie wyjeżdżają */
 .pill { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-
-/* „Widok tygodnia” – na małych ekranach w 2 kolumny */
 @media (max-width: 640px) {
   .week { grid-template-columns: 1fr 1fr; }
   .day  { min-height: 96px; }
   #taskTime { width: 110px !important; }
 }
 
-/* --- LIGHT THEME (Twój wariant) --- */
+/* Light theme */
 :root.light{
-  --bg:#eef2ff;
-  --card:#EDEDED;
-  --border:#242F51;
-  --muted:#5b6477;
-  --text:#0f172a;
-  --accent:#0a84ff;
-  --ok:#34c759;
-  --warn:#ffd60a;
-  --danger:#ff3b30;
-  --shadow:0 12px 28px rgba(2,6,23,.14);
+  --bg:#eef2ff; --card:#EDEDED; --border:#242F51; --muted:#5b6477; --text:#0f172a;
+  --accent:#0a84ff; --ok:#34c759; --warn:#ffd60a; --danger:#ff3b30; --shadow:0 12px 28px rgba(2,6,23,.14);
 }
 :root.light body{
   color:var(--text);
@@ -111,40 +94,18 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
 .task .editable { cursor:text; border-radius:8px; padding:2px 4px; }
 .task .editable:focus { outline:2px solid rgba(99,102,241,.35); background:rgba(255,255,255,.06); }
 
-/* Mobile: w "Strefy domu" selektor na pełną szerokość i pierwszy wiersz */
+/* mobile tweaks */
 @media (max-width: 640px){
-  #zonesSelect{
-    flex: 1 1 100% !important;
-    min-width: 100%;
-    order: -1;
-    margin-bottom: 8px;
-  }
-  #newZone{ flex: 1 1 100%; min-width: 100%; }
+  #zonesSelect{ flex:1 1 100% !important; min-width:100%; order:-1; margin-bottom:8px; }
+  #newZone{ flex:1 1 100%; min-width:100%; }
+  #taskZone{ display:block; flex:1 1 100% !important; min-width:100%; margin-bottom:8px; }
 }
-/* Mobile: w formularzu dodawania zadania strefa na osobnej linii */
-@media (max-width: 640px){
-  #taskZone{
-    display:block; flex: 1 1 100% !important; min-width:100%; margin-bottom:8px;
-  }
-}
-/* Pigułki w tygodniu — jednowierszowo, z elipsą i bez przepływu */
-.week .pill{ display:block; box-sizing:border-box; max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.week .pill{ display:block; max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .day .drop{ overflow:hidden; }
 
-/* Splash overlay */
-#splash {
-  position: fixed; inset: 0; z-index: 9999;
-  display:flex; align-items:center; justify-content:center;
-  background: var(--bg, #0f1113);
-}
-#splash .logo {
-  width: 120px; height: 120px; border-radius: 24px;
-  display:flex; align-items:center; justify-content:center;
-  font-size: 56px;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.08);
-  box-shadow: 0 8px 30px rgba(0,0,0,.35);
-}
+/* Splash */
+#splash { position: fixed; inset: 0; z-index: 9999; display:flex; align-items:center; justify-content:center; background: var(--bg, #0f1113); }
+#splash .logo { width: 120px; height: 120px; border-radius: 24px; display:flex; align-items:center; justify-content:center; font-size: 56px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.08); box-shadow: 0 8px 30px rgba(0,0,0,.35); }
 
 /* Zakładki „Obowiązki / Zakupy” */
 .top-tabs { display:flex; gap:8px; flex-wrap:wrap; }
@@ -157,33 +118,19 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
 .shop-badge { display:inline-block; padding:2px 8px; border-radius:999px; border:1px solid var(--border); background:rgba(255,255,255,.06); font-size:.8rem; }
 .shop-done { opacity:.55; text-decoration: line-through; }
 
-/* === Zakupy: pasek kategorii (poziomy scroll) === */
+/* Pasek kategorii (poziomy scroll) */
 #shopCats{
-  display:grid;
-  grid-auto-flow:column;
-  grid-auto-columns:max-content;
-  gap:.5rem;
-  overflow-x:auto;
-  padding:4px 2px 8px;
-  -webkit-overflow-scrolling:touch;
-  overscroll-behavior-x:contain;
+  display:grid; grid-auto-flow:column; grid-auto-columns:max-content; gap:.5rem;
+  overflow-x:auto; padding:4px 2px 8px; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain;
 }
 #shopCats::-webkit-scrollbar{ height:6px }
 #shopCats::-webkit-scrollbar-thumb{ background:#444; border-radius:3px }
-
 .catBtn{
   border:1px solid var(--border);
   background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
-  color:var(--text);
-  padding:8px 12px;
-  border-radius:999px;
-  cursor:pointer;
-  white-space:nowrap;
+  color:var(--text); padding:8px 12px; border-radius:999px; cursor:pointer; white-space:nowrap;
 }
-.catBtn.is-active{
-  border-color: var(--accent);
-  box-shadow: 0 8px 24px -12px rgba(10,132,255,.5);
-}
+.catBtn.is-active{ border-color: var(--accent); box-shadow: 0 8px 24px -12px rgba(10,132,255,.5); }
 </style>
 </head>
 <body>
@@ -240,7 +187,7 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
             <select id="sortBy"><option value="status">Status</option><option value="priority">Priorytet</option><option value="title">Tytuł A→Z</option><option value="zone">Strefa</option></select>
             <button id="resetDailyBtn" class="btn">🔁 Reset</button>
             <button id="clearDoneBtn" class="btn">🧹 Usuń wykonane</button>
-            <!-- TTS zostanie tu przeniesiony skryptem -->
+            <!-- TTS przeniesiony skryptem -->
           </div>
         </div>
         <div id="tasksList" style="margin-top:10px;display:flex;flex-direction:column;gap:10px"></div>
@@ -442,7 +389,7 @@ function copy(text){return navigator.clipboard.writeText(text)}
 function showDialog(html){$('#dialog').innerHTML=html;$('#overlay').style.display='flex'}
 function closeDialog(){ $('#overlay').style.display='none' }
 
-/* ===== FIREBASE (opcjonalny) ===== */
+/* ===== FIREBASE ===== */
 let fbApp=null, fs=null, fbDoc=null, __unsub=null;
 const FIREBASE_COLLECTION = 'organizer';
 function setFamilyLabel(id){ const l=document.getElementById('familyLabel'); if(l) l.textContent=id || '—'; }
@@ -495,12 +442,11 @@ async function tryFirebaseInit(){
     setFamilyLabel(family);
 
     await subscribeToFamily(family);
-    // UWAGA: pushToFirebase już sam sprawdza, czy nie nadpisze chmury.
     pushToFirebase();
   }catch(e){ console.warn('Firebase init error', e); }
 }
 
-/* ---- BEZPIECZNY ZAPIS: nie nadpisuje danych z innego urządzenia ---- */
+/* ---- Bezpieczny zapis (nie nadpisuje nowszej chmury) ---- */
 async function pushToFirebase(){
   if(!fbDoc) return;
   try{
@@ -532,18 +478,14 @@ const defaultRewards=[
   {id:crypto.randomUUID(),name:'Seans filmu',cost:20},
   {id:crypto.randomUUID(),name:'Godzina gry',cost:25}
 ];
-/* NOWE: sekcje zakupów (domyślne) */
 const defaultShoppingSections=['Jedzenie','Szkoła','Praca','Przyjemności','Chemia','Kosmetyki','Samochód','Inne'];
 
 const defaultData = {
   zones: defaultZones,
   rewards: defaultRewards,
-
-  // ZAKUPY (domyślne)
   shopping: [],
   shoppingSections: defaultShoppingSections,
   shoppingActive: 'Wszystko',
-
   people: [
     {id:crypto.randomUUID(),name:'Ja',goal:5,streak:0,icsTime:'07:00',scoreToday:0,scoreWeek:0,latePenaltyPerHour:1,pin:'',childMode:false,tasks:[
       {id:crypto.randomUUID(),title:'Wyrzucić śmieci',schedType:'daily',time:'07:00',points:1,penalty:1,priority:'med',zone:'Kuchnia',done:false,sub:[]},
@@ -554,18 +496,15 @@ const defaultData = {
       {id:crypto.randomUUID(),title:'Podlać kwiaty',schedType:'weekly',dows:[3],time:'18:00',points:2,penalty:1,priority:'low',zone:'Salon',done:false,sub:[]}
     ]}
   ],
-
   currentPersonId: null,
   penaltyFactor: 1,
   history: [],
   updatedAt: Date.now()
 };
-
 function load(){try{return JSON.parse(localStorage.getItem(stateKey))||defaultData}catch(e){return defaultData}}
 function save(){ db.updatedAt=Date.now(); localStorage.setItem(stateKey,JSON.stringify(db)); pushToFirebase(); }
 let db = load();
 if(!db.currentPersonId && db.people.length) db.currentPersonId = db.people[0].id;
-/* Bezpiecznik zakupów przy starych zapisach lokalnych/chmurowych */
 if(!Array.isArray(db.shopping)) db.shopping = [];
 if(!Array.isArray(db.shoppingSections)) db.shoppingSections = defaultShoppingSections.slice();
 if(!db.shoppingActive) db.shoppingActive = 'Wszystko';
@@ -748,27 +687,7 @@ function addTask(){
   save(); renderAllCore();
 }
 
-/* ===== ZAKUPY (kategorie + lista) ===== */
-function renderShopCategories(){
-  const host = document.getElementById('shopCats');
-  if(!host) return;
-  host.innerHTML = '';
-  const cats = ['Wszystko', ...db.shoppingSections];
-  cats.forEach(cat=>{
-    const b = document.createElement('button');
-    b.className = 'catBtn' + (db.shoppingActive===cat ? ' is-active' : '');
-    b.textContent = cat;
-    b.onclick = ()=>{
-      db.shoppingActive = cat;
-      save();
-      renderShopCategories();
-      renderShopping(); // odśwież listę wg nowej kategorii
-    };
-    host.appendChild(b);
-  });
-}
-
-/* Selectory i osoby do zakupów */
+/* ===== ZAKUPY: kategorie + lista ===== */
 function shoppingPeopleOptions(){
   const arr = ['—'].concat(db.people.map(p=>p.name));
   return arr.map(n=>`<option value="${n}">${n}</option>`).join('');
@@ -777,14 +696,12 @@ function renderShoppingSelectors(){
   $('#shopSection').innerHTML = (db.shoppingSections||defaultShoppingSections).map(s=>`<option value="${s}">${s}</option>`).join('');
   $('#shopAssignee').innerHTML = shoppingPeopleOptions();
 }
-/* CRUD zakupów */
 function addShoppingItem(){
   const title = $('#shopTitle').value.trim();
   if(!title){ alert('Podaj nazwę pozycji.'); return; }
   const qty = $('#shopQty').value.trim();
-  const section = ($('#shopSection').value || db.shoppingActive || 'Inne') === 'Wszystko'
-    ? 'Inne'
-    : ($('#shopSection').value || db.shoppingActive || 'Inne');
+  const sectionSelect = $('#shopSection').value || db.shoppingActive || 'Inne';
+  const section = (sectionSelect === 'Wszystko') ? 'Inne' : sectionSelect;
   const who = $('#shopAssignee').value || '—';
   const prio = $('#shopPriority').value || 'med';
   const item = { id:crypto.randomUUID(), title, qty, section, assignee:who, priority:prio, done:false, createdAt: Date.now() };
@@ -814,10 +731,27 @@ async function exportShoppingText(){
     const qty = x.qty ? ` × ${x.qty}` : '';
     const sec = x.section ? ` (${x.section})` : '';
     const who = x.assignee && x.assignee!=='—' ? ` — ${x.assignee}` : '';
-    const pr = x.priority==='high'?' 🔥':'';
+    const pr = x.priority==='high'?' 🔥':''; 
     return `${mark} ${x.title}${qty}${sec}${who}${pr}`;
   });
   try{ await copy(lines.join('\n')); alert('Skopiowano listę.'); }catch(_){ prompt('Kopiuj ręcznie:', lines.join('\n')); }
+}
+function renderShopCategories(){
+  const host = document.getElementById('shopCats');
+  if(!host) return;
+  host.innerHTML = '';
+  const cats = ['Wszystko', ...db.shoppingSections];
+  cats.forEach(cat=>{
+    const b = document.createElement('button');
+    b.className = 'catBtn' + (db.shoppingActive===cat ? ' is-active' : '');
+    b.textContent = cat;
+    b.onclick = ()=>{
+      db.shoppingActive = cat;
+      save();
+      renderShopping(); // prze-render filtr
+    };
+    host.appendChild(b);
+  });
 }
 function renderShopping(){
   renderShoppingSelectors();
@@ -826,7 +760,7 @@ function renderShopping(){
   const host = $('#shopListContainer');
   host.innerHTML = '';
 
-  // FILTR wg aktywnej kategorii
+  // filtr wg aktywnej kategorii
   const active = db.shoppingActive || 'Wszystko';
   let items = (db.shopping||[]);
   if (active !== 'Wszystko') {
@@ -862,124 +796,6 @@ function renderShopping(){
     row.appendChild(cb); row.appendChild(title); row.appendChild(del);
     host.appendChild(row);
   });
-}
-
-/* ===== DAY/WEEK END ===== */
-function endDay(){
-  const date = nowYMD();
-  db.people.forEach(p=>{
-    let penaltySum=0, allDone=true, zones={};
-    p.tasks.forEach(t=>{
-      if(dueToday(t)){
-        if(!t.done){
-          const base = Math.round(t.penalty ?? 1);
-          const skipCut = t.skippedReason ? 0.5 : 1;
-          penaltySum += Math.round(base*skipCut);
-          allDone = false;
-        } else {
-          zones[t.zone||'Inne'] = (zones[t.zone||'Inne']||0) + (t.points||0);
-        }
-        if(t.schedType!=='weekly'){ t.done=false; }
-        t.skippedReason = '';
-      }
-    });
-    p.scoreToday = Math.max(0, p.scoreToday - penaltySum);
-    p.scoreWeek += p.scoreToday;
-    p.streak = allDone ? (p.streak||0)+1 : 0;
-    db.history.push({date, personId:p.id, earned:p.scoreToday, missed:penaltySum, zonePoints:zones});
-    p.scoreToday = 0;
-  });
-  save(); renderAll();
-}
-function endWeek(){ db.people.forEach(p=> p.scoreWeek=0 ); save(); renderAll(); }
-
-/* ===== SZYBKIE KOREKTY ===== */
-function manualDelta(sign){
-  const p=currentPerson(); if(!p) return;
-  const val = Math.max(1, parseInt($('#deltaPoints').value||'1',10));
-  const scope = $('#deltaScope').value;
-  const reason = prompt(sign>0?'Powód nagrody (+)':'Powód kary (−):','');
-  if(scope==='today'){ p.scoreToday = Math.max(0, (p.scoreToday||0) + sign*val); }
-  else { p.scoreWeek = Math.max(0, (p.scoreWeek||0) + sign*val); }
-  db.history.push({date:nowYMD(), personId:p.id, manual:true, delta:sign*val, scope, reason:reason||''});
-  save(); renderScores(); renderTabs();
-}
-
-/* ===== SUMMARY / EXPORT / TTS / ICS ===== */
-function tasksForSummary(p){
-  const lines=[]; lines.push(`Lista — ${new Date().toLocaleDateString('pl-PL')} (${p.name})`);
-  if(!p.tasks.length){ lines.push('— brak'); return lines; }
-  p.tasks.forEach(t=>{
-    const box=t.done?'[x]':'[ ]';
-    const rep=t.schedType||'daily';
-    const zone=t.zone?` • ${t.zone}`:'';
-    const onlyIf=dueToday(t)?'':' (nie dziś)';
-    const sub=(t.sub||[]).length?` — sub: ${(t.sub||[]).map(s=> (s.done?'[x] ':'[ ] ')+s.title).join(' | ')}`:'';
-    const days=(t.schedType==='weekly'&&(t.dows||[]).length)?' '+(t.dows||[]).map(n=>['Nd','Pn','Wt','Śr','Cz','Pt','So'][n]).join(' '):'';
-    lines.push(`  ${box} ${t.title} (${rep}${days}${zone}, ⭐ ${t.points} • ⛔ ${t.penalty??1})${onlyIf}${sub}`);
-  });
-  return lines;
-}
-function summaryText(){const lines=[]; db.people.forEach(p=> lines.push(...['', ...tasksForSummary(p)])); return lines.join('\n').replace(/^\n/,'');}
-function sendMail(){const body=encodeURIComponent(summaryText());const subj=encodeURIComponent('Obowiązki — podsumowanie'); location.href=`mailto:?subject=${subj}&body=${body}`;}
-async function copyToClipboard(){ try{ await copy(summaryText()); alert('Skopiowano.'); }catch(e){ prompt('Kopiuj ręcznie:', summaryText()); } }
-function icsDate(d){ const pad=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`; }
-function triggerDuration(n,u){ n=Math.max(0,parseInt(n||0,10)); if(u==='minutes')return`-PT${n}M`; if(u==='hours')return`-PT${n}H`; if(u==='days')return`-P${n}D`; if(u==='weeks')return`-P${n}W`; if(u==='months')return`-P${n*30}D`; if(u==='years')return`-P${n*365}D`; return '-PT10M'; }
-function nextOccurrence(t){
-  const now=new Date(); const {H,M}=hmToParts(t.time||'07:00'); const base=new Date(now.getFullYear(), now.getMonth(), now.getDate(), H, M, 0);
-  const k=t.schedType||'daily';
-  if(k==='once'){ if(!t.date) return base; const d=new Date(t.date+'T00:00:00'); d.setHours(H,M,0,0); return d; }
-  if(k==='daily'){ return base>now?base:new Date(base.getTime()+86400000); }
-  if(k==='weekly'){
-    const dows=(t.dows||[]).length?(t.dows||[]):[now.getDay()];
-    for(let i=0;i<7;i++){ const test=new Date(now.getFullYear(),now.getMonth(),now.getDate()+i,H,M,0); if(dows.includes(test.getDay()) && test>now) return test; }
-    const d=new Date(base); d.setDate(d.getDate()+7); return d;
-  }
-  if(k==='monthly'){ const dom=Math.min(Math.max(1,t.dayOfMonth||1),28); let d=new Date(now.getFullYear(),now.getMonth(),dom,H,M,0); if(d<=now) d=new Date(now.getFullYear(),now.getMonth()+1,dom,H,M,0); return d; }
-  if(k==='yearly'){ if(!t.yearlyDate) return base>now?base:new Date(now.getFullYear()+1, now.getMonth(), now.getDate(), H,M,0);
-    const yd=new Date(t.yearlyDate+'T00:00:00'); let d=new Date(now.getFullYear(),yd.getMonth(),yd.getDate(),H,M,0); if(d<=now) d=new Date(now.getFullYear()+1,yd.getMonth(),yd.getDate(),H,M,0); return d; }
-  return base;
-}
-async function icsForTask(person,task){
-  const when=nextOccurrence(task);
-  const esc=s=>s.replace(/\\/g,'\\\\').replace(/\n/g,'\\n').replace(/,/g,'\\,').replace(/;/g,'\\;');
-  const body=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//HomeChores//Task//PL','CALSCALE:GREGORIAN','METHOD:PUBLISH','BEGIN:VEVENT',
-    `UID:${crypto.randomUUID()}@home-chores`,`DTSTAMP:${icsDate(new Date())}Z`,`DTSTART:${icsDate(when)}`,`DTEND:${icsDate(new Date(when.getTime()+30*60*1000))}`,
-    `SUMMARY:${esc('Obowiązki — '+person.name)}`,`DESCRIPTION:${esc('Zadanie: '+task.title+'\\n⭐ '+task.points)}`,
-    'BEGIN:VALARM',`TRIGGER:${triggerDuration(task.remN||10,task.remUnit||'minutes')}`,'ACTION:DISPLAY','DESCRIPTION:Przypomnienie — zadanie','END:VALARM',
-    'END:VEVENT','END:VCALENDAR'].join('\r\n');
-  const file=new File([body],`zadanie-${person.name}-${when.toISOString().slice(0,10)}.ics`,{type:'text/calendar'});
-  if(navigator.canShare&&navigator.canShare({files:[file]})){ try{ await navigator.share({files:[file], title:`Zadanie — ${person.name}`}); }catch(e){} }
-  else { const url=URL.createObjectURL(file); const a=document.createElement('a'); a.href=url; a.download=file.name; a.click(); URL.revokeObjectURL(url); }
-}
-function makeICSForPerson(p,when){
-  const esc=s=>s.replace(/\\/g,'\\\\').replace(/\n/g,'\\n').replace(/,/g,'\\,').replace(/;/g,'\\;');
-  const lines=tasksForSummary(p).join('\n');
-  const body=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//HomeChores//PRO3//PL','CALSCALE:GREGORIAN','METHOD:PUBLISH','BEGIN:VEVENT',
-    `UID:${crypto.randomUUID()}@home-chores`, `DTSTAMP:${icsDate(new Date())}Z`, `DTSTART:${icsDate(when)}`, `DTEND:${icsDate(new Date(when.getTime()+30*60*1000))}`,
-    `SUMMARY:${esc('Obowiązki — '+p.name)}`, `DESCRIPTION:${esc(lines)}`,
-    'BEGIN:VALARM','TRIGGER:-PT10M','ACTION:DISPLAY','DESCRIPTION:Przypomnienie — obowiązki','END:VALARM',
-    'END:VEVENT','END:VCALENDAR'].join('\r\n');
-  return new File([body], `obowiazki-${p.name}-${when.toISOString().slice(0,10)}.ics`, {type:'text/calendar'});
-}
-async function shareICSForCurrentPerson(){
-  const p=currentPerson(); if(!p) return;
-  const [H,M]=(p.icsTime||'07:00').split(':').map(x=>parseInt(x,10));
-  const now=new Date(); const when=new Date(now.getFullYear(), now.getMonth(), now.getDate(), H||7, M||0, 0);
-  const file = makeICSForPerson(p, when);
-  if(navigator.canShare&&navigator.canShare({files:[file]})){ try{ await navigator.share({files:[file], title:`Obowiązki — ${p.name}`}); }catch(e){} }
-  else { const url=URL.createObjectURL(file); const a=document.createElement('a'); a.href=url; a.download=file.name; a.click(); URL.revokeObjectURL(a.href); }
-}
-function exportJSON(){ const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='obowiazki-backup.json'; a.click(); URL.revokeObjectURL(a.href); }
-function importJSONFromFile(file){ const r=new FileReader(); r.onload=()=>{ try{ const j=JSON.parse(r.result); db=j; save(); renderAll(); alert('Zaimportowano.'); }catch(e){ alert('Nieprawidłowy JSON.'); } }; r.readAsText(file); }
-
-/* === TTS === */
-function speakNow(){
-  const p=currentPerson(); if(!p) return;
-  const titles = p.tasks.filter(dueToday).map(t=>t.title);
-  const text = titles.length ? `Plan dnia dla ${p.name}: ` + titles.join('. ') + '.' : `${p.name} — dziś brak zadań.`;
-  const u=new SpeechSynthesisUtterance(text); u.lang='pl-PL'; u.rate=1; u.pitch=1;
-  speechSynthesis.cancel(); speechSynthesis.speak(u);
 }
 
 /* ===== WEEK VIEW ===== */
@@ -1065,34 +881,7 @@ function setGoal(){
 function setIcs(){const p=currentPerson();if(!p)return;const cur=p.icsTime||'07:00';const t=prompt('Godzina .ics (HH:MM, 24h):',cur);if(!t)return;if(!/^\d{2}:\d{2}$/.test(t))return alert('Format HH:MM');p.icsTime=t;save();renderLeaderboard()}
 function pinDialog(){const p=currentPerson();if(!p)return;showDialog(`<h3 style="margin-top:0">PIN i Tryb dziecka — ${p.name}</h3><div class="row" style="flex-direction:column;align-items:stretch"><label class="muted">Ustaw/zmień PIN (4–8 cyfr)</label><input id="pinSet" type="password" placeholder="${p.pin?'(obecny istnieje)':'brak'}"/><label class="muted" style="margin-top:8px">Tryb dziecka (blokada zmian)</label><div class="row"><button class="btn" onclick="setChildMode(true)">👶 Włącz</button><button class="btn" onclick="setChildMode(false)">🔓 Wyłącz</button></div></div><div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn" onclick="closeDialog()">Zamknij</button><button class="btn" onclick="savePin()">✅ Zapisz PIN</button></div>`);window.savePin=function(){const v=$('#pinSet').value.trim();if(v&&!/^\d{4,8}$/.test(v))return alert('PIN 4–8 cyfr.');p.pin=v;save();alert('Zapisano PIN.');closeDialog()};window.setChildMode=function(on){if(p.pin){const entered=prompt('Podaj PIN:');if(entered!==p.pin)return alert('Zły PIN.')}p.childMode=!!on;save();renderTabs();alert(on?'Tryb dziecka WŁĄCZONY.':'Tryb dziecka WYŁĄCZONY.')}}
 
-/* ===== WIDOKI: przełączanie Obowiązki / Zakupy ===== */
-(function tabsInit(){
-  const tabChores = document.getElementById('tabChores');
-  const tabShopping = document.getElementById('tabShopping');
-  const viewChores = document.getElementById('view-chores');
-  const viewShopping = document.getElementById('view-shopping');
-
-  function activate(which){
-    if(which==='shopping'){
-      tabChores.classList.remove('active'); tabShopping.classList.add('active');
-      viewChores.style.display='none'; viewShopping.style.display='';
-      renderShopping();
-    } else {
-      tabShopping.classList.remove('active'); tabChores.classList.add('active');
-      viewShopping.style.display='none'; viewChores.style.display='';
-      renderAllCore();
-    }
-  }
-  tabChores.addEventListener('click', ()=>activate('chores'));
-  tabShopping.addEventListener('click', ()=>activate('shopping'));
-
-  // Bind przyciski zakupów
-  document.getElementById('shopAddBtn').onclick = addShoppingItem;
-  document.getElementById('shopClearDoneBtn').onclick = clearBought;
-  document.getElementById('shopExportBtn').onclick = exportShoppingText;
-})();
-
-/* ===== RENDER ROOT ===== */
+/* ===== ROOT RENDER ===== */
 function renderLeaderboardAndStats(){renderLeaderboard();renderHeat();renderTopZones()}
 function renderAllCore(){
   renderTabs();
@@ -1102,8 +891,8 @@ function renderAllCore(){
   renderScores();
   renderWeek();
   renderLeaderboardAndStats();
-  // Zakupy (gdy jesteś na tej zakładce, i tak wywołamy renderShopping()):
-  renderShopCategories();
+  // Zakupy:
+  renderShopping();
 }
 function renderAll(){renderDate();renderAllCore()}
 
@@ -1118,13 +907,10 @@ $('#endDayBtn').onclick=endDay;$('#endWeekBtn').onclick=endWeek;$('#sortBy').onc
 $('#addZoneBtn').onclick=addZone;$('#delZoneBtn').onclick=delZone;$('#randomZoneBtn').onclick=randomZone;
 $('#deltaMinus').onclick=()=>manualDelta(-1);
 $('#deltaPlus').onclick=()=>manualDelta(1);
-document.getElementById('changeFamilyBtn').onclick = async () => {
-  const curr = localStorage.getItem('familyId') || '';
-  const next = prompt('ID rodziny (wspólna nazwa grupy):', curr);
-  if (!next) return;
-  await subscribeToFamily(next.trim());
-  pushToFirebase();
-};
+// Zakupy — bindy
+document.getElementById('shopAddBtn').onclick = addShoppingItem;
+document.getElementById('shopClearDoneBtn').onclick = clearBought;
+document.getElementById('shopExportBtn').onclick = exportShoppingText;
 
 /* THEME TOGGLE */
 (function themeInit(){
@@ -1191,7 +977,7 @@ document.getElementById('changeFamilyBtn').onclick = async () => {
   };
 })();
 
-/* --- Przenieś "Czytaj teraz" z eksportów do paska narzędzi zadań --- */
+/* --- TTS do toolbara --- */
 document.addEventListener('DOMContentLoaded', () => {
   const ttsBtn  = document.getElementById('ttsBtn');
   const taskToolbar = document.getElementById('taskToolbar');
@@ -1200,6 +986,28 @@ document.addEventListener('DOMContentLoaded', () => {
     ttsBtn.style.marginLeft = '8px';
   }
 });
+
+/* ===== WIDOKI: przełączanie Obowiązki / Zakupy ===== */
+(function tabsInit(){
+  const tabChores = document.getElementById('tabChores');
+  const tabShopping = document.getElementById('tabShopping');
+  const viewChores = document.getElementById('view-chores');
+  const viewShopping = document.getElementById('view-shopping');
+
+  function activate(which){
+    if(which==='shopping'){
+      tabChores.classList.remove('active'); tabShopping.classList.add('active');
+      viewChores.style.display='none'; viewShopping.style.display='';
+      renderShopping();
+    }else{
+      tabShopping.classList.remove('active'); tabChores.classList.add('active');
+      viewShopping.style.display='none'; viewChores.style.display='';
+      renderAllCore();
+    }
+  }
+  tabChores.addEventListener('click', ()=>activate('chores'));
+  tabShopping.addEventListener('click', ()=>activate('shopping'));
+})();
 
 /* ===== PWA SW ===== */
 const skipSW = location.search.includes('nosw=1');
