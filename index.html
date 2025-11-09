@@ -156,6 +156,34 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
 .shop-item { display:flex; gap:8px; align-items:center; border:1px solid var(--border); border-radius:12px; padding:10px; background:rgba(255,255,255,.03) }
 .shop-badge { display:inline-block; padding:2px 8px; border-radius:999px; border:1px solid var(--border); background:rgba(255,255,255,.06); font-size:.8rem; }
 .shop-done { opacity:.55; text-decoration: line-through; }
+/* === Zakupy: pasek kategorii (poziomy scroll) === */
+#shopCats{
+  display:grid;
+  grid-auto-flow:column;
+  grid-auto-columns:max-content;
+  gap:.5rem;
+  overflow-x:auto;
+  padding:4px 2px 8px;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-x:contain;
+}
+#shopCats::-webkit-scrollbar{ height:6px }
+#shopCats::-webkit-scrollbar-thumb{ background:#444; border-radius:3px }
+
+.catBtn{
+  border:1px solid var(--border);
+  background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+  color:var(--text);
+  padding:8px 12px;
+  border-radius:999px;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.catBtn.is-active{
+  border-color: var(--accent);
+  box-shadow: 0 8px 24px -12px rgba(10,132,255,.5);
+}
+
 </style>
 </head>
 <body>
@@ -360,31 +388,24 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
     </aside>
   </div><!-- /view-chores -->
 
-  <!-- ====== WIDOK: ZAKUPY ====== -->
-  <div id="view-shopping" style="display:none">
-    <section class="card">
-      <h3 style="margin:0 0 10px 0">Lista zakupów (wspólna)</h3>
-      <div class="row" style="flex-direction:column;gap:10px;width:100%">
-        <div class="row" style="width:100%">
-          <input id="shopTitle" type="text" placeholder="np. Mleko 2%"/>
-          <input id="shopQty" type="text" placeholder="ilość (opcjonalnie)" style="width:160px"/>
-        </div>
-        <div class="row" style="width:100%">
-          <select id="shopSection" style="flex:1"></select>
-          <select id="shopAssignee" style="flex:1"></select>
-          <select id="shopPriority" style="width:160px">
-            <option value="high">🔥 Pilne</option>
-            <option value="med" selected>• Normalne</option>
-            <option value="low">… Luźne</option>
-          </select>
-        </div>
-        <div class="row">
-          <button id="shopAddBtn" class="btn">➕ Dodaj pozycję</button>
-          <button id="shopClearDoneBtn" class="btn">🧹 Usuń kupione</button>
-          <button id="shopExportBtn" class="btn">📋 Kopiuj listę</button>
-        </div>
-      </div>
-    </section>
+ <!-- ====== WIDOK: ZAKUPY ====== -->
+<div id="view-shopping" style="display:none">
+  <section class="card">
+    <h3 style="margin:0 0 10px 0">Lista zakupów (wspólna)</h3>
+    ...
+  </section>
+
+  <div style="height:10px"></div>
+
+  <section class="card">
+    <h3 style="margin:0 0 10px 0">Do kupienia</h3>
+    <!-- TU DODAJ -->
+    <div id="shopCats"></div>
+    <!-- /TU DODAJ -->
+    <div id="shopListContainer" class="shop-grid"></div>
+  </section>
+</div><!-- /view-shopping -->
+
 
     <div style="height:10px"></div>
 
@@ -520,13 +541,16 @@ const defaultRewards=[
 /* NOWE: sekcje zakupów (domyślne) */
 const defaultShoppingSections=['Jedzenie','Szkoła','Praca','Przyjemności','Chemia','Kosmetyki','Samochód','Inne'];
 
-const defaultData={
-  zones:defaultZones,
-  rewards:defaultRewards,
-  /* NOWE: stan zakupów */
+const defaultData = {
+  zones: defaultZones,
+  rewards: defaultRewards,
+
+  // ZAKUPY (domyślne)
   shopping: [],
   shoppingSections: defaultShoppingSections,
-  people:[
+  shoppingActive: 'Wszystko',
+
+  people: [
     {id:crypto.randomUUID(),name:'Ja',goal:5,streak:0,icsTime:'07:00',scoreToday:0,scoreWeek:0,latePenaltyPerHour:1,pin:'',childMode:false,tasks:[
       {id:crypto.randomUUID(),title:'Wyrzucić śmieci',schedType:'daily',time:'07:00',points:1,penalty:1,priority:'med',zone:'Kuchnia',done:false,sub:[]},
       {id:crypto.randomUUID(),title:'Nakarmić kota',schedType:'daily',time:'07:10',points:1,penalty:1,priority:'med',zone:'Kuchnia',done:false,sub:[]}
@@ -536,11 +560,22 @@ const defaultData={
       {id:crypto.randomUUID(),title:'Podlać kwiaty',schedType:'weekly',dows:[3],time:'18:00',points:2,penalty:1,priority:'low',zone:'Salon',done:false,sub:[]}
     ]}
   ],
-  currentPersonId:null,penaltyFactor:1,history:[],updatedAt: Date.now()
+
+  currentPersonId: null,
+  penaltyFactor: 1,
+  history: [],
+  updatedAt: Date.now()
 };
+
 function load(){try{return JSON.parse(localStorage.getItem(stateKey))||defaultData}catch(e){return defaultData}}
 function save(){ db.updatedAt=Date.now(); localStorage.setItem(stateKey,JSON.stringify(db)); pushToFirebase(); }
-let db=load(); if(!db.currentPersonId && db.people.length) db.currentPersonId=db.people[0].id;
+let db = load();
+if(!db.currentPersonId && db.people.length) db.currentPersonId = db.people[0].id;
+/* Bezpiecznik zakupów przy starych zapisach lokalnych/chmurowych */
+if(!Array.isArray(db.shopping)) db.shopping = [];
+if(!Array.isArray(db.shoppingSections)) db.shoppingSections = ['Jedzenie','Szkoła','Praca','Przyjemności','Chemia','Kosmetyki','Samochód','Inne'];
+if(!db.shoppingActive) db.shoppingActive = 'Wszystko';
+
 
 /* ===== HEADER & TABS ===== */
 function renderDate(){todayEl.textContent=fmtDate(new Date())}
@@ -718,6 +753,119 @@ function addTask(){
   p.tasks.push(t);
   $('#taskTitle').value=''; $('#taskPoints').value='1'; $('#taskPenalty').value='1'; $$('#weeklyPicker input:checked').forEach(el=>el.checked=false);
   save(); renderAllCore();
+}
+/* ===== ZAKUPY (kategorie + lista) ===== */
+// Struktura elementu: { id, title, section, who, done }
+function renderShopCategories(){
+  const host = document.getElementById('shopCats');
+  if(!host) return;
+  host.innerHTML = '';
+
+  const cats = ['Wszystko', ...db.shoppingSections];
+  cats.forEach(cat=>{
+    const b = document.createElement('button');
+    b.className = 'catBtn' + (db.shoppingActive===cat ? ' is-active' : '');
+    b.textContent = cat;
+    b.onclick = ()=>{
+      db.shoppingActive = cat;
+      save();          // zapisze i zsynchro do Firestore (payload)
+      renderShoppingList();
+      renderShopCategories();  // odśwież podświetlenia
+    };
+    host.appendChild(b);
+  });
+}
+
+function renderShopping(){
+  renderShoppingSelectors();
+
+  const host = $('#shopListContainer');
+  host.innerHTML = '';
+
+  // FILTR wg aktywnej kategorii
+  const active = db.shoppingActive || 'Wszystko';
+  let items = (db.shopping||[]);
+
+  if (active !== 'Wszystko') {
+    items = items.filter(x => (x.section || 'Inne') === active);
+  }
+
+  // sort: niekupione -> priorytet -> sekcja -> tytuł
+  items = items.slice().sort((a,b)=>{
+    const done = (a.done===b.done)?0:(a.done?1:-1);
+    if(done!==0) return done;
+    const pmap={high:0,med:1,low:2};
+    const pr=(pmap[a.priority]??1)-(pmap[b.priority]??1);
+    if(pr!==0) return pr;
+    const sec=(a.section||'').localeCompare(b.section||'','pl');
+    if(sec!==0) return sec;
+    return (a.title||'').localeCompare(b.title||'','pl');
+  });
+
+  if(!items.length){
+    const empty = document.createElement('div');
+    empty.className = 'muted';
+    empty.textContent = 'Brak pozycji w tej kategorii.';
+    host.appendChild(empty);
+    return;
+  }
+
+  items.forEach(x=>{
+    const row=document.createElement('div'); row.className='shop-item'+(x.done?' shop-done':'');
+    const cb=document.createElement('input'); cb.type='checkbox'; cb.checked=!!x.done; cb.onchange=()=>toggleShoppingItem(x.id, cb.checked);
+    const title=document.createElement('div'); title.style.flex='1';
+    title.innerHTML = `<b>${x.title}</b>${x.qty?` <span class="muted">× ${x.qty}</span>`:''}<br><small class="muted">${x.section||'Inne'}${x.assignee&&x.assignee!=='—'?` • ${x.assignee}`:''}${x.priority==='high'?' • 🔥':''}</small>`;
+    const del=document.createElement('button'); del.className='btn'; del.textContent='🗑️'; del.onclick=()=>removeShoppingItem(x.id);
+    row.appendChild(cb); row.appendChild(title); row.appendChild(del);
+    host.appendChild(row);
+  });
+}
+
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'btn';
+    delBtn.textContent = '🗑️';
+    delBtn.title = 'Usuń';
+    delBtn.onclick = ()=>{
+      if(!confirm('Usunąć pozycję?')) return;
+      db.shopping = db.shopping.filter(x=>x.id!==it.id);
+      save(); renderShoppingList();
+    };
+
+    actions.appendChild(editBtn);
+    actions.appendChild(delBtn);
+
+    row.appendChild(cb);
+    row.appendChild(label);
+    row.appendChild(actions);
+    listEl.appendChild(row);
+  });
+}
+
+// Dodawanie pozycji (korzysta z aktywnej kategorii)
+function bindShoppingInputs(){
+  const inp = document.getElementById('shoppingInput');
+  const add = document.getElementById('shoppingAddBtn');
+  if(!inp || !add) return;
+
+  function doAdd(){
+    const title = (inp.value||'').trim();
+    if(!title) return;
+    const section = db.shoppingActive && db.shoppingActive!=='Wszystko'
+      ? db.shoppingActive : 'Inne';
+    db.shopping.push({
+      id: crypto.randomUUID(),
+      title, section,
+      who:'', done:false
+    });
+    inp.value='';
+    save();
+    renderShoppingList();
+    renderShopCategories(); // liczba w kategoriach się nie wyświetla, ale class active odświeżamy
+  }
+
+  add.onclick = doAdd;
+  inp.onkeydown = (e)=>{ if(e.key==='Enter') doAdd(); };
 }
 
 /* ===== DAY/WEEK END ===== */
@@ -935,7 +1083,10 @@ function addShoppingItem(){
   const title = $('#shopTitle').value.trim();
   if(!title){ alert('Podaj nazwę pozycji.'); return; }
   const qty = $('#shopQty').value.trim();
-  const section = $('#shopSection').value || 'Inne';
+ const section = ($('#shopSection').value || db.shoppingActive || 'Inne') === 'Wszystko'
+  ? 'Inne'
+  : ($('#shopSection').value || db.shoppingActive || 'Inne');
+
   const who = $('#shopAssignee').value || '—';
   const prio = $('#shopPriority').value || 'med';
   const item = { id:crypto.randomUUID(), title, qty, section, assignee:who, priority:prio, done:false, createdAt: Date.now() };
@@ -998,10 +1149,22 @@ function renderShopping(){
 /* ===== RENDER ROOT ===== */
 function renderLeaderboardAndStats(){renderLeaderboard();renderHeat();renderTopZones()}
 function renderAllCore(){
-  renderTabs();renderZones();renderShop();renderTasks();renderScores();renderWeek();renderLeaderboardAndStats();
+  renderTabs();
+  renderZones();
+  renderShop();           // sklepik nagród (bez zmian logiki)
+  renderTasks();
+  renderScores();
+  renderWeek();
+  renderLeaderboardAndStats();
+
+  // ZAKUPY:
+  renderShopCategories();
+  renderShopping();
+}
+
+
   // jeśli widok zakupów aktywny – też odśwież
   if (document.getElementById('view-shopping').style.display!=='none') renderShopping();
-}
 function renderAll(){renderDate();renderAllCore()}
 
 /* ===== BINDINGS ===== */
@@ -1019,9 +1182,10 @@ document.getElementById('changeFamilyBtn').onclick = async () => {
   const curr = localStorage.getItem('familyId') || '';
   const next = prompt('ID rodziny (wspólna nazwa grupy):', curr);
   if (!next) return;
-  await subscribeToFamily(next.trim());
-  pushToFirebase();
+  await subscribeToFamily(next.trim()); // przełącz subskrypcję
+  pushToFirebase();                      // zapisz aktualny stan jako startowy (nie kasujemy nic)
 };
+
 
 /* THEME TOGGLE */
 (function themeInit(){
@@ -1107,9 +1271,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function activate(which){
     if(which==='shopping'){
-      tabChores.classList.remove('active'); tabShopping.classList.add('active');
-      viewChores.style.display='none'; viewShopping.style.display='';
-      renderShopping();
+  tabChores.classList.remove('active'); tabShopping.classList.add('active');
+  viewChores.style.display='none'; viewShopping.style.display='';
+  renderShopCategories();
+  renderShopping();
+}
+
     }else{
       tabShopping.classList.remove('active'); tabChores.classList.add('active');
       viewShopping.style.display='none'; viewChores.style.display='';
