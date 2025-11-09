@@ -39,8 +39,8 @@ header{display:flex;gap:12px;align-items:center;justify-content:space-between;fl
 button,.btn{border:1px solid var(--border);background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));color:var(--text);padding:10px 14px;border-radius:12px;cursor:pointer;transition:transform .06s ease, box-shadow .18s ease, border-color .18s}
 button:hover,.btn:hover{box-shadow:0 14px 30px -12px rgba(10,132,255,.45);border-color:rgba(99,102,241,.35)}
 button:active{transform:translateY(1px)}
-input[type=text],input[type=number],input[type=time],input[type=date],input[type=password],select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);transition:border-color .2s, box-shadow .2s}
-input[type=text]:focus, input[type=number]:focus, input[type=time]:focus, input[type=date]:focus, input[type=password]:focus, select:focus{border-color:#8da2fb;box-shadow:0 0 0 4px rgba(99,102,241,.18)}
+input[type=text],input[type=number],input[type=time],input[type=date],input[type=password],select,textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);transition:border-color .2s, box-shadow .2s}
+input[type=text]:focus, input[type=number]:focus, input[type=time]:focus, input[type=date]:focus, input[type=password]:focus, select:focus, textarea:focus{border-color:#8da2fb;box-shadow:0 0 0 4px rgba(99,102,241,.18)}
 .grid{display:grid;grid-template-columns:1.25fr .75fr;gap:12px}
 @media(max-width:980px){.grid{grid-template-columns:1fr}}
 .task{display:flex;align-items:flex-start;gap:10px;padding:10px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.03)}
@@ -55,21 +55,22 @@ input[type=text]:focus, input[type=number]:focus, input[type=time]:focus, input[
 .score{font-weight:700}
 .subtasks{margin:6px 0 0 26px;display:flex;flex-direction:column;gap:6px}
 .subAdd{margin-left:26px}
+
+/* WIDOK TYGODNIA — przewijany poziomo */
 .week{
   display:grid;
-  grid-auto-flow: column;              /* kolumny „po sobie” */
-  grid-auto-columns: minmax(220px,1fr);/* szerokość każdej kolumny */
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(220px,1fr);
   gap:8px;
-  overflow-x:auto;                     /* włącz poziome przewijanie */
-  -webkit-overflow-scrolling:touch;    /* płynny scroll na iOS */
-  scroll-snap-type:x proximity;        /* przyklejanie do komórek (ładniejsze przewijanie) */
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  scroll-snap-type:x proximity;
   padding-bottom:6px;
 }
-
-.day{min-height:120px;border:1px dashed var(--border);border-radius:12px;padding:8px}
-  .day{ scroll-snap-align:start; min-width:0; } /* „łap” kolumny podczas przewijania */
+.day{min-height:120px;border:1px dashed var(--border);border-radius:12px;padding:8px; scroll-snap-align:start; min-width:0;}
 .day h4{margin:0 0 6px 0;font-size:.95rem;color:var(--muted)}
 .pill{display:inline-block;padding:4px 8px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,.06);font-size:.85rem;margin:2px 0;cursor:grab}
+
 .statsGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media(max-width:980px){.statsGrid{grid-template-columns:1fr}}
 canvas{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px}
@@ -88,12 +89,12 @@ html, body { width:100%; max-width:100%; overflow-x:hidden; }
 table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
 .pill { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
+/* MOBILE */
 @media (max-width: 640px) {
-  .week { grid-auto-columns: minmax(180px,1fr); } /* węższe „kafelki” na małych ekranach */
+  .week { grid-auto-columns: minmax(180px,1fr); }
   .day  { min-height: 96px; }
   #taskTime { width: 110px !important; }
 }
-
 
 /* LIGHT THEME */
 :root.light{ --bg:#eef2ff; --card:#EDEDED; --border:#242F51; --muted:#5b6477; --text:#0f172a; --accent:#0a84ff; --ok:#34c759; --warn:#ffd60a; --danger:#ff3b30; --shadow:0 12px 28px rgba(2,6,23,.14); }
@@ -119,10 +120,11 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
 .top-tabs { display:flex; gap:8px; flex-wrap:wrap; }
 .top-tabs .tab { padding:8px 12px; border-radius:999px; border:1px solid var(--border); background:rgba(255,255,255,.06); cursor:pointer; }
 .top-tabs .tab.active { background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.06)); border-color:rgba(99,102,241,.35); }
+.top-tabs .tab[disabled] { opacity:.5; cursor:not-allowed; }
 
-/* Widok zakupów */
-.shop-grid { display:grid; grid-template-columns:1fr; gap:12px; }
-.shop-item { display:flex; gap:8px; align-items:center; border:1px solid var(--border); border-radius:12px; padding:10px; background:rgba(255,255,255,.03) }
+/* Widok zakupów/ wydatków */
+.shop-grid, .expenses-grid { display:grid; grid-template-columns:1fr; gap:12px; }
+.shop-item, .expense-item { display:flex; gap:8px; align-items:center; border:1px solid var(--border); border-radius:12px; padding:10px; background:rgba(255,255,255,.03) }
 .shop-badge { display:inline-block; padding:2px 8px; border-radius:999px; border:1px solid var(--border); background:rgba(255,255,255,.06); font-size:.8rem; }
 .shop-done { opacity:.55; text-decoration: line-through; }
 
@@ -145,6 +147,7 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
       <div class="top-tabs">
         <button id="tabChores" class="tab active">🧺 Obowiązki</button>
         <button id="tabShopping" class="tab">🛒 Zakupy</button>
+        <button id="tabExpenses" class="tab">💸 Wydatki</button>
       </div>
       <button id="themeToggle" class="btn" title="Jasny / ciemny">☀️ / 🌙</button>
     </div>
@@ -238,6 +241,7 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
             <div class="row" style="justify-content:space-between">
               <div>Dzisiejsze: <span class="score" id="todayScore">0</span> / <span id="goalScore">0</span> ⭐</div>
               <div class="muted">Tydzień: <span class="score" id="weekScore">0</span></div>
+              <div class="muted">Bank: <span class="score" id="bankScore">0</span></div>
             </div>
             <div class="progress" style="margin-top:6px"><div id="goalBar"></div></div>
           </div>
@@ -314,11 +318,11 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
       <h3 style="margin:0 0 10px 0">Statystyki</h3>
       <div class="statsGrid">
         <div>
-          <h4 style="margin:0 0 6px 0" class="muted">Heatmapa 6 tygodni (⭐ na dzień)</h4>
+          <h4 class="muted" style="margin:0 0 6px 0">Heatmapa 6 tygodni (⭐ na dzień)</h4>
           <canvas id="heat" width="600" height="240"></canvas>
         </div>
         <div>
-          <h4 style="margin:0 0 6px 0" class="muted">Top strefy (ostatnie 30 dni)</h4>
+          <h4 class="muted" style="margin:0 0 6px 0">Top strefy (ostatnie 30 dni)</h4>
           <ul id="topZones" style="margin:0;padding-left:18px"></ul>
         </div>
       </div>
@@ -380,6 +384,89 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
     </section>
   </div><!-- /view-shopping -->
 
+  <!-- ====== WIDOK: WYDATKI ====== -->
+  <div id="view-expenses" style="display:none">
+    <section class="card">
+      <h3 style="margin:0 0 10px 0">Dodaj wydatek</h3>
+      <div class="row" style="flex-direction:column;gap:10px;width:100%">
+        <div class="row" style="width:100%">
+          <input id="expTitle" type="text" placeholder="np. Zakupy spożywcze w Lidlu"/>
+        </div>
+        <div class="row" style="width:100%">
+          <input id="expAmount" type="number" step="0.01" min="0" placeholder="Kwota (np. 123.45)" style="width:180px"/>
+          <input id="expDate" type="date" style="width:200px"/>
+          <select id="expCategory" style="flex:1"></select>
+          <select id="expPerson" style="flex:1"></select>
+        </div>
+        <div class="row" style="width:100%">
+          <textarea id="expNote" placeholder="Notatka (opcjonalnie)" rows="2" style="width:100%"></textarea>
+        </div>
+        <div class="row">
+          <button id="expAddBtn" class="btn">➕ Dodaj wydatek</button>
+          <button id="expExportBtn" class="btn">📋 Kopiuj zestawienie (miesiąc)</button>
+        </div>
+
+        <hr style="border-color:var(--border);margin:10px 0 6px 0"/>
+
+        <h4 style="margin:0">Kategorie wydatków</h4>
+        <div class="row" style="width:100%; margin-top:6px">
+          <input id="newExpSection" type="text" placeholder="Nowa kategoria (np. Jedzenie)" style="flex:1"/>
+          <button id="addExpSectionBtn" class="btn">➕ Dodaj kategorię</button>
+        </div>
+        <div id="expSectionsBadges" class="row" style="margin-top:8px;flex-wrap:wrap"></div>
+      </div>
+    </section>
+
+    <div style="height:10px"></div>
+
+    <section class="card">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <h3 style="margin:0 0 6px 0">Podsumowania</h3>
+        <div class="row">
+          <label class="muted">Miesiąc:</label>
+          <select id="expMonthFilter" style="width:200px"></select>
+        </div>
+      </div>
+
+      <div class="row" style="gap:12px;flex-wrap:wrap">
+        <div class="card" style="flex:1;min-width:220px">
+          <div class="muted">Suma miesiąca</div>
+          <div class="score" id="expSumMonth" style="font-size:1.4rem">0,00</div>
+        </div>
+        <div class="card" style="flex:1;min-width:220px">
+          <div class="muted">Suma ogółem</div>
+          <div class="score" id="expSumAll" style="font-size:1.4rem">0,00</div>
+        </div>
+        <div class="card" style="flex:1;min-width:220px">
+          <div class="muted">Najwyższa kategoria (miesiąc)</div>
+          <div class="score" id="expTopCat" style="font-size:1.0rem">—</div>
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:10px;grid-template-columns:1fr 1fr">
+        <div class="card">
+          <h4 style="margin:0 0 6px 0" class="muted">Kategorie (miesiąc)</h4>
+          <ul id="expCatList" style="margin:0;padding-left:18px"></ul>
+        </div>
+        <div class="card">
+          <h4 style="margin:0 0 6px 0" class="muted">Osoby (miesiąc)</h4>
+          <ul id="expPersonList" style="margin:0;padding-left:18px"></ul>
+        </div>
+      </div>
+    </section>
+
+    <div style="height:10px"></div>
+
+    <section class="card">
+      <h3 style="margin:0 0 10px 0">Lista wydatków</h3>
+
+      <!-- Zakładki kategorii -->
+      <div id="expTabs" class="top-tabs scroll-tabs"></div>
+
+      <div id="expListContainer" class="expenses-grid"></div>
+    </section>
+  </div><!-- /view-expenses -->
+
 </div><!-- /wrap -->
 
 <div id="overlay" class="overlay"><div id="dialog" class="dialog"></div></div>
@@ -409,27 +496,34 @@ function clamp(n,a,b){return Math.max(a,Math.min(b,n))}
 function copy(text){return navigator.clipboard.writeText(text)}
 function showDialog(html){$('#dialog').innerHTML=html;$('#overlay').style.display='flex'}
 function closeDialog(){ $('#overlay').style.display='none' }
+function PLN(n){return (n||0).toLocaleString('pl-PL',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function yyyymm(d){return (d||'').slice(0,7)}
 
 /* ===== FIREBASE (opcjonalny) ===== */
 let fbApp=null, fs=null, fbDoc=null, __unsub=null;
 const FIREBASE_COLLECTION = 'organizer';
 function setFamilyLabel(id){ const l=document.getElementById('familyLabel'); if(l) l.textContent=id || '—'; }
+
 async function subscribeToFamily(id){
   if(!fs || !id) return;
   id = String(id).trim();
   localStorage.setItem('familyId', id);
   setFamilyLabel(id);
+
   if (__unsub) { try{ __unsub(); }catch(_){ } __unsub=null; }
   fbDoc = fs.collection(FIREBASE_COLLECTION).doc(id);
+
   __unsub = fbDoc.onSnapshot((snap)=>{
     const data = snap.data();
     if(!data || !data.payload) return;
     try{
       const payload = (typeof data.payload === 'string') ? JSON.parse(data.payload) : data.payload;
       if(!payload) return;
+
       const local = (()=>{ try { return JSON.parse(localStorage.getItem(stateKey)||'{}'); } catch { return {}; }})();
       const cloudMillis = data.updatedAt?.toMillis?.() ?? payload.updatedAt ?? 0;
       const localMillis = local.updatedAt ?? 0;
+
       if (!localMillis || cloudMillis > localMillis) {
         db = payload;
         localStorage.setItem(stateKey, JSON.stringify(db));
@@ -438,12 +532,15 @@ async function subscribeToFamily(id){
     }catch(e){ console.warn('Snapshot parse error', e); }
   }, (err)=>console.error('onSnapshot error', err));
 }
+
 async function tryFirebaseInit(){
   try{
     if(!window.firebaseConfig || !window.firebaseConfig.apiKey) return;
     if(!firebase.apps?.length){ fbApp = firebase.initializeApp(window.firebaseConfig); }
     firebase.appCheck().activate("6LffMAQsAAAAAHaO0TzmnQHwSA3SPNOxJOOIFCk1", true);
+
     fs = firebase.firestore();
+
     let family = localStorage.getItem('familyId');
     if(!family){
       const prev = localStorage.getItem('familyId') || '';
@@ -453,10 +550,12 @@ async function tryFirebaseInit(){
       localStorage.setItem('familyId', family);
     }
     setFamilyLabel(family);
+
     await subscribeToFamily(family);
     pushToFirebase();
   }catch(e){ console.warn('Firebase init error', e); }
 }
+
 async function pushToFirebase(){
   if(!fbDoc) return;
   try{
@@ -467,9 +566,14 @@ async function pushToFirebase(){
       const cloud = (typeof data.payload==='string') ? JSON.parse(data.payload) : (data.payload||{});
       const cloudMillis = data.updatedAt?.toMillis?.() ?? cloud.updatedAt ?? 0;
       const localMillis = db.updatedAt ?? 0;
-      if (localMillis && localMillis <= cloudMillis) return;
+      if (localMillis && localMillis <= cloudMillis) {
+        return;
+      }
     }
-    await fbDoc.set({ payload: payloadStr, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge:true });
+    await fbDoc.set(
+      { payload: payloadStr, updatedAt: firebase.firestore.FieldValue.serverTimestamp() },
+      { merge:true }
+    );
   }catch(e){
     console.error('[Firestore] zapis ERROR', e);
     alert('Błąd zapisu do Firestore: ' + (e?.message || e));
@@ -484,18 +588,25 @@ const defaultRewards=[
   {id:crypto.randomUUID(),name:'Godzina gry',cost:25}
 ];
 const defaultShoppingSections=['Jedzenie','Szkoła','Praca','Przyjemności','Chemia','Kosmetyki','Samochód','Inne'];
+/* NOWE: Wydatki – domyślne kategorie */
+const defaultExpenseSections=['Jedzenie','Dom','Transport','Dzieci','Zdrowie','Rozrywka','Rachunki','Inne'];
 
 const defaultData={
   zones:defaultZones,
   rewards:defaultRewards,
   shopping: [],
   shoppingSections: defaultShoppingSections,
+  /* WYDATKI */
+  expenses: [],
+  expenseSections: defaultExpenseSections,
+  expensesActiveSection: 'Wszystko',
+  expensesMonthFilter: 'current',
   people:[
-    {id:crypto.randomUUID(),name:'Ja',goal:5,streak:0,icsTime:'07:00',scoreToday:0,scoreWeek:0,latePenaltyPerHour:1,pin:'',childMode:false,tasks:[
+    {id:crypto.randomUUID(),name:'Ja',goal:5,streak:0,icsTime:'07:00',scoreToday:0,scoreWeek:0,bankStars:0,latePenaltyPerHour:1,pin:'',childMode:false,tasks:[
       {id:crypto.randomUUID(),title:'Wyrzucić śmieci',schedType:'daily',time:'07:00',points:1,penalty:1,priority:'med',zone:'Kuchnia',done:false,sub:[]},
       {id:crypto.randomUUID(),title:'Nakarmić kota',schedType:'daily',time:'07:10',points:1,penalty:1,priority:'med',zone:'Kuchnia',done:false,sub:[]}
     ]},
-    {id:crypto.randomUUID(),name:'Ania',goal:5,streak:0,icsTime:'07:10',scoreToday:0,scoreWeek:0,latePenaltyPerHour:1,pin:'',childMode:false,tasks:[
+    {id:crypto.randomUUID(),name:'Ania',goal:5,streak:0,icsTime:'07:10',scoreToday:0,scoreWeek:0,bankStars:0,latePenaltyPerHour:1,pin:'',childMode:false,tasks:[
       {id:crypto.randomUUID(),title:'Zmywarka — rozładuj',schedType:'daily',time:'07:30',points:2,penalty:1,priority:'high',zone:'Kuchnia',done:false,sub:[]},
       {id:crypto.randomUUID(),title:'Podlać kwiaty',schedType:'weekly',dows:[3],time:'18:00',points:2,penalty:1,priority:'low',zone:'Salon',done:false,sub:[]}
     ]}
@@ -506,12 +617,32 @@ function load(){try{return JSON.parse(localStorage.getItem(stateKey))||defaultDa
 function save(){ db.updatedAt=Date.now(); localStorage.setItem(stateKey,JSON.stringify(db)); pushToFirebase(); }
 let db=load(); if(!db.currentPersonId && db.people.length) db.currentPersonId=db.people[0].id;
 
+/* MIGRACJE */
+try {
+  (db.people||[]).forEach(p=>{
+    if (typeof p.bankStars !== 'number') p.bankStars = 0;
+  });
+  if(!Array.isArray(db.expenses)) db.expenses=[];
+  if(!Array.isArray(db.expenseSections)) db.expenseSections = defaultExpenseSections.slice();
+  if(!db.expensesActiveSection) db.expensesActiveSection='Wszystko';
+  if(!db.expensesMonthFilter) db.expensesMonthFilter='current';
+} catch(_) {}
+
 /* ===== HEADER & TABS ===== */
 function renderDate(){todayEl.textContent=fmtDate(new Date())}
 function currentPerson(){return db.people.find(p=>p.id===db.currentPersonId)||db.people[0]}
 const tabsEl=$('#peopleTabs');
-function renderTabs(){tabsEl.innerHTML='';db.people.forEach(p=>{const b=document.createElement('button');b.className='btn'+(p.id===db.currentPersonId?'':'');b.textContent=`${p.name} · ⭐ ${p.scoreWeek} · 🔥 ${p.streak||0}${p.childMode?' · 👶':''}`;b.onclick=()=>{db.currentPersonId=p.id;save();renderAll()};tabsEl.appendChild(b)})}
-function addPerson(){const name=prompt('Imię domownika:');if(!name)return;const p={id:crypto.randomUUID(),name:name.trim(),goal:5,streak:0,icsTime:'07:00',scoreToday:0,scoreWeek:0,latePenaltyPerHour:1,pin:'',childMode:false,tasks:[]};db.people.push(p);db.currentPersonId=p.id;save();renderAll()}
+function renderTabs(){
+  tabsEl.innerHTML='';
+  db.people.forEach(p=>{
+    const b=document.createElement('button');
+    b.className='btn'+(p.id===db.currentPersonId?'':'');
+    b.textContent=`${p.name} · ⭐ ${p.scoreWeek} · 💰 ${(p.bankStars||0)} · 🔥 ${p.streak||0}${p.childMode?' · 👶':''}`;
+    b.onclick=()=>{db.currentPersonId=p.id;save();renderAll()};
+    tabsEl.appendChild(b)
+  })
+}
+function addPerson(){const name=prompt('Imię domownika:');if(!name)return;const p={id:crypto.randomUUID(),name:name.trim(),goal:5,streak:0,icsTime:'07:00',scoreToday:0,scoreWeek:0,bankStars:0,latePenaltyPerHour:1,pin:'',childMode:false,tasks:[]};db.people.push(p);db.currentPersonId=p.id;save();renderAll()}
 function renamePerson(){const p=currentPerson();if(!p)return;const n=prompt('Nowa nazwa:',p.name);if(!n)return;p.name=n.trim();save();renderTabs()}
 function removePerson(){const p=currentPerson();if(!p)return;if(!confirm(`Usunąć osobę „${p.name}”?`))return;db.people=db.people.filter(x=>x.id!==p.id);db.currentPersonId=db.people[0]?.id||null;save();renderAll()}
 
@@ -522,16 +653,48 @@ function delZone(){const val=$('#zonesSelect').value; if(!val) return; if(!confi
 function randomZone(){ if(!db.zones.length) return alert('Brak stref'); const z=db.zones[Math.floor(Math.random()*db.zones.length)]; alert('🎲 Dzisiejsza strefa: '+z) }
 
 /* ===== SHOP (sklepik nagród) ===== */
-function renderShop(){const host=$('#shopList');host.innerHTML='';const p=currentPerson();if(!p)return;db.rewards.forEach(r=>{const row=document.createElement('div');row.className='shopItem';row.innerHTML=`<div>${r.name} — <b>${r.cost}⭐</b></div>`;const box=document.createElement('div');box.style.display='flex';box.style.gap='6px';const btn=document.createElement('button');btn.className='btn';btn.textContent='Zrealizuj';btn.onclick=()=>{if(p.childMode){alert('Tryb dziecka — realizacja nagród zablokowana.');return}if(p.scoreWeek<r.cost){alert('Za mało ⭐');return}showDialog(`<h3 style="margin-top:0">Potwierdź nagrodę</h3><p>${p.name} wymienia <b>${r.cost}⭐</b> na „${r.name}”. Kontynuować?</p><div class="row" style="justify-content:flex-end"><button class="btn" onclick="closeDialog()">Anuluj</button><button class="btn" onclick="redeem('${r.id}')">✅ OK</button></div>`)};const del=document.createElement('button');del.className='btn';del.textContent='🗑️';del.title='Usuń nagrodę';del.onclick=()=>{if(!confirm(`Usunąć nagrodę „${r.name}”?`))return;db.rewards=(db.rewards||[]).filter(x=>x.id!==r.id);save();renderShop();};box.appendChild(btn);box.appendChild(del);row.appendChild(box);host.appendChild(row)})}
-function redeem(id){const p=currentPerson();const r=db.rewards.find(x=>x.id===id);if(!p||!r)return;p.scoreWeek-=r.cost;if(p.scoreWeek<0)p.scoreWeek=0;db.history.push({date:nowYMD(),personId:p.id,earned:0,missed:0,reward:r.name});save();closeDialog();renderScores();renderTabs()}
+function renderShop(){
+  const host=$('#shopList');host.innerHTML='';const p=currentPerson();if(!p)return;
+  db.rewards.forEach(r=>{
+    const row=document.createElement('div');row.className='shopItem';row.innerHTML=`<div>${r.name} — <b>${r.cost}⭐</b></div>`;
+    const box=document.createElement('div');box.style.display='flex';box.style.gap='6px';
+    const btn=document.createElement('button');btn.className='btn';btn.textContent='Zrealizuj';
+    btn.onclick=()=>{
+      if(p.childMode){alert('Tryb dziecka — realizacja nagród zablokowana.');return}
+      if((p.bankStars||0) < r.cost){alert('Za mało ⭐ w banku');return}
+      showDialog(`<h3 style="margin-top:0">Potwierdź nagrodę</h3>
+        <p>${p.name} wymienia <b>${r.cost}⭐</b> z banku na „${r.name}”. Kontynuować?</p>
+        <div class="row" style="justify-content:flex-end">
+          <button class="btn" onclick="closeDialog()">Anuluj</button>
+          <button class="btn" onclick="redeem('${r.id}')">✅ OK</button>
+        </div>`)
+    };
+    const del=document.createElement('button');del.className='btn';del.textContent='🗑️';del.title='Usuń nagrodę';
+    del.onclick=()=>{if(!confirm(`Usunąć nagrodę „${r.name}”?`))return;db.rewards=(db.rewards||[]).filter(x=>x.id!==r.id);save();renderShop();};
+    box.appendChild(btn);box.appendChild(del);row.appendChild(box);host.appendChild(row)
+  })
+}
+function redeem(id){
+  const p=currentPerson();const r=db.rewards.find(x=>x.id===id);if(!p||!r)return;
+  p.bankStars = Math.max(0, (p.bankStars||0) - r.cost);
+  db.history.push({date:nowYMD(),personId:p.id,earned:0,missed:0,reward:r.name});
+  save();closeDialog();renderScores();renderTabs()
+}
 
 /* ===== SCORES ===== */
-const personTitleEl=$('#personTitle'),todayScoreEl=$('#todayScore'),weekScoreEl=$('#weekScore'),goalScoreEl=$('#goalScore'),goalBarEl=$('#goalBar'),leaderboardEl=$('#leaderboard');
+const personTitleEl=$('#personTitle'),
+      todayScoreEl=$('#todayScore'),
+      weekScoreEl=$('#weekScore'),
+      goalScoreEl=$('#goalScore'),
+      bankScoreEl=$('#bankScore'),
+      goalBarEl=$('#goalBar'),
+      leaderboardEl=$('#leaderboard');
 function goalForToday(p){ return p.tasks.filter(dueToday).length; }
 function renderScores(){
   const p=currentPerson(); if(!p) return;
   todayScoreEl.textContent=p.scoreToday||0;
   weekScoreEl.textContent=p.scoreWeek||0;
+  bankScoreEl.textContent=(p.bankStars||0);
   const g = Math.max(0, goalForToday(p));
   goalScoreEl.textContent=g;
   const perc = g? clamp(Math.round(100*(p.scoreToday||0)/g),0,100) : 0;
@@ -704,7 +867,10 @@ function endDay(){
       }
     });
     p.scoreToday = Math.max(0, p.scoreToday - penaltySum);
+
     p.scoreWeek += p.scoreToday;
+    p.bankStars = (p.bankStars || 0) + p.scoreToday;
+
     p.streak = allDone ? (p.streak||0)+1 : 0;
     db.history.push({date, personId:p.id, earned:p.scoreToday, missed:penaltySum, zonePoints:zones});
     p.scoreToday = 0;
@@ -894,8 +1060,6 @@ function renderShoppingSelectors(){
   $('#shopSection').innerHTML = (db.shoppingSections||defaultShoppingSections).map(s=>`<option value="${s}">${s}</option>`).join('');
   $('#shopAssignee').innerHTML = shoppingPeopleOptions();
 }
-
-/* NOWE: zakładki kategorii (filtr) + manager kategorii */
 function ensureShoppingActiveSection(){
   if(!db.shoppingActiveSection) db.shoppingActiveSection = 'Wszystko';
 }
@@ -923,19 +1087,14 @@ function renderShoppingTabs(){
     host.appendChild(btn);
   });
 }
-
-/* Dodawanie / usuwanie kategorii */
-function hasSectionName(name){
-  const arr = db.shoppingSections || [];
-  return arr.some(s=>s.toLowerCase()===name.toLowerCase());
-}
+function hasSectionName(name, list){ return (list||[]).some(s=>s.toLowerCase()===String(name).toLowerCase()); }
 function addShoppingSection(){
   const inp = $('#newShopSection');
   if(!inp) return;
   const name = (inp.value||'').trim();
-  if(!name) { alert('Podaj nazwę kategorii.'); return; }
+  if(!name){ alert('Podaj nazwę kategorii.'); return; }
   db.shoppingSections = db.shoppingSections || [];
-  if(hasSectionName(name)){ alert('Taka kategoria już istnieje.'); return; }
+  if(hasSectionName(name, db.shoppingSections)){ alert('Taka kategoria już istnieje.'); return; }
   db.shoppingSections.push(name);
   inp.value='';
   save(); renderShopping();
@@ -958,19 +1117,15 @@ function renderShoppingSectionsManager(){
     wrap.appendChild(chip); wrap.appendChild(del); host.appendChild(wrap);
   });
 }
-
-/* Dodawanie pozycji zakupów (uwzględnia aktywną zakładkę) */
 function addShoppingItem(){
   const title = $('#shopTitle').value.trim();
   if(!title){ alert('Podaj nazwę pozycji.'); return; }
   const qty = $('#shopQty').value.trim();
-
   let section = $('#shopSection').value || 'Inne';
   ensureShoppingActiveSection();
   if(db.shoppingActiveSection && db.shoppingActiveSection !== 'Wszystko'){
     section = db.shoppingActiveSection;
   }
-
   const who = $('#shopAssignee').value || '—';
   const prio = $('#shopPriority').value || 'med';
   const item = { id:crypto.randomUUID(), title, qty, section, assignee:who, priority:prio, done:false, createdAt: Date.now() };
@@ -1040,11 +1195,171 @@ function renderShopping(){
   });
 }
 
+/* ===== WYDATKI ===== */
+function peopleOptions(){ return db.people.map(p=>`<option value="${p.name}">${p.name}</option>`).join(''); }
+function renderExpenseSelectors(){
+  $('#expCategory').innerHTML = (db.expenseSections||defaultExpenseSections).map(s=>`<option value="${s}">${s}</option>`).join('');
+  $('#expPerson').innerHTML = peopleOptions();
+  if(!$('#expDate').value) $('#expDate').value = nowYMD();
+}
+function ensureExpensesActiveSection(){
+  if(!db.expensesActiveSection) db.expensesActiveSection='Wszystko';
+}
+function ensureExpensesMonthFilter(){
+  if(!db.expensesMonthFilter) db.expensesMonthFilter='current';
+}
+function monthsAvailable(){
+  const set=new Set((db.expenses||[]).map(e=>yyyymm(e.date)));
+  const arr=[...set].filter(Boolean).sort().reverse();
+  const cur=yyyymm(nowYMD());
+  if(!arr.includes(cur)) arr.unshift(cur);
+  return arr;
+}
+function renderExpenseMonthFilter(){
+  ensureExpensesMonthFilter();
+  const sel=$('#expMonthFilter'); if(!sel) return;
+  const months=monthsAvailable();
+  sel.innerHTML = `<option value="current">(Bieżący miesiąc)</option><option value="all">Wszystko</option>` +
+    months.map(m=>`<option value="${m}">${m}</option>`).join('');
+  sel.value = sel.value || 'current';
+  sel.onchange = ()=>{ db.expensesMonthFilter = sel.value; save(); renderExpenses(); };
+}
+function renderExpenseTabs(){
+  ensureExpensesActiveSection();
+  const host=$('#expTabs'); if(!host) return;
+  const sections=['Wszystko'].concat(db.expenseSections||defaultExpenseSections);
+  const sums={};
+  (db.expenses||[]).forEach(e=>{
+    const sec=e.category||'Inne';
+    const inMonth = filterExpenseByMonth(e);
+    sums[sec]=(sums[sec]||0)+(inMonth?e.amount||0:0);
+  });
+  host.innerHTML='';
+  sections.forEach(s=>{
+    const btn=document.createElement('button');
+    btn.className='tab' + (db.expensesActiveSection===s?' active':'');
+    const badge = s==='Wszystko' ? '' : (sums[s]>0? ` (${PLN(sums[s])})` : '');
+    btn.textContent = s + badge;
+    btn.onclick=()=>{ db.expensesActiveSection=s; save(); renderExpenses(); };
+    host.appendChild(btn);
+  });
+}
+function addExpSection(){
+  const inp=$('#newExpSection'); const name=(inp.value||'').trim();
+  if(!name) return alert('Podaj nazwę kategorii.');
+  db.expenseSections=db.expenseSections||[];
+  if(hasSectionName(name, db.expenseSections)) return alert('Taka kategoria już istnieje.');
+  db.expenseSections.push(name); inp.value=''; save(); renderExpenses();
+}
+function removeExpSection(name){
+  if(!confirm(`Usunąć kategorię „${name}”? Wydatki z niej przejdą do „Inne”.`)) return;
+  db.expenseSections=(db.expenseSections||[]).filter(s=>s!==name);
+  (db.expenses||[]).forEach(e=>{ if(e.category===name) e.category='Inne'; });
+  if(db.expensesActiveSection===name) db.expensesActiveSection='Wszystko';
+  save(); renderExpenses();
+}
+function renderExpSectionsManager(){
+  const host=$('#expSectionsBadges'); if(!host) return;
+  host.innerHTML='';
+  (db.expenseSections||defaultExpenseSections).forEach(s=>{
+    const wrap=document.createElement('div'); wrap.className='row'; wrap.style.margin='2px 0';
+    const chip=document.createElement('span'); chip.className='zoneTag'; chip.textContent=s;
+    const del=document.createElement('button'); del.className='btn'; del.textContent='🗑️'; del.title='Usuń kategorię'; del.onclick=()=>removeExpSection(s);
+    wrap.appendChild(chip); wrap.appendChild(del); host.appendChild(wrap);
+  });
+}
+function parseAmount(v){ const n=parseFloat(String(v).replace(',','.')); return isNaN(n)?0:Math.max(0,n); }
+function addExpense(){
+  const p=currentPerson(); if(!p) return;
+  if(p.childMode){ alert('Tryb dziecka — wydatki zablokowane.'); return; }
+  const title=($('#expTitle').value||'').trim(); if(!title) return alert('Podaj tytuł.');
+  const amount=parseAmount($('#expAmount').value); if(!amount) return alert('Podaj kwotę (>0).');
+  const date=$('#expDate').value||nowYMD();
+  let category=$('#expCategory').value||'Inne';
+  if(db.expensesActiveSection && db.expensesActiveSection!=='Wszystko') category=db.expensesActiveSection;
+  const who=$('#expPerson').value||p.name;
+  const note=($('#expNote').value||'').trim();
+  const item={ id:crypto.randomUUID(), title, amount, date, category, person:who, note, createdAt: Date.now() };
+  db.expenses=db.expenses||[]; db.expenses.push(item);
+  $('#expTitle').value=''; $('#expAmount').value=''; $('#expNote').value='';
+  if(!$('#expDate').hasAttribute('data-keep')) $('#expDate').value=nowYMD();
+  save(); renderExpenses();
+}
+function removeExpense(id){
+  if(!confirm('Usunąć wydatek?')) return;
+  db.expenses=(db.expenses||[]).filter(e=>e.id!==id);
+  save(); renderExpenses();
+}
+function filterExpenseByMonth(e){
+  const f=db.expensesMonthFilter||'current';
+  if(f==='all') return true;
+  if(f==='current') return yyyymm(e.date)===yyyymm(nowYMD());
+  return yyyymm(e.date)===f;
+}
+function renderExpenseSummary(){
+  const monthItems=(db.expenses||[]).filter(filterExpenseByMonth);
+  const allSum=(db.expenses||[]).reduce((a,e)=>a+(e.amount||0),0);
+  const monthSum=monthItems.reduce((a,e)=>a+(e.amount||0),0);
+
+  $('#expSumAll').textContent=PLN(allSum)+' zł';
+  $('#expSumMonth').textContent=PLN(monthSum)+' zł';
+
+  const byCat={}; monthItems.forEach(e=> byCat[e.category||'Inne']=(byCat[e.category||'Inne']||0)+(e.amount||0));
+  const catList=$('#expCatList'); catList.innerHTML='';
+  const catArr=Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+  catArr.forEach(([k,v])=>{ const li=document.createElement('li'); li.textContent=`${k}: ${PLN(v)} zł`; catList.appendChild(li); });
+  $('#expTopCat').textContent = catArr[0]? `${catArr[0][0]} — ${PLN(catArr[0][1])} zł` : '—';
+
+  const byPerson={}; monthItems.forEach(e=> byPerson[e.person||'—']=(byPerson[e.person||'—']||0)+(e.amount||0));
+  const perList=$('#expPersonList'); perList.innerHTML='';
+  Object.entries(byPerson).sort((a,b)=>b[1]-a[1]).forEach(([k,v])=>{
+    const li=document.createElement('li'); li.textContent=`${k}: ${PLN(v)} zł`; perList.appendChild(li);
+  });
+}
+async function exportExpensesMonth(){
+  const monthFilter=db.expensesMonthFilter||'current';
+  const items=(db.expenses||[]).filter(filterExpenseByMonth).sort((a,b)=> (b.date||'').localeCompare(a.date||''));
+  const lines=[
+    `Wydatki — ${monthFilter==='all'?'Wszystko':(monthFilter==='current'?yyyymm(nowYMD()):monthFilter)}`,
+    ...items.map(e=>`- ${e.date} | ${e.title} — ${PLN(e.amount)} zł (${e.category}${e.person?`, ${e.person}`:''})${e.note?` — ${e.note}`:''}`)
+  ];
+  try{ await copy(lines.join('\n')); alert('Skopiowano zestawienie.'); }catch(_){ prompt('Kopiuj ręcznie:', lines.join('\n')); }
+}
+function renderExpenseList(){
+  const host=$('#expListContainer'); host.innerHTML='';
+  ensureExpensesActiveSection();
+  const active=db.expensesActiveSection;
+
+  const items=(db.expenses||[])
+    .filter(e=> filterExpenseByMonth(e))
+    .filter(e=> active==='Wszystko' || (e.category||'Inne')===active)
+    .slice()
+    .sort((a,b)=> (b.date||'').localeCompare(a.date||'') || (b.createdAt||0)-(a.createdAt||0));
+
+  items.forEach(e=>{
+    const row=document.createElement('div'); row.className='expense-item';
+    const info=document.createElement('div'); info.style.flex='1';
+    info.innerHTML = `<b>${e.title}</b> — <b>${PLN(e.amount)} zł</b><br>
+      <small class="muted">${e.date} • ${e.category||'Inne'}${e.person?` • ${e.person}`:''}${e.note?` • ${e.note}`:''}</small>`;
+    const del=document.createElement('button'); del.className='btn'; del.textContent='🗑️'; del.onclick=()=>removeExpense(e.id);
+    row.appendChild(info); row.appendChild(del); host.appendChild(row);
+  });
+}
+function renderExpenses(){
+  renderExpenseSelectors();
+  renderExpSectionsManager();
+  renderExpenseMonthFilter();
+  renderExpenseTabs();
+  renderExpenseSummary();
+  renderExpenseList();
+}
+
 /* ===== RENDER ROOT ===== */
 function renderLeaderboardAndStats(){renderLeaderboard();renderHeat();renderTopZones()}
 function renderAllCore(){
   renderTabs();renderZones();renderShop();renderTasks();renderScores();renderWeek();renderLeaderboardAndStats();
   if (document.getElementById('view-shopping').style.display!=='none') renderShopping();
+  if (document.getElementById('view-expenses').style.display!=='none') renderExpenses();
 }
 function renderAll(){renderDate();renderAllCore()}
 
@@ -1072,6 +1387,11 @@ document.getElementById('shopAddBtn').onclick = addShoppingItem;
 document.getElementById('shopClearDoneBtn').onclick = clearBought;
 document.getElementById('shopExportBtn').onclick = exportShoppingText;
 document.getElementById('addShopSectionBtn').onclick = addShoppingSection;
+
+/* BIND: wydatki */
+document.getElementById('expAddBtn').onclick = addExpense;
+document.getElementById('expExportBtn').onclick = exportExpensesMonth;
+document.getElementById('addExpSectionBtn').onclick = addExpSection;
 
 /* THEME TOGGLE */
 (function themeInit(){
@@ -1148,26 +1468,47 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-/* ===== WIDOKI: przełączanie Obowiązki / Zakupy ===== */
+/* ===== WIDOKI: przełączanie Obowiązki / Zakupy / Wydatki ===== */
 (function tabsInit(){
   const tabChores = document.getElementById('tabChores');
   const tabShopping = document.getElementById('tabShopping');
+  const tabExpenses = document.getElementById('tabExpenses');
   const viewChores = document.getElementById('view-chores');
   const viewShopping = document.getElementById('view-shopping');
+  const viewExpenses = document.getElementById('view-expenses');
+
+  function applyChildModeLock(){
+    const p=currentPerson();
+    if(p && p.childMode){
+      tabExpenses.setAttribute('disabled','true');
+    }else{
+      tabExpenses.removeAttribute('disabled');
+    }
+  }
 
   function activate(which){
+    applyChildModeLock();
     if(which==='shopping'){
-      tabChores.classList.remove('active'); tabShopping.classList.add('active');
-      viewChores.style.display='none'; viewShopping.style.display='';
+      tabChores.classList.remove('active'); tabShopping.classList.add('active'); tabExpenses.classList.remove('active');
+      viewChores.style.display='none'; viewShopping.style.display=''; viewExpenses.style.display='none';
       renderShopping();
+    }else if(which==='expenses'){
+      const p=currentPerson();
+      if(p && p.childMode){ alert('Tryb dziecka — widok wydatków niedostępny.'); return; }
+      tabChores.classList.remove('active'); tabShopping.classList.remove('active'); tabExpenses.classList.add('active');
+      viewChores.style.display='none'; viewShopping.style.display='none'; viewExpenses.style.display='';
+      renderExpenses();
     }else{
-      tabShopping.classList.remove('active'); tabChores.classList.add('active');
-      viewShopping.style.display='none'; viewChores.style.display='';
+      tabShopping.classList.remove('active'); tabExpenses.classList.remove('active'); tabChores.classList.add('active');
+      viewShopping.style.display='none'; viewExpenses.style.display='none'; viewChores.style.display='';
       renderAllCore();
     }
   }
   tabChores.addEventListener('click', ()=>activate('chores'));
   tabShopping.addEventListener('click', ()=>activate('shopping'));
+  tabExpenses.addEventListener('click', ()=>activate('expenses'));
+
+  applyChildModeLock();
 })();
 
 /* ===== PWA SW ===== */
