@@ -313,11 +313,7 @@ let fbApp=null, fs=null, fbDoc=null, __unsub=null;
 const FIREBASE_COLLECTION = 'organizer';
 function setFamilyLabel(id){ const l=document.getElementById('familyLabel'); if(l) l.textContent=id || '—'; }
 
-/* (Firebase init & reszta — bez zmian, ciąg dalszy w części 2/2) */
-  /* (Firebase init zakończony) */
-</script>
 
-<script>
 async function subscribeToFamily(id){
   if(!fs || !id) return;
   id = String(id).trim();
@@ -1273,6 +1269,5 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.addEventListener('load', hideSplash);
-</script>
 </body>
 </html>
