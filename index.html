@@ -511,7 +511,12 @@ async function subscribeToFamily(id){
 
 async function tryFirebaseInit(){
   try{
-    if(!window.firebaseConfig || !window.firebaseConfig.apiKey) return;
+    if (!window.firebaseConfig || !window.firebaseConfig.apiKey) {
+  // Firebase nieaktywny: przynajmniej pokaż etykietę rodziny
+  setFamilyLabel(localStorage.getItem('familyId'));
+  return;
+}
+
     if(!firebase.apps?.length){ fbApp = firebase.initializeApp(window.firebaseConfig); }
     firebase.appCheck().activate("6LffMAQsAAAAAHaO0TzmnQHwSA3SPNOxJOOIFCk1", true);
 
@@ -1342,6 +1347,17 @@ function hideSplash(){
   if (el) el.remove();
 }
 document.addEventListener('DOMContentLoaded', () => {
+  // [FAMILY-ID FALLBACK] — upewnij się, że mamy familyId nawet bez Firebasa
+  let fam = localStorage.getItem('familyId');
+  if (!fam) {
+    const prev = fam || '';
+    fam = prompt('ID rodziny (np. rodzina-kowalscy) — wspólna dla wszystkich urządzeń:', prev || 'rodzina-demo');
+    if (fam) {
+      localStorage.setItem('familyId', String(fam).trim());
+    }
+  }
+  setFamilyLabel(localStorage.getItem('familyId'));
+
   renderAll();
   tryFirebaseInit();
   setTimeout(hideSplash, 200);
