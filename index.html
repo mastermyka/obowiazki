@@ -647,7 +647,9 @@ const defaultData={
 };
 function load(){try{return JSON.parse(localStorage.getItem(stateKey))||defaultData}catch(e){return defaultData}}
 function save(){ db.updatedAt=Date.now(); localStorage.setItem(stateKey,JSON.stringify(db)); pushToFirebase(); }
-let /* ====== (NOWE) WYBÓR MIESIĄCA/ROKU DLA WYDATKÓW (zapamiętywany w localStorage) ====== */
+let db = load();
+
+/* ====== WYBÓR MIESIĄCA/ROKU DLA WYDATKÓW (zapamiętywany w localStorage) ====== */
 const EXP_MONTH_KEY = 'exp-view-month'; // 0..11
 const EXP_YEAR_KEY  = 'exp-view-year';  // np. 2025
 
@@ -689,8 +691,10 @@ function expYearsRange() {
 function expMonthLabel(d){
   return d.toLocaleDateString('pl-PL',{month:'long',year:'numeric'});
 }
-(); if(!db.currentPersonId && db.people.length) db.currentPersonId=db.people[0].id;
+
+if(!db.currentPersonId && db.people.length) db.currentPersonId=db.people[0].id;
 setFamilyLabel(localStorage.getItem('familyId'));
+
 
 /* ===== HEADER & TABS ===== */
 function renderDate(){todayEl.textContent=fmtDate(new Date())}
@@ -1299,30 +1303,6 @@ function renderExpenses(){
   });
 }
 
-  // Lista wszystkich (ostatnie 60 dni), grupowana po kategorii
-  const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-60);
-  const recent = (db.expenses||[]).filter(e=> new Date(e.date) >= cutoff)
-                                  .sort((a,b)=> (a.section||'').localeCompare(b.section||'','pl') || (b.date||'').localeCompare(a.date||''));
-  const grouped = groupBy(recent, 'section');
-  Object.keys(grouped).sort((a,b)=>a.localeCompare(b,'pl')).forEach(sec=>{
-    const box=document.createElement('div'); box.className='exp-section';
-    const total = sum(grouped[sec], ()=>true, e=>e.amount);
-    const head=document.createElement('div'); head.className='exp-head';
-    head.innerHTML=`<div><b>${sec}</b></div><div class="exp-total">${money(total)}</div>`;
-    box.appendChild(head);
-
-    grouped[sec].forEach(e=>{
-      const row=document.createElement('div'); row.className='shop-item';
-      const meta=`<small class="muted">${e.date} • ${e.section}</small>`;
-      row.innerHTML=`<div style="flex:1"><b>${e.title}</b><br>${meta}</div><div style="min-width:100px;text-align:right"><b>${money(e.amount)}</b></div>`;
-      const del=document.createElement('button'); del.className='btn'; del.textContent='🗑️'; del.onclick=()=>delExpense(e.id);
-      row.appendChild(del);
-      box.appendChild(row);
-    });
-
-    hostList.appendChild(box);
-  });
-}
 
 /* ===== RENDER ROOT ===== */
 function renderLeaderboardAndStats(){renderLeaderboard();renderHeat();renderTopZones()}
