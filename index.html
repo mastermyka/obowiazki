@@ -385,7 +385,77 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
   --danger: #e25555;
   --shadow: 0 12px 28px rgba(2,6,23,.12);
 }
+/* 5) AMBER */
+.theme-amber{
+  --bg:#19140c; --card:rgba(48,38,20,.78); --border:rgba(255,255,255,.10);
+  --muted:#d6c5a6; --text:#fff8ee; --accent:#f59e0b; --ok:#34d399; --warn:#fbbf24; --danger:#f87171;
+  --shadow:0 8px 28px rgba(0,0,0,.42);
+}
+.theme-amber.light{
+  --bg:#fff6e8; --card:#fff0d6; --border:#ead4ac; --muted:#6a5840; --text:#1a1309;
+  --accent:#d97706; --ok:#10b981; --warn:#d97706; --danger:#dc2626;
+  --shadow:0 12px 24px rgba(2,6,23,.12);
+}
 
+/* 6) ROSE */
+.theme-rose{
+  --bg:#1b1316; --card:rgba(52,24,34,.78); --border:rgba(255,255,255,.10);
+  --muted:#f0bfcc; --text:#fff2f6; --accent:#fb7185; --ok:#34d399; --warn:#fcd34d; --danger:#f43f5e;
+  --shadow:0 8px 28px rgba(0,0,0,.42);
+}
+.theme-rose.light{
+  --bg:#fff0f4; --card:#fff6f8; --border:#ffd3de; --muted:#7a4a58; --text:#1b1316;
+  --accent:#f43f5e; --ok:#22c55e; --warn:#eab308; --danger:#e11d48;
+  --shadow:0 12px 24px rgba(2,6,23,.12);
+}
+
+/* 7) MINT */
+.theme-mint{
+  --bg:#111816; --card:rgba(20,40,35,.78); --border:rgba(255,255,255,.10);
+  --muted:#b9e4d5; --text:#ebfffb; --accent:#2dd4bf; --ok:#22c55e; --warn:#fde047; --danger:#ff8ba0;
+  --shadow:0 8px 28px rgba(0,0,0,.42);
+}
+.theme-mint.light{
+  --bg:#ecfffb; --card:#f3fffd; --border:#c7f4ea; --muted:#375a52; --text:#0f1715;
+  --accent:#14b8a6; --ok:#16a34a; --warn:#eab308; --danger:#e11d48;
+  --shadow:0 12px 24px rgba(2,6,23,.12);
+}
+
+/* 8) DENIM */
+.theme-denim{
+  --bg:#141922; --card:rgba(25,32,46,.78); --border:rgba(255,255,255,.10);
+  --muted:#a9b6cf; --text:#f3f7ff; --accent:#60a5fa; --ok:#34d399; --warn:#fbbf24; --danger:#f87171;
+  --shadow:0 8px 28px rgba(0,0,0,.42);
+}
+.theme-denim.light{
+  --bg:#edf3ff; --card:#f6f9ff; --border:#cfdbff; --muted:#4c5c79; --text:#0f1420;
+  --accent:#3b82f6; --ok:#22c55e; --warn:#eab308; --danger:#ef4444;
+  --shadow:0 12px 24px rgba(2,6,23,.12);
+}
+
+/* 9) LAVENDER */
+.theme-lavender{
+  --bg:#171726; --card:rgba(34,34,58,.78); --border:rgba(255,255,255,.10);
+  --muted:#cbc8f2; --text:#f7f7ff; --accent:#a78bfa; --ok:#22c55e; --warn:#fde047; --danger:#fb7185;
+  --shadow:0 8px 28px rgba(0,0,0,.42);
+}
+.theme-lavender.light{
+  --bg:#f6f6ff; --card:#fbfbff; --border:#e0dcff; --muted:#595979; --text:#171726;
+  --accent:#8b5cf6; --ok:#16a34a; --warn:#eab308; --danger:#e11d48;
+  --shadow:0 12px 24px rgba(2,6,23,.12);
+}
+
+/* 10) GRAPHITE SOFT (jaśniejszy ciemny, o który prosiłeś) */
+.theme-graphiteSoft{
+  --bg:#171a1f; --card:rgba(32,36,44,.78); --border:rgba(255,255,255,.12);
+  --muted:#aeb6c4; --text:#f4f6fa; --accent:#7aa7ff; --ok:#34d158; --warn:#f2c94c; --danger:#ff7676;
+  --shadow:0 8px 30px rgba(0,0,0,.48);
+}
+.theme-graphiteSoft.light{
+  --bg:#f1f3f7; --card:#eceff3; --border:#cfd5df; --muted:#5e6673; --text:#0e1116;
+  --accent:#4f86ff; --ok:#22c55e; --warn:#eab308; --danger:#ef4444;
+  --shadow:0 12px 24px rgba(2,6,23,.12);
+}
 /* 10) Drobne doszlifowanie komponentów – bez konfliktu ze stylem bazowym */
 .task .editable:focus{
   outline:2px solid color-mix(in oklab, var(--accent) 35%, transparent);
