@@ -1571,7 +1571,7 @@ if (todayBtn) todayBtn.onclick = ()=>{
 };
 
   function activate(which){
-    +  document.documentElement.dataset.view = which; // "chores" | "shopping" | "expenses"
+    document.documentElement.dataset.view = which; // "chores" | "shopping" | "expenses"
     if(which==='shopping'){
       tabChores.classList.remove('active'); tabExpenses.classList.remove('active'); tabShopping.classList.add('active');
       viewChores.style.display='none'; viewExpenses.style.display='none'; viewShopping.style.display='';
