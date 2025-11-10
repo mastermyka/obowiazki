@@ -396,8 +396,94 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
 /* 11) Kontrast znaczników i tabel na jasnym */
 :root.light table#leaderboard th,
 :root.light table#leaderboard td{ border-color: color-mix(in oklab, #242F51 22%, transparent); }
+/* === Akcenty sekcji (fallback do --accent) === */
+:root{
+  --accent-chores: var(--accent);
+  --accent-shopping: #22c55e;
+  --accent-expenses: #f59e0b;
+}
+:root.light{
+  --accent-chores: var(--accent);
+  --accent-shopping: #16a34a;
+  --accent-expenses: #d97706;
+}
+
+/* Aktywna zakładka kolorowana akcentem sekcji */
+.top-tabs .tab[data-kind="chores"].active{
+  border-color: color-mix(in oklab, var(--accent-chores) 35%, transparent);
+  box-shadow: 0 14px 30px -12px color-mix(in oklab, var(--accent-chores) 55%, transparent);
+}
+.top-tabs .tab[data-kind="shopping"].active{
+  border-color: color-mix(in oklab, var(--accent-shopping) 35%, transparent);
+  box-shadow: 0 14px 30px -12px color-mix(in oklab, var(--accent-shopping) 55%, transparent);
+}
+.top-tabs .tab[data-kind="expenses"].active{
+  border-color: color-mix(in oklab, var(--accent-expenses) 35%, transparent);
+  box-shadow: 0 14px 30px -12px color-mix(in oklab, var(--accent-expenses) 55%, transparent);
+}
+
+/* Focusy/przyciski tylko w obrębie widoków */
+#view-chores   input:focus, #view-chores   select:focus { border-color: var(--accent-chores);   box-shadow: 0 0 0 4px color-mix(in oklab, var(--accent-chores) 28%, transparent); }
+#view-shopping input:focus, #view-shopping select:focus { border-color: var(--accent-shopping); box-shadow: 0 0 0 4px color-mix(in oklab, var(--accent-shopping) 28%, transparent); }
+#view-expenses input:focus, #view-expenses select:focus { border-color: var(--accent-expenses); box-shadow: 0 0 0 4px color-mix(in oklab, var(--accent-expenses) 28%, transparent); }
+
+/* === MOTYWY (klasy na <html>) === */
+
+/* 1) Slate — „jaśniejszy ciemny” z wysokim kontrastem */
+.theme-slate{
+  --bg:#161b22;            /* ciemny granit, ale nie czarny */
+  --card:rgba(32,37,46,.78);
+  --border:rgba(255,255,255,.10);
+  --muted:#a9b4c3;
+  --text:#f5f7fb;
+  --accent:#6ea8fe;        /* chłodny niebieski */
+  --ok:#34d399;
+  --warn:#f2c94c;
+  --danger:#ef767a;
+  --shadow:0 10px 28px rgba(0,0,0,.38);
+}
+.theme-slate.light{
+  --bg:#eaf0ff;
+  --card:#f5f7ff;
+  --border:#cdd8f8;
+  --muted:#50607b;
+  --text:#0e1320;
+  --accent:#4f83ff;
+  --ok:#16a34a; --warn:#eab308; --danger:#e11d48;
+  --shadow:0 12px 28px rgba(2,6,23,.14);
+}
+
+/* 2) Ocean (z poprzedniej wiadomości, skrót) */
+.theme-ocean{
+  --bg:#0b1220; --card:rgba(17,24,39,.72); --border:rgba(255,255,255,.08);
+  --muted:#8aa0b8; --text:#eaf2ff; --accent:#3b82f6; --ok:#10b981; --warn:#f59e0b; --danger:#ef4444;
+  --shadow:0 8px 30px rgba(0,0,0,.35);
+}
+.theme-ocean.light{
+  --bg:#e6f0ff; --card:#f3f7ff; --border:#c5d4f7; --muted:#4b5b77; --text:#0b1220;
+  --accent:#2563eb; --ok:#059669; --warn:#d97706; --danger:#dc2626;
+  --shadow:0 12px 28px rgba(2,6,23,.14);
+}
+
+/* 3) Forest (skrót) */
+.theme-forest{
+  --bg:#0b1614; --card:rgba(13,40,33,.72); --border:rgba(255,255,255,.08);
+  --muted:#85a19a; --text:#ebfffb; --accent:#14b8a6; --ok:#22c55e; --warn:#eab308; --danger:#f43f5e;
+  --shadow:0 8px 30px rgba(0,0,0,.35);
+}
+.theme-forest.light{
+  --bg:#e8fbf6; --card:#f3fffb; --border:#b9e6dc; --muted:#3d5b55; --text:#0b1614;
+  --accent:#0d9488; --ok:#16a34a; --warn:#ca8a04; --danger:#e11d48;
+  --shadow:0 12px 28px rgba(2,6,23,.14);
+}
+
+/* (opcjonalnie) dopasuj kropkę statusu pod aktywny widok */
+:root[data-view="shopping"] .dot{ background:var(--accent-shopping); box-shadow:0 0 14px var(--accent-shopping); }
+:root[data-view="expenses"] .dot{ background:var(--accent-expenses); box-shadow:0 0 14px var(--accent-expenses); }
+/* chores = domyślnie var(--ok) z Twojego CSS */
 
 </style>
+  <link rel="stylesheet" href="theme-sections.css">
 </head>
 <body>
 <div id="splash"><div class="logo">🧹</div></div>
@@ -423,6 +509,7 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
         <button id="tabExpenses" class="tab" data-kind="expenses">💸 Wydatki</button>
       </div>
       <button id="themeToggle" class="btn" title="Jasny / ciemny">☀️ / 🌙</button>
+      <button id="themePresetBtn" class="btn" title="Zmień motyw">🎨 Motyw</button>
     </div>
   </header>
 
@@ -1673,6 +1760,31 @@ document.getElementById('changeFamilyBtn').onclick = async () => {
     const newTheme = document.documentElement.classList.contains('light') ? 'light' : 'dark';
     localStorage.setItem('ui-theme', newTheme);
   };
+})();
+/* THEME PRESETS (🎨 Motyw) */
+(function themePresetsInit(){
+  const PRESETS = ['theme-slate','theme-ocean','theme-forest']; // możesz dopisać więcej
+  const KEY = 'ui-preset';
+  const html = document.documentElement;
+  const btn  = document.getElementById('themePresetBtn');
+
+  function apply(name){
+    PRESETS.forEach(c => html.classList.remove(c));
+    if(name){ html.classList.add(name); }
+    localStorage.setItem(KEY, name || '');
+  }
+
+  // start: wczytaj ostatni wybrany preset (domyślnie slate)
+  apply(localStorage.getItem(KEY) || 'theme-slate');
+
+  // klik: cykl kolejnych presetów
+  if(btn){
+    btn.onclick = () => {
+      const cur = localStorage.getItem(KEY) || 'theme-slate';
+      const i = (PRESETS.indexOf(cur) + 1) % PRESETS.length;
+      apply(PRESETS[i]);
+    };
+  }
 })();
 
 
