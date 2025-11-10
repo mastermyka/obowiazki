@@ -147,6 +147,68 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
 .exp-total { font-weight:700; }
 .table { width:100%; border-collapse:collapse; }
 .table th, .table td { border-bottom:1px solid var(--border); padding:6px; text-align:left; }
+/* === Sekcyjne akcenty — fallback do globalnego --accent === */
+:root{
+  --accent-chores: var(--accent);   /* 🧺 Obowiązki */
+  --accent-shopping: #22c55e;       /* 🛒 Zakupy */
+  --accent-expenses: #f59e0b;       /* 💸 Wydatki */
+}
+:root.light{
+  --accent-chores: var(--accent);
+  --accent-shopping: #16a34a;
+  --accent-expenses: #d97706;
+}
+
+/* === Aktywna zakładka — kolor wg sekcji === */
+.top-tabs .tab[data-kind="chores"].active{
+  border-color: color-mix(in oklab, var(--accent-chores) 35%, transparent);
+  box-shadow: 0 14px 30px -12px color-mix(in oklab, var(--accent-chores) 55%, transparent);
+  background: linear-gradient(180deg, color-mix(in oklab, #fff 10%, transparent), rgba(255,255,255,.06));
+}
+.top-tabs .tab[data-kind="shopping"].active{
+  border-color: color-mix(in oklab, var(--accent-shopping) 35%, transparent);
+  box-shadow: 0 14px 30px -12px color-mix(in oklab, var(--accent-shopping) 55%, transparent);
+  background: linear-gradient(180deg, color-mix(in oklab, #fff 10%, transparent), rgba(255,255,255,.06));
+}
+.top-tabs .tab[data-kind="expenses"].active{
+  border-color: color-mix(in oklab, var(--accent-expenses) 35%, transparent);
+  box-shadow: 0 14px 30px -12px color-mix(in oklab, var(--accent-expenses) 55%, transparent);
+  background: linear-gradient(180deg, color-mix(in oklab, #fff 10%, transparent), rgba(255,255,255,.06));
+}
+
+/* === Scope: „mikro-branding” wewnątrz widoku === */
+#view-chores .btn:hover{
+  border-color: color-mix(in oklab, var(--accent-chores) 35%, transparent);
+  box-shadow: 0 14px 30px -12px color-mix(in oklab, var(--accent-chores) 45%, transparent);
+}
+#view-chores input:focus, #view-chores select:focus{
+  border-color: var(--accent-chores);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--accent-chores) 28%, transparent);
+}
+
+#view-shopping .btn:hover{
+  border-color: color-mix(in oklab, var(--accent-shopping) 35%, transparent);
+  box-shadow: 0 14px 30px -12px color-mix(in oklab, var(--accent-shopping) 45%, transparent);
+}
+#view-shopping input:focus, #view-shopping select:focus{
+  border-color: var(--accent-shopping);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--accent-shopping) 28%, transparent);
+}
+
+#view-expenses .btn:hover{
+  border-color: color-mix(in oklab, var(--accent-expenses) 35%, transparent);
+  box-shadow: 0 14px 30px -12px color-mix(in oklab, var(--accent-expenses) 45%, transparent);
+}
+#view-expenses input:focus, #view-expenses select:focus{
+  border-color: var(--accent-expenses);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--accent-expenses) 28%, transparent);
+}
+
+/* === (Opcjonalnie) globalny akcent wg widoku — nie nadpisuje sekcyjnych, ale wpływa na inne elementy, które używają --accent */
+:root[data-view="shopping"] { --accent: var(--accent-shopping); }
+:root[data-view="expenses"] { --accent: var(--accent-expenses); }
+/* Obowiązki = domyślny --accent */
+
 </style>
 </head>
 <body>
@@ -168,9 +230,9 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
     </div>
     <div class="row">
       <div class="top-tabs">
-        <button id="tabChores" class="tab active">🧺 Obowiązki</button>
-        <button id="tabShopping" class="tab">🛒 Zakupy</button>
-        <button id="tabExpenses" class="tab">💸 Wydatki</button>
+        <button id="tabChores" class="tab active" data-kind="chores">🧺 Obowiązki</button>
+        <button id="tabShopping" class="tab" data-kind="shopping">🛒 Zakupy</button>
+        <button id="tabExpenses" class="tab" data-kind="expenses">💸 Wydatki</button>
       </div>
       <button id="themeToggle" class="btn" title="Jasny / ciemny">☀️ / 🌙</button>
     </div>
@@ -1509,6 +1571,7 @@ if (todayBtn) todayBtn.onclick = ()=>{
 };
 
   function activate(which){
+    +  document.documentElement.dataset.view = which; // "chores" | "shopping" | "expenses"
     if(which==='shopping'){
       tabChores.classList.remove('active'); tabExpenses.classList.remove('active'); tabShopping.classList.add('active');
       viewChores.style.display='none'; viewExpenses.style.display='none'; viewShopping.style.display='';
