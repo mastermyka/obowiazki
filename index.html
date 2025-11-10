@@ -16,6 +16,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
 
+  <link rel="stylesheet" href="theme-sections.css">
+
 <script>window.process = window.process || { env: {} };</script>
 
 <!-- Firebase compat (prawidłowa kolejność) -->
@@ -208,6 +210,164 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
 :root[data-view="shopping"] { --accent: var(--accent-shopping); }
 :root[data-view="expenses"] { --accent: var(--accent-expenses); }
 /* Obowiązki = domyślny --accent */
+
+/* ===========================
+   Sekcyjne akcenty + motywy
+   (bez ruszania istniejącego CSS)
+   =========================== */
+
+/* 1) Domyślne akcenty sekcji (fallback do --accent) */
+:root{
+  --accent-chores: var(--accent);   /* Obowiązki */
+  --accent-shopping: #22c55e;       /* Zakupy */
+  --accent-expenses: #f59e0b;       /* Wydatki */
+}
+:root.light{
+  --accent-chores: var(--accent);
+  --accent-shopping: #16a34a;
+  --accent-expenses: #d97706;
+}
+
+/* 2) Podmień globalny --accent zależnie od aktywnego widoku (ustawiamy data-view w JS) */
+:root[data-view="shopping"]{ --accent: var(--accent-shopping); }
+:root[data-view="expenses"]{ --accent: var(--accent-expenses); }
+/* :root[data-view="chores"] -> zostaje bazowy --accent */
+
+/* 3) Styl aktywnej zakładki (używa Twojej istniejącej struktury .top-tabs .tab) */
+.top-tabs{ gap:8px; flex-wrap:wrap; }
+.top-tabs .tab{
+  transition: box-shadow .18s ease, border-color .18s, background .18s, transform .06s;
+}
+.top-tabs .tab.active{
+  background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
+  border-color: color-mix(in oklab, var(--accent) 38%, transparent);
+  box-shadow: 0 14px 30px -12px color-mix(in oklab, var(--accent) 60%, transparent);
+}
+
+/* 4) Akcent w obrębie widoków (hover/focus bez ruszania logiki) */
+#view-chores .btn:hover,
+#view-chores .task:hover{
+  border-color: color-mix(in oklab, var(--accent-chores) 35%, transparent);
+  box-shadow: 0 14px 30px -12px color-mix(in oklab, var(--accent-chores) 45%, transparent);
+}
+#view-chores input:focus, #view-chores select:focus{
+  border-color: var(--accent-chores);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--accent-chores) 28%, transparent);
+}
+
+#view-shopping .btn:hover,
+#view-shopping .shop-item:hover{
+  border-color: color-mix(in oklab, var(--accent-shopping) 35%, transparent);
+  box-shadow: 0 14px 30px -12px color-mix(in oklab, var(--accent-shopping) 45%, transparent);
+}
+#view-shopping input:focus, #view-shopping select:focus{
+  border-color: var(--accent-shopping);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--accent-shopping) 28%, transparent);
+}
+
+#view-expenses .btn:hover,
+#view-expenses .exp-section:hover{
+  border-color: color-mix(in oklab, var(--accent-expenses) 35%, transparent);
+  box-shadow: 0 14px 30px -12px color-mix(in oklab, var(--accent-expenses) 45%, transparent);
+}
+#view-expenses input:focus, #view-expenses select:focus{
+  border-color: var(--accent-expenses);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--accent-expenses) 28%, transparent);
+}
+
+/* 5) Ulepszenia dostępności i „feel” bez zmian HTML/JS */
+.top-tabs{ align-items:center; }
+.top-tabs[role="tablist"] .tab[role="tab"]{ outline-offset: 2px; }
+.tab:focus-visible{
+  outline: 2px solid var(--accent);
+}
+
+/* Większe pola dotykowe dla mobile */
+@media (max-width:640px){
+  .top-tabs .tab{ padding:10px 14px; }
+  .btn{ padding:12px 14px; }
+}
+
+/* 6) Przycisk stanu (secondary hover) – delikatniejszy look */
+.btn:hover{
+  border-color: color-mix(in oklab, var(--accent) 30%, transparent);
+}
+
+/* 7) Scrollbar (widoczne w długich listach) */
+*::-webkit-scrollbar{ height:10px; width:10px; }
+*::-webkit-scrollbar-thumb{
+  background: color-mix(in oklab, var(--accent) 35%, rgba(255,255,255,.14));
+  border-radius:999px;
+  border:2px solid transparent;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-track{ background: transparent; }
+
+/* 8) Tryb zredukowanego ruchu */
+@media (prefers-reduced-motion: reduce){
+  *{ transition:none!important; animation:none!important; }
+}
+
+/* 9) Motywy – szybkie presety (możesz przełączać klasą na <html>) */
+
+/* Ocean */
+.theme-ocean{
+  --bg:#0b1220; --card:rgba(17,24,39,.72); --border:rgba(255,255,255,.08);
+  --muted:#8aa0b8; --text:#eaf2ff; --accent:#3b82f6; --ok:#10b981; --warn:#f59e0b; --danger:#ef4444;
+  --shadow:0 8px 30px rgba(0,0,0,.35);
+}
+.theme-ocean.light{
+  --bg:#e6f0ff; --card:#f3f7ff; --border:#c5d4f7; --muted:#4b5b77; --text:#0b1220;
+  --accent:#2563eb; --ok:#059669; --warn:#d97706; --danger:#dc2626;
+  --shadow:0 12px 28px rgba(2,6,23,.14);
+}
+
+/* Forest */
+.theme-forest{
+  --bg:#0b1614; --card:rgba(13,40,33,.72); --border:rgba(255,255,255,.08);
+  --muted:#85a19a; --text:#ebfffb; --accent:#14b8a6; --ok:#22c55e; --warn:#eab308; --danger:#f43f5e;
+  --shadow:0 8px 30px rgba(0,0,0,.35);
+}
+.theme-forest.light{
+  --bg:#e8fbf6; --card:#f3fffb; --border:#b9e6dc; --muted:#3d5b55; --text:#0b1614;
+  --accent:#0d9488; --ok:#16a34a; --warn:#ca8a04; --danger:#e11d48;
+  --shadow:0 12px 28px rgba(2,6,23,.14);
+}
+
+/* Graphite (pro/AMOLED) */
+.theme-graphite{
+  --bg:#0a0a0b; --card:rgba(28,28,30,.70); --border:rgba(255,255,255,.1);
+  --muted:#9aa0a6; --text:#f5f7fa; --accent:#60a5fa; --ok:#34d158; --warn:#facc15; --danger:#f75555;
+  --shadow:0 8px 30px rgba(0,0,0,.5);
+}
+.theme-graphite.light{
+  --bg:#f2f4f7; --card:#eeeeef; --border:#c9ccd3; --muted:#5f6672; --text:#0b0c0e;
+  --accent:#3b82f6; --ok:#22c55e; --warn:#eab308; --danger:#ef4444;
+  --shadow:0 12px 28px rgba(2,6,23,.12);
+}
+
+/* Pastel (rodzinny, łagodny) */
+.theme-pastel{
+  --bg:#121417; --card:rgba(38,42,49,.72); --border:rgba(255,255,255,.08);
+  --muted:#b9c0cf; --text:#f7f9ff; --accent:#9bd1ff; --ok:#a7f3d0; --warn:#fde68a; --danger:#fecaca;
+  --shadow:0 8px 30px rgba(0,0,0,.35);
+}
+.theme-pastel.light{
+  --bg:#f6f8ff; --card:#f3f6ff; --border:#d7def6; --muted:#53607a; --text:#10131a;
+  --accent:#60a5fa; --ok:#34d399; --warn:#f59e0b; --danger:#f87171;
+  --shadow:0 12px 28px rgba(2,6,23,.12);
+}
+
+/* 10) Drobne doszlifowanie komponentów – bez konfliktu ze stylem bazowym */
+.task .editable:focus{
+  outline:2px solid color-mix(in oklab, var(--accent) 35%, transparent);
+  background: rgba(255,255,255,.06);
+}
+.pill{ will-change: transform; }
+
+/* 11) Kontrast znaczników i tabel na jasnym */
+:root.light table#leaderboard th,
+:root.light table#leaderboard td{ border-color: color-mix(in oklab, #242F51 22%, transparent); }
 
 </style>
 </head>
@@ -1571,6 +1731,7 @@ if (todayBtn) todayBtn.onclick = ()=>{
 };
 
   function activate(which){
+    document.documentElement.dataset.view = which; // chores | shopping | expenses
     document.documentElement.dataset.view = which; // "chores" | "shopping" | "expenses"
     if(which==='shopping'){
       tabChores.classList.remove('active'); tabExpenses.classList.remove('active'); tabShopping.classList.add('active');
@@ -1637,6 +1798,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   renderAll();
+document.documentElement.dataset.view = 'chores';
+tryFirebaseInit();
+setTimeout(hideSplash, 200);
+});
+
   tryFirebaseInit();
   setTimeout(hideSplash, 200);
 });
