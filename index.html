@@ -1446,6 +1446,32 @@ document.addEventListener('DOMContentLoaded', () => {
   const viewChores = document.getElementById('view-chores');
   const viewShopping = document.getElementById('view-shopping');
   const viewExpenses = document.getElementById('view-expenses');
+// (NOWE) — bindy do wyboru miesiąca/roku i strzałek w Wydatkach
+const mSel = document.getElementById('expFilterMonth');
+const ySel = document.getElementById('expFilterYear');
+const prevBtn = document.getElementById('expPrevMonth');
+const nextBtn = document.getElementById('expNextMonth');
+const todayBtn = document.getElementById('expTodayBtn');
+
+function applyExpFilterFromUI(){
+  const m = parseInt(mSel.value, 10);
+  const y = parseInt(ySel.value, 10);
+  if(!isNaN(m) && !isNaN(y)){
+    setExpSelectedMonthYear(m, y);
+    renderExpenses();
+  }
+}
+
+if (mSel) mSel.onchange = applyExpFilterFromUI;
+if (ySel) ySel.onchange = applyExpFilterFromUI;
+
+if (prevBtn) prevBtn.onclick = ()=>{ expShiftMonth(-1); renderExpenseSelectors(); renderExpenses(); };
+if (nextBtn) nextBtn.onclick = ()=>{ expShiftMonth(1);  renderExpenseSelectors(); renderExpenses(); };
+if (todayBtn) todayBtn.onclick = ()=>{
+  const now = new Date();
+  setExpSelectedMonthYear(now.getMonth(), now.getFullYear());
+  renderExpenseSelectors(); renderExpenses();
+};
 
   function activate(which){
     if(which==='shopping'){
