@@ -381,6 +381,15 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
         </div>
       </div>
     </section>
+  <section class="card">
+    <h3 style="margin:0 0 10px 0">Kategorie zakupów</h3>
+    <div class="row" style="gap:8px">
+      <select id="shopCatsSelect" style="flex:1"></select>
+      <input id="shopNewCat" type="text" placeholder="Nowa kategoria" style="flex:1"/>
+      <button id="shopAddCatBtn" class="btn">➕</button>
+      <button id="shopDelCatBtn" class="btn" title="Usuń wybraną">🗑️</button>
+    </div>
+  </section>
 
     <div style="height:10px"></div>
 
@@ -1124,7 +1133,49 @@ function renderShoppingSelectors(){
   $('#shopSection').innerHTML = (db.shoppingSections||defaultShoppingSections).map(s=>`<option value="${s}">${s}</option>`).join('');
   $('#shopAssignee').innerHTML = shoppingPeopleOptions();
 }
-function addShoppingItem(){
+/* === Kategorie w ZAKUPACH (dodaj/usuń) === */
+function renderShoppingCatsSelect(){
+  const sel = document.getElementById('shopCatsSelect');
+  if (!sel) return;
+  const list = (db.shoppingSections || defaultShoppingSections);
+  sel.innerHTML = list.map(c => `<option value="${c}">${c}</option>`).join('');
+}
+
+function addShopSection(){
+  const p = currentPerson(); if(!guardAction(p,'addShopSection')) return;
+  const v = (document.getElementById('shopNewCat').value || '').trim();
+  if(!v) return;
+  db.shoppingSections = db.shoppingSections || defaultShoppingSections.slice();
+  if(!db.shoppingSections.includes(v)) db.shoppingSections.push(v);
+  document.getElementById('shopNewCat').value = '';
+  save();
+  renderShoppingSelectors();
+  renderShoppingCatsSelect();
+  renderShopping();      // odśwież listę i chipsy
+}
+
+function delShopSection(){
+  const p = currentPerson(); if(!guardAction(p,'delShopSection')) return;
+  const sel = document.getElementById('shopCatsSelect');
+  const val = sel ? sel.value : '';
+  if(!val) return;
+  if(!confirm(`Usunąć kategorię „${val}”?`)) return;
+
+  // Usuń z listy kategorii
+  db.shoppingSections = (db.shoppingSections || defaultShoppingSections).filter(x => x !== val);
+
+  // Przepnij istniejące pozycje na „Inne”
+  (db.shopping || []).forEach(it => {
+    if((it.section || 'Inne') === val) it.section = 'Inne';
+  });
+
+  save();
+  renderShoppingSelectors();
+  renderShoppingCatsSelect();
+  renderShopping();
+}
+
+  function addShoppingItem(){
   const p=currentPerson(); if(!guardAction(p,'addShoppingItem')) return;
   const title = $('#shopTitle').value.trim();
   if(!title){ alert('Podaj nazwę pozycji.'); return; }
@@ -1474,6 +1525,17 @@ if (todayBtn) todayBtn.onclick = ()=>{
   document.getElementById('shopAddBtn').onclick = addShoppingItem;
   document.getElementById('shopClearDoneBtn').onclick = clearBought;
   document.getElementById('shopExportBtn').onclick = exportShoppingText;
+
+// Zakupy – bind przycisków
+document.getElementById('shopAddBtn').onclick = addShoppingItem;
+document.getElementById('shopClearDoneBtn').onclick = clearBought;
+document.getElementById('shopExportBtn').onclick = exportShoppingText;
+
+// (NOWE) — bindy do kategorii zakupów
+const _shopAddCatBtn = document.getElementById('shopAddCatBtn');
+const _shopDelCatBtn = document.getElementById('shopDelCatBtn');
+if (_shopAddCatBtn) _shopAddCatBtn.onclick = addShopSection;
+if (_shopDelCatBtn) _shopDelCatBtn.onclick = delShopSection;
 
   // Wydatki – bind
   document.getElementById('expAddBtn').onclick = addExpense;
