@@ -357,6 +357,34 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
   --accent:#60a5fa; --ok:#34d399; --warn:#f59e0b; --danger:#f87171;
   --shadow:0 12px 28px rgba(2,6,23,.12);
 }
+/* === Slate Night (ciemny, ale jaśniejszy i z wysokim kontrastem) === */
+
+.theme-slate {
+  --bg: #1b2230;                /* główne tło – ciemny, ale nie czarny */
+  --card: rgba(34, 42, 58, .72);/* karty z lekką mgiełką */
+  --border: rgba(255,255,255,.10);
+  --muted: #a7b3c7;             /* szare teksty z domieszką niebieskiego */
+  --text: #f4f7fc;              /* jasny, ale nie biały */
+  --accent: #5fa8f3;            /* niebieski elegancki */
+  --ok: #48d7a4;                /* miękka zieleń */
+  --warn: #e8c16c;              /* miodowy, widoczny na tym tle */
+  --danger: #f47a7a;            /* łagodny czerwony */
+  --shadow: 0 8px 26px rgba(0,0,0,.35);
+}
+
+/* jasna odmiana Slate (opcjonalnie) */
+.theme-slate.light {
+  --bg: #eef2fa;
+  --card: #f7f9ff;
+  --border: #d2dae8;
+  --muted: #5b6475;
+  --text: #10131a;
+  --accent: #3b82f6;
+  --ok: #16a34a;
+  --warn: #d29b28;
+  --danger: #e25555;
+  --shadow: 0 12px 28px rgba(2,6,23,.12);
+}
 
 /* 10) Drobne doszlifowanie komponentów – bez konfliktu ze stylem bazowym */
 .task .editable:focus{
@@ -1613,20 +1641,40 @@ document.getElementById('changeFamilyBtn').onclick = async () => {
 };
 
 
-/* THEME TOGGLE */
+/* THEME TOGGLE (jasny/ciemny + paleta UI) */
 (function themeInit(){
-  const saved = localStorage.getItem('ui-theme') || 'dark';
-  if(saved === 'light') document.documentElement.classList.add('light');
+  // Odczytaj poprzednie ustawienia
+  const savedTheme   = localStorage.getItem('ui-theme')   || 'dark';
+  const savedPalette = localStorage.getItem('ui-palette') || 'theme-slate'; // domyślny motyw
+
+  // Usuń stare palety (gdyby były)
+  document.documentElement.classList.remove(
+    'theme-ocean',
+    'theme-forest',
+    'theme-graphite',
+    'theme-pastel',
+    'theme-slate'
+  );
+
+  // Ustaw paletę
+  document.documentElement.classList.add(savedPalette);
+
+  // Ustaw jasny/ciemny
+  if(savedTheme === 'light') document.documentElement.classList.add('light');
+  else document.documentElement.classList.remove('light');
+
+  // Znajdź przycisk
   const btn = document.getElementById('themeToggle');
-  if(btn){
-    btn.onclick = () => {
-      document.documentElement.classList.toggle('light');
-      localStorage.setItem('ui-theme',
-        document.documentElement.classList.contains('light') ? 'light' : 'dark'
-      );
-    };
-  }
+  if(!btn) return;
+
+  // Klik = zmiana jasny <-> ciemny
+  btn.onclick = () => {
+    document.documentElement.classList.toggle('light');
+    const newTheme = document.documentElement.classList.contains('light') ? 'light' : 'dark';
+    localStorage.setItem('ui-theme', newTheme);
+  };
 })();
+
 
 /* SWIPE GESTURES FOR TASKS (mobile) */
 (function enableSwipe(){
