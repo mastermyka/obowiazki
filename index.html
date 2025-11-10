@@ -17,6 +17,7 @@
 <script src="https://cdn.tailwindcss.com"></script>
 
   <link rel="stylesheet" href="theme-sections.css">
+<link rel="stylesheet" href="theme-presets.css">
 
 <script>window.process = window.process || { env: {} };</script>
 
@@ -551,6 +552,115 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
 :root[data-view="shopping"] .dot{ background:var(--accent-shopping); box-shadow:0 0 14px var(--accent-shopping); }
 :root[data-view="expenses"] .dot{ background:var(--accent-expenses); box-shadow:0 0 14px var(--accent-expenses); }
 /* chores = domyślnie var(--ok) z Twojego CSS */
+/* ===== Ocean ===== */
+.theme-ocean{
+  --bg:#0f1624; --card:rgba(20,28,44,.72); --border:rgba(255,255,255,.10);
+  --muted:#8fa6c7; --text:#eaf2ff; --accent:#3b82f6; --ok:#10b981; --warn:#f59e0b; --danger:#ef4444;
+  --shadow:0 10px 30px rgba(0,0,0,.40);
+}
+.theme-ocean.light{
+  --bg:#eaf2ff; --card:#f5f8ff; --border:#c9d8fb; --muted:#4b5b77; --text:#0f1624;
+  --accent:#2563eb; --ok:#059669; --warn:#d97706; --danger:#dc2626; --shadow:0 12px 28px rgba(2,6,23,.12);
+}
+
+/* ===== Forest ===== */
+.theme-forest{
+  --bg:#0f1715; --card:rgba(17,36,31,.72); --border:rgba(255,255,255,.10);
+  --muted:#87a49a; --text:#ecfffb; --accent:#14b8a6; --ok:#22c55e; --warn:#eab308; --danger:#f43f5e;
+  --shadow:0 10px 30px rgba(0,0,0,.40);
+}
+.theme-forest.light{
+  --bg:#e8fbf6; --card:#f3fffb; --border:#bfe8df; --muted:#375750; --text:#0f1715;
+  --accent:#0d9488; --ok:#16a34a; --warn:#ca8a04; --danger:#e11d48; --shadow:0 12px 28px rgba(2,6,23,.12);
+}
+
+/* ===== Amber ===== */
+.theme-amber{
+  --bg:#17120a; --card:rgba(44,32,16,.74); --border:rgba(255,255,255,.10);
+  --muted:#d2c29f; --text:#fff9f0; --accent:#f59e0b; --ok:#34d399; --warn:#fbbf24; --danger:#f87171;
+  --shadow:0 10px 30px rgba(0,0,0,.42);
+}
+.theme-amber.light{
+  --bg:#fff7e6; --card:#fff1d6; --border:#ead6a9; --muted:#6b5b43; --text:#17120a;
+  --accent:#d97706; --ok:#10b981; --warn:#d97706; --danger:#dc2626; --shadow:0 12px 28px rgba(2,6,23,.12);
+}
+
+/* ===== Aurora (violet) ===== */
+.theme-aurora{
+  --bg:#140f1b; --card:rgba(38,22,56,.72); --border:rgba(255,255,255,.10);
+  --muted:#bea8cf; --text:#fbf7ff; --accent:#8b5cf6; --ok:#22c55e; --warn:#fde047; --danger:#fb7185;
+  --shadow:0 10px 30px rgba(0,0,0,.42);
+}
+.theme-aurora.light{
+  --bg:#f7f2ff; --card:#faf6ff; --border:#ddcffb; --muted:#5a4b6e; --text:#140f1b;
+  --accent:#7c3aed; --ok:#16a34a; --warn:#eab308; --danger:#e11d48; --shadow:0 12px 28px rgba(2,6,23,.12);
+}
+
+/* ===== Graphite (jaśniejszy dark) ===== */
+.theme-graphite{
+  --bg:#131416; --card:rgba(36,37,39,.74); --border:rgba(255,255,255,.12);
+  --muted:#a6acb2; --text:#f5f7fa; --accent:#60a5fa; --ok:#34d158; --warn:#facc15; --danger:#f75555;
+  --shadow:0 10px 30px rgba(0,0,0,.48);
+}
+.theme-graphite.light{
+  --bg:#f2f4f7; --card:#eef1f5; --border:#cdd3db; --muted:#616a76; --text:#0c0d0f;
+  --accent:#3b82f6; --ok:#22c55e; --warn:#eab308; --danger:#ef4444; --shadow:0 12px 28px rgba(2,6,23,.10);
+}
+
+/* ===== Denim (niebiesko-szary) ===== */
+.theme-denim{
+  --bg:#12161e; --card:rgba(24,34,51,.72); --border:rgba(255,255,255,.10);
+  --muted:#9eb0c8; --text:#eff6ff; --accent:#4f86ff; --ok:#2dd4bf; --warn:#f59e0b; --danger:#ef4444;
+  --shadow:0 10px 30px rgba(0,0,0,.42);
+}
+.theme-denim.light{
+  --bg:#eef5ff; --card:#f5f9ff; --border:#cfe0ff; --muted:#4c5c76; --text:#12161e;
+  --accent:#3b7bff; --ok:#14b8a6; --warn:#d97706; --danger:#dc2626; --shadow:0 12px 28px rgba(2,6,23,.12);
+}
+
+/* ===== Moss (zielony szarawy) ===== */
+.theme-moss{
+  --bg:#131715; --card:rgba(28,39,34,.72); --border:rgba(255,255,255,.10);
+  --muted:#a7b7ad; --text:#effff9; --accent:#22c55e; --ok:#10b981; --warn:#eab308; --danger:#f43f5e;
+  --shadow:0 10px 30px rgba(0,0,0,.40);
+}
+.theme-moss.light{
+  --bg:#edf7f1; --card:#f4fbf7; --border:#cfe6da; --muted:#3a5247; --text:#131715;
+  --accent:#16a34a; --ok:#059669; --warn:#ca8a04; --danger:#e11d48; --shadow:0 12px 28px rgba(2,6,23,.12);
+}
+
+/* ===== Rose (róż/fiolet) ===== */
+.theme-rose{
+  --bg:#161218; --card:rgba(48,28,46,.72); --border:rgba(255,255,255,.10);
+  --muted:#d6b3c7; --text:#fff5f8; --accent:#f472b6; --ok:#34d399; --warn:#fde047; --danger:#fb7185;
+  --shadow:0 10px 30px rgba(0,0,0,.42);
+}
+.theme-rose.light{
+  --bg:#fff0f6; --card:#fff6fa; --border:#f2cfe0; --muted:#6c4b5e; --text:#161218;
+  --accent:#ec4899; --ok:#10b981; --warn:#eab308; --danger:#e11d48; --shadow:0 12px 28px rgba(2,6,23,.12);
+}
+
+/* ===== Slate (szaroniebieski neutral) ===== */
+.theme-slate{
+  --bg:#14161a; --card:rgba(32,36,42,.74); --border:rgba(255,255,255,.12);
+  --muted:#aeb6c2; --text:#f6f8fb; --accent:#7dd3fc; --ok:#22d3ee; --warn:#fbbf24; --danger:#f87171;
+  --shadow:0 10px 30px rgba(0,0,0,.46);
+}
+.theme-slate.light{
+  --bg:#f4f7fb; --card:#eef3f9; --border:#d3dae5; --muted:#5b6676; --text:#111319;
+  --accent:#38bdf8; --ok:#06b6d4; --warn:#d97706; --danger:#ef4444; --shadow:0 12px 28px rgba(2,6,23,.10);
+}
+
+/* ===== Cocoa (ciepły brąz) ===== */
+.theme-cocoa{
+  --bg:#171312; --card:rgba(54,40,35,.74); --border:rgba(255,255,255,.10);
+  --muted:#d7c1b9; --text:#fff7f3; --accent:#d97706; --ok:#22c55e; --warn:#eab308; --danger:#f43f5e;
+  --shadow:0 10px 30px rgba(0,0,0,.46);
+}
+.theme-cocoa.light{
+  --bg:#fff5ef; --card:#fff0e6; --border:#f0d7ca; --muted:#6b534b; --text:#171312;
+  --accent:#b45309; --ok:#16a34a; --warn:#ca8a04; --danger:#e11d48; --shadow:0 12px 28px rgba(2,6,23,.10);
+}
 
 </style>
   <link rel="stylesheet" href="theme-sections.css">
@@ -579,7 +689,8 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
         <button id="tabExpenses" class="tab" data-kind="expenses">💸 Wydatki</button>
       </div>
       <button id="themeToggle" class="btn" title="Jasny / ciemny">☀️ / 🌙</button>
-      <button id="themePresetBtn" class="btn" title="Zmień motyw">🎨 Motyw</button>
+      <button id="themeCycleBtn" class="btn" title="Zmień motyw">🎨 Motyw</button>
+
     </div>
   </header>
 
@@ -1924,6 +2035,36 @@ document.addEventListener('DOMContentLoaded', () => {
     ttsBtn.style.marginLeft = '8px';
   }
 });
+// === MOTYWY: lista klas do przełączania (kolejność = cykl) ===
+const THEME_CLASSES = [
+  'theme-ocean','theme-forest','theme-amber','theme-aurora','theme-graphite',
+  'theme-denim','theme-moss','theme-rose','theme-slate','theme-cocoa'
+];
+
+function applyThemeClass(name){
+  // usuń stare klasy
+  document.documentElement.classList.remove(...THEME_CLASSES);
+  // dodaj nową (jeśli pusta, zostaje bazowy wygląd)
+  if(name) document.documentElement.classList.add(name);
+  localStorage.setItem('ui-theme-name', name || '');
+}
+
+(function themeNameInit(){
+  // przywróć wybrany motyw z localStorage
+  const savedName = localStorage.getItem('ui-theme-name') || '';
+  applyThemeClass(savedName);
+
+  // podłącz przycisk 🎨
+  const cycleBtn = document.getElementById('themeCycleBtn');
+  if(cycleBtn){
+    cycleBtn.onclick = () => {
+      const curr = localStorage.getItem('ui-theme-name') || '';
+      const idx = Math.max(0, THEME_CLASSES.indexOf(curr));
+      const next = THEME_CLASSES[(idx + 1) % THEME_CLASSES.length];
+      applyThemeClass(next);
+    };
+  }
+})();
 
 /* ===== TABS ===== */
 (function tabsInit(){
