@@ -189,10 +189,8 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
         <div class="row">
           <button id="endDayBtn" class="btn">🌙 Zakończ dzień</button>
           <button id="endWeekBtn" class="btn">🏁 Zakończ tydzień</button>
-          <button id="changeFamilyBtn" class="btn" title="Ustaw / zmień rodzinę"
-  onclick="(async()=>{const curr=localStorage.getItem('familyId')||'';const next=prompt('ID rodziny (wspólna nazwa grupy):',curr);if(!next)return;await subscribeToFamily(String(next).trim());pushToFirebase();})()">
-  👪 Zmień rodzinę
-</button>
+          <button id="changeFamilyBtn" class="btn" title="Ustaw / zmień rodzinę">👪 Zmień rodzinę</button>
+
 
 
         </div>
