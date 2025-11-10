@@ -661,6 +661,34 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
   --bg:#fff5ef; --card:#fff0e6; --border:#f0d7ca; --muted:#6b534b; --text:#171312;
   --accent:#b45309; --ok:#16a34a; --warn:#ca8a04; --danger:#e11d48; --shadow:0 12px 28px rgba(2,6,23,.10);
 }
+/* FIX: task action buttons mieszczą się w karcie (mobile) */
+@media (max-width: 640px){
+  #tasksList .task{
+    flex-wrap: wrap;
+    align-items: stretch;
+  }
+  /* tytuł idzie w pełną szerokość, żeby akcje mogły spaść niżej */
+  #tasksList .task > label{
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+  /* rząd akcji łamie się i zajmuje całą szerokość */
+  #tasksList .task .actions{
+    flex: 1 1 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-start; /* albo space-between – jak wolisz */
+    margin-top: 6px;
+  }
+  /* przyciski akcji: 3 w rzędzie, mniejsze paddingi */
+  #tasksList .task .actions .btn{
+    padding: 8px 10px;
+    flex: 1 0 calc(33.333% - 8px);
+    max-width: calc(33.333% - 8px);
+    white-space: nowrap; /* ikona i krótki tekst w jednej linii */
+  }
+}
 
 </style>
   <link rel="stylesheet" href="theme-sections.css">
