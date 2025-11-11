@@ -1778,10 +1778,6 @@ function pinDialog(){
     alert('Nowy PIN musi mieć 4–8 cyfr.');
     return;
   }
-if (p.pin && newPin === p.pin) {
-  alert('Nowy PIN jest taki sam jak obecny.');
-  return;
-}
 
   // zapis
   p.pin = newPin;
