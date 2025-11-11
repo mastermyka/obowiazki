@@ -16,8 +16,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
 
-  <link rel="stylesheet" href="theme-sections.css">
-<link rel="stylesheet" href="theme-presets.css">
+
 
 <script>window.process = window.process || { env: {} };</script>
 
@@ -1773,19 +1772,6 @@ function pinDialog(){
 }
 
 
-  // walidacja nowego PIN-u
-  if (!/^\d{4,8}$/.test(newPin)) {
-    alert('Nowy PIN musi mieć 4–8 cyfr.');
-    return;
-  }
-
-  // zapis
-  p.pin = newPin;
-  save();
-  alert('Zapisano nowy PIN.');
-  closeDialog();
-};
-window.setChildMode=function(on){if(p.pin){const entered=prompt('Podaj PIN:');if(entered!==p.pin)return alert('Zły PIN.')}p.childMode=!!on;save();renderTabs();alert(on?'Tryb dziecka WŁĄCZONY.':'Tryb dziecka WYŁĄCZONY.')}}
 
 /* ===== WIDOK ZAKUPÓW ===== */
 function shoppingPeopleOptions(){ const arr = ['—'].concat(db.people.map(p=>p.name)); return arr.map(n=>`<option value="${n}">${n}</option>`).join(''); }
@@ -2241,35 +2227,6 @@ if (todayBtn) todayBtn.onclick = ()=>{
   setExpSelectedMonthYear(now.getMonth(), now.getFullYear());
   renderExpenseSelectors(); renderExpenses();
 };
-
-function pinDialog(){
-  const p = currentPerson();
-  if(!p) return;
-
-  // HTML dialogu: jeśli PIN istnieje, pokaż pole "obecny PIN"
-  const hasPin = !!(p.pin && String(p.pin).length);
-  showDialog(`
-    <h3 style="margin-top:0">PIN i Tryb dziecka — ${p.name}</h3>
-    <div class="row" style="flex-direction:column;align-items:stretch">
-      ${hasPin ? `
-        <label class="muted">Obecny PIN</label>
-        <input id="pinOld" type="password" placeholder="••••" inputmode="numeric" pattern="[0-9]*"/>
-      ` : ''}
-      <label class="muted" style="margin-top:8px">Nowy PIN (4–8 cyfr)</label>
-      <input id="pinSet" type="password" placeholder="${hasPin ? '(zmień)' : '(ustaw)'}" inputmode="numeric" pattern="[0-9]*"/>
-
-      <label class="muted" style="margin-top:12px">Tryb dziecka (blokada zmian)</label>
-      <div class="row">
-        <button class="btn" onclick="setChildMode(true)">👶 Włącz</button>
-        <button class="btn" onclick="setChildMode(false)">🔓 Wyłącz</button>
-      </div>
-    </div>
-
-    <div class="row" style="justify-content:flex-end;margin-top:10px">
-      <button class="btn" onclick="closeDialog()">Zamknij</button>
-      <button class="btn" onclick="savePin()">✅ Zapisz PIN</button>
-    </div>
-  `);
 
   // zapisz PIN – wymaga podania starego, jeśli istniał
   window.savePin = function(){
