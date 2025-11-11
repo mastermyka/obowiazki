@@ -16,7 +16,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
 
-
+  <link rel="stylesheet" href="theme-sections.css">
+<link rel="stylesheet" href="theme-presets.css">
 
 <script>window.process = window.process || { env: {} };</script>
 
@@ -690,6 +691,7 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
 }
 
 </style>
+  <link rel="stylesheet" href="theme-sections.css">
 </head>
 <body>
 <div id="splash"><div class="logo">🧹</div></div>
@@ -1074,44 +1076,14 @@ function closeDialog(){ $('#overlay').style.display='none' }
    – Wszystko inne wymaga PINu osoby, gdy childMode=true. */
 function needsPinFor(p, action){
   if (!p?.childMode) return false;
-  const allowed = ['toggleTask','toggleSubtask','redeemReward']; // tylko to wolno bez PIN-u
+  const allowed = ['toggleTask','toggleSubtask','redeemReward'];
   return !allowed.includes(action);
 }
-
-/* ===== GATEKEEPER PIN (Tryb dziecka – sesyjny) =====
-   – Dziecko (actor.childMode===true) może TYLKO: toggleTask, toggleSubtask, redeemReward.
-   – Wszystko inne blokowane, także poza jego profilem i w innych zakładkach.
-   – Jeśli akcja dotyczy profilu z PIN-em: wymagamy PIN-u tego profilu. */
-function needsPinFor(targetPerson, action){
-  const allowed = ['toggleTask','toggleSubtask','redeemReward'];
-
-  // 1) Jeśli aktorem jest dziecko – blokuj wszystko poza allowed
-  const actor = currentActor();
-  if (actor?.childMode) {
-    return !allowed.includes(action); // true => wymaga PINu/odmowa
-  }
-
-  // 2) Jeśli target ma childMode – wymagaj PINu poza allowed
-  if (targetPerson?.childMode) {
-    return !allowed.includes(action);
-  }
-  return false;
-}
-
-function guardAction(targetPerson, action){
-  const actor = currentActor();
-  if (!needsPinFor(targetPerson, action)) return true;
-
-  // W sesji dziecka: twarda blokada (bez podawania PIN-u)
-  if (actor?.childMode && !['toggleTask','toggleSubtask','redeemReward'].includes(action)) {
-    alert('Tryb dziecka: akcja zablokowana.');
-    return false;
-  }
-
-  // Wymagamy PIN-u profilu targetPerson
-  if (!targetPerson?.pin) { alert('Akcja zablokowana: brak ustawionego PIN-u profilu.'); return false; }
-  const entered = prompt('Podaj PIN profilu:');
-  return entered === targetPerson.pin;
+function guardAction(p, action){
+  if (!needsPinFor(p, action)) return true;
+  if (!p.pin){ alert('Akcja zablokowana: brak ustawionego PIN-u dla profilu dziecka.'); return false; }
+  const entered = prompt('Podaj PIN:');
+  return entered === p.pin;
 }
 
 /* ===== FIREBASE (opcjonalny) ===== */
@@ -1237,11 +1209,6 @@ const defaultData={
 function load(){try{return JSON.parse(localStorage.getItem(stateKey))||defaultData}catch(e){return defaultData}}
 function save(){ db.updatedAt=Date.now(); localStorage.setItem(stateKey,JSON.stringify(db)); pushToFirebase(); }
 let db = load();
-/* === SESSION ACTOR (kto używa urządzenia) === */
-const ACTOR_KEY = 'ui-actor-id';
-let actorId = localStorage.getItem(ACTOR_KEY) || null;
-function setActor(id){ actorId = id || null; localStorage.setItem(ACTOR_KEY, id || ''); }
-function currentActor(){ return db.people.find(x=>x.id===actorId) || null; }
 
 /* ====== WYBÓR MIESIĄCA/ROKU DLA WYDATKÓW (zapamiętywany w localStorage) ====== */
 const EXP_MONTH_KEY = 'exp-view-month'; // 0..11
@@ -1294,30 +1261,14 @@ setFamilyLabel(localStorage.getItem('familyId'));
 function renderDate(){todayEl.textContent=fmtDate(new Date())}
 function currentPerson(){return db.people.find(p=>p.id===db.currentPersonId)||db.people[0]}
 const tabsEl=$('#peopleTabs');
-function renderTabs(){
-  tabsEl.innerHTML='';
-  const actor = currentPerson(); // aktywnie wybrana osoba / "aktor"
-
-  db.people.forEach(p=>{
-    const b=document.createElement('button');
-    b.className='btn'+(p.id===db.currentPersonId?'':'');
-    b.textContent=`${p.name} · ⭐ ${p.scoreWeek} · 🔥 ${p.streak||0}${p.childMode?' · 👶':''}`;
-
-    b.onclick=()=>{
-      // jeśli AKTUALNY profil ma childMode, nie pozwalamy przełączyć na kogoś innego
-      const cur = currentPerson();
-      if (cur?.childMode && cur.id !== p.id){
-        alert('Tryb dziecka: nie możesz przełączyć na innego domownika.');
-        return;
-      }
-      db.currentPersonId=p.id; save(); renderAll();
-    };
-
-    b.setAttribute('aria-pressed', p.id===db.currentPersonId ? 'true' : 'false');
-    tabsEl.appendChild(b);
-  });
-}
-
+function renderTabs(){tabsEl.innerHTML='';db.people.forEach(p=>{const b=document.createElement('button');b.className='btn'+(p.id===db.currentPersonId?'':'');b.textContent=`${p.name} · ⭐ ${p.scoreWeek} · 🔥 ${p.streak||0}${p.childMode?' · 👶':''}`;b.onclick=()=>{db.currentPersonId=p.id;save();renderAll()};b.setAttribute('aria-pressed',p.id===db.currentPersonId?'true':'false');tabsEl.appendChild(b)})}
+function addPerson(){
+  const p=currentPerson();
+  if(p && !guardAction(p,'addPerson')) return;
+  /* PATCH: dopisany bank:0 w nowej osobie */
+  const name=prompt('Imię domownika:');if(!name)return;const np={id:crypto.randomUUID(),name:name.trim(),goal:5,streak:0,icsTime:'07:00',scoreToday:0,scoreWeek:0,bank:0,latePenaltyPerHour:1,pin:'',childMode:false,tasks:[]};db.people.push(np);db.currentPersonId=np.id;save();renderAll()}
+function renamePerson(){const p=currentPerson();if(!p)return;if(!guardAction(p,'renamePerson'))return;const n=prompt('Nowa nazwa:',p.name);if(!n)return;p.name=n.trim();save();renderTabs()}
+function removePerson(){const p=currentPerson();if(!p)return;if(!guardAction(p,'removePerson'))return;if(!confirm(`Usunąć osobę „${p.name}”?`))return;db.people=db.people.filter(x=>x.id!==p.id);db.currentPersonId=db.people[0]?.id||null;save();renderAll()}
 
 /* ===== ZONES ===== */
 function renderZones(){ $('#taskZone').innerHTML=db.zones.map(z=>`<option value="${z}">${z}</option>`).join(''); $('#zonesSelect').innerHTML=db.zones.map(z=>`<option>${z}</option>`).join(''); const badges=$('#zonesBadges'); badges.innerHTML=''; db.zones.forEach(z=>{const t=document.createElement('span');t.className='zoneTag';t.textContent=z;badges.appendChild(t)})}
@@ -1726,8 +1677,7 @@ function renderTopZones(){
 /* ===== PEOPLE SETTINGS ===== */
 function setGoal(){const p=currentPerson(); if(!p)return; if(!guardAction(p,'setGoal')) return; const g=prompt('Cel dzienny (informacyjny):', String(p.goal||goalForToday(p))); if(g!==null){ const v=Math.max(0,parseInt(g,10)||0); p.goal=v; save(); renderScores(); }}
 function setIcs(){const p=currentPerson();if(!p)return; if(!guardAction(p,'setIcs')) return; const cur=p.icsTime||'07:00';const t=prompt('Godzina .ics (HH:MM, 24h):',cur);if(!t)return;if(!/^\d{2}:\d{2}$/.test(t))return alert('Format HH:MM');p.icsTime=t;save();renderLeaderboard()}
-
-
+function pinDialog(){const p=currentPerson();if(!p)return;showDialog(`<h3 style="margin-top:0">PIN i Tryb dziecka — ${p.name}</h3><div class="row" style="flex-direction:column;align-items:stretch"><label class="muted">Ustaw/zmień PIN (4–8 cyfr)</label><input id="pinSet" type="password" placeholder="${p.pin?'(obecny istnieje)':'brak'}"/><label class="muted" style="margin-top:8px">Tryb dziecka (blokada zmian)</label><div class="row"><button class="btn" onclick="setChildMode(true)">👶 Włącz</button><button class="btn" onclick="setChildMode(false)">🔓 Wyłącz</button></div></div><div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn" onclick="closeDialog()">Zamknij</button><button class="btn" onclick="savePin()">✅ Zapisz PIN</button></div>`);window.savePin=function(){const v=$('#pinSet').value.trim();if(v&&!/^\d{4,8}$/.test(v))return alert('PIN 4–8 cyfr.');p.pin=v;save();alert('Zapisano PIN.');closeDialog()};window.setChildMode=function(on){if(p.pin){const entered=prompt('Podaj PIN:');if(entered!==p.pin)return alert('Zły PIN.')}p.childMode=!!on;save();renderTabs();alert(on?'Tryb dziecka WŁĄCZONY.':'Tryb dziecka WYŁĄCZONY.')}}
 
 /* ===== WIDOK ZAKUPÓW ===== */
 function shoppingPeopleOptions(){ const arr = ['—'].concat(db.people.map(p=>p.name)); return arr.map(n=>`<option value="${n}">${n}</option>`).join(''); }
@@ -1967,12 +1917,7 @@ function renderAllCore(){
 function renderAll(){renderDate();renderAllCore()}
 
 /* ===== BINDINGS ===== */
-$('#addPersonBtn').onclick=addPerson;$('#renamePersonBtn').onclick=renamePerson;$('#removePersonBtn').onclick=removePerson;$('#setGoalBtn').onclick=setGoal;$('#setIcsBtn').onclick=setIcs;$('#pinBtn').onclick = () => {
-  const p = currentPerson();
-  if (!guardAction(p, 'pinSettings')) return; // wymusi PIN w trybie dziecka
-  pinDialog();
-};
-
+$('#addPersonBtn').onclick=addPerson;$('#renamePersonBtn').onclick=renamePerson;$('#removePersonBtn').onclick=removePerson;$('#setGoalBtn').onclick=setGoal;$('#setIcsBtn').onclick=setIcs;$('#pinBtn').onclick=pinDialog;
 $('#addTaskBtn').onclick=addTask;$('#resetDailyBtn').onclick=()=>{const p=currentPerson(); if(!guardAction(p,'resetDaily')) return; db.people.forEach(pp=>pp.tasks.forEach(t=>{if((t.schedType||'daily')==='daily')t.done=false}));save();renderTasks()};
 $('#clearDoneBtn').onclick=()=>{const p=currentPerson(); if(!guardAction(p,'clearDone')) return; const cp=currentPerson();cp.tasks=cp.tasks.filter(t=>!((t.schedType==='once'||t.repeat==='once')&&t.done));save();renderTasks()};
 $('#mailBtn').onclick=sendMail;$('#copyBtn').onclick=copyToClipboard;$('#icsBtn').onclick=shareICSForCurrentPerson;$('#ttsBtn').onclick=speakNow;$('#remindersBtn').onclick=()=>{const p=currentPerson(); if(!guardAction(p,'remindersExport')) return; const payload={date:nowYMD(),people:db.people.map(p=>({name:p.name,items:p.tasks.filter(dueToday).map(t=>({title:t.title,time:t.time||'07:00',zone:t.zone||'',points:t.points||1}))}))};const text='CHORES_PAYLOAD\n'+JSON.stringify(payload);copy(text).then(()=>{location.href='shortcuts://run-shortcut?name=Chores%20Import'}).catch(()=>alert('Skopiuj ręcznie:\n\n'+text))};
@@ -2024,6 +1969,31 @@ document.getElementById('changeFamilyBtn').onclick = async () => {
     const newTheme = document.documentElement.classList.contains('light') ? 'light' : 'dark';
     localStorage.setItem('ui-theme', newTheme);
   };
+})();
+/* THEME PRESETS (🎨 Motyw) */
+(function themePresetsInit(){
+  const PRESETS = ['theme-slate','theme-ocean','theme-forest']; // możesz dopisać więcej
+  const KEY = 'ui-preset';
+  const html = document.documentElement;
+  const btn  = document.getElementById('themePresetBtn');
+
+  function apply(name){
+    PRESETS.forEach(c => html.classList.remove(c));
+    if(name){ html.classList.add(name); }
+    localStorage.setItem(KEY, name || '');
+  }
+
+  // start: wczytaj ostatni wybrany preset (domyślnie slate)
+  apply(localStorage.getItem(KEY) || 'theme-slate');
+
+  // klik: cykl kolejnych presetów
+  if(btn){
+    btn.onclick = () => {
+      const cur = localStorage.getItem(KEY) || 'theme-slate';
+      const i = (PRESETS.indexOf(cur) + 1) % PRESETS.length;
+      apply(PRESETS[i]);
+    };
+  }
 })();
 
 
@@ -2159,37 +2129,36 @@ if (todayBtn) todayBtn.onclick = ()=>{
   renderExpenseSelectors(); renderExpenses();
 };
 
-  // zapisz PIN – wymaga podania starego, jeśli istniał
-  window.savePin = function(){
-    const newPin = ($('#pinSet').value||'').trim();
-
-    if (p.pin){ // zmiana istniejącego
-      const old = ($('#pinOld')?.value||'').trim();
-      if (old !== p.pin){ alert('Zły obecny PIN.'); return; }
+  function activate(which){
+    document.documentElement.dataset.view = which; // chores | shopping | expenses
+    document.documentElement.dataset.view = which; // "chores" | "shopping" | "expenses"
+    if(which==='shopping'){
+      tabChores.classList.remove('active'); tabExpenses.classList.remove('active'); tabShopping.classList.add('active');
+      viewChores.style.display='none'; viewExpenses.style.display='none'; viewShopping.style.display='';
+      renderShopping();
+    }else if(which==='expenses'){
+      tabChores.classList.remove('active'); tabShopping.classList.remove('active'); tabExpenses.classList.add('active');
+      viewChores.style.display='none'; viewShopping.style.display='none'; viewExpenses.style.display='';
+      renderExpenses();
+    }else{
+      tabShopping.classList.remove('active'); tabExpenses.classList.remove('active'); tabChores.classList.add('active');
+      viewShopping.style.display='none'; viewExpenses.style.display='none'; viewChores.style.display='';
+      renderAllCore();
     }
+  }
+  tabChores.addEventListener('click', ()=>activate('chores'));
+  tabShopping.addEventListener('click', ()=>activate('shopping'));
+  tabExpenses.addEventListener('click', ()=>activate('expenses'));
 
-    if (!/^\d{4,8}$/.test(newPin)){ alert('PIN 4–8 cyfr.'); return; }
-    if (p.pin && newPin === p.pin){ alert('Nowy PIN jest taki sam jak obecny.'); return; }
+  // Zakupy – bind przycisków
+  document.getElementById('shopAddBtn').onclick = addShoppingItem;
+  document.getElementById('shopClearDoneBtn').onclick = clearBought;
+  document.getElementById('shopExportBtn').onclick = exportShoppingText;
 
-    p.pin = newPin;
-    save(); alert('Zapisano PIN.'); closeDialog();
-  };
-
-  // włącz/wyłącz tryb dziecka – zawsze wymaga PIN-u, jeśli jest ustawiony
-  window.setChildMode = function(on){
-    if (p.pin){
-      const entered = prompt('Podaj PIN:') || '';
-      if (entered !== p.pin){ alert('Zły PIN.'); return; }
-    }
-    p.childMode = !!on;
-    save(); renderTabs();
-    alert(on ? 'Tryb dziecka WŁĄCZONY.' : 'Tryb dziecka WYŁĄCZONY.');
-  };
-}
-
-
-
-
+// Zakupy – bind przycisków
+document.getElementById('shopAddBtn').onclick = addShoppingItem;
+document.getElementById('shopClearDoneBtn').onclick = clearBought;
+document.getElementById('shopExportBtn').onclick = exportShoppingText;
 
 // (NOWE) — bindy do kategorii zakupów
 const _shopAddCatBtn = document.getElementById('shopAddCatBtn');
