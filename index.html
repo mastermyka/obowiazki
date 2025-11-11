@@ -1677,7 +1677,35 @@ function renderTopZones(){
 /* ===== PEOPLE SETTINGS ===== */
 function setGoal(){const p=currentPerson(); if(!p)return; if(!guardAction(p,'setGoal')) return; const g=prompt('Cel dzienny (informacyjny):', String(p.goal||goalForToday(p))); if(g!==null){ const v=Math.max(0,parseInt(g,10)||0); p.goal=v; save(); renderScores(); }}
 function setIcs(){const p=currentPerson();if(!p)return; if(!guardAction(p,'setIcs')) return; const cur=p.icsTime||'07:00';const t=prompt('Godzina .ics (HH:MM, 24h):',cur);if(!t)return;if(!/^\d{2}:\d{2}$/.test(t))return alert('Format HH:MM');p.icsTime=t;save();renderLeaderboard()}
-function pinDialog(){const p=currentPerson();if(!p)return;showDialog(`<h3 style="margin-top:0">PIN i Tryb dziecka — ${p.name}</h3><div class="row" style="flex-direction:column;align-items:stretch"><label class="muted">Ustaw/zmień PIN (4–8 cyfr)</label><input id="pinSet" type="password" placeholder="${p.pin?'(obecny istnieje)':'brak'}"/><label class="muted" style="margin-top:8px">Tryb dziecka (blokada zmian)</label><div class="row"><button class="btn" onclick="setChildMode(true)">👶 Włącz</button><button class="btn" onclick="setChildMode(false)">🔓 Wyłącz</button></div></div><div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn" onclick="closeDialog()">Zamknij</button><button class="btn" onclick="savePin()">✅ Zapisz PIN</button></div>`);window.savePin=function(){const v=$('#pinSet').value.trim();if(v&&!/^\d{4,8}$/.test(v))return alert('PIN 4–8 cyfr.');p.pin=v;save();alert('Zapisano PIN.');closeDialog()};window.setChildMode=function(on){if(p.pin){const entered=prompt('Podaj PIN:');if(entered!==p.pin)return alert('Zły PIN.')}p.childMode=!!on;save();renderTabs();alert(on?'Tryb dziecka WŁĄCZONY.':'Tryb dziecka WYŁĄCZONY.')}}
+function pinDialog(){const p=currentPerson();if(!p)return;showDialog(`<h3 style="margin-top:0">PIN i Tryb dziecka — ${p.name}</h3><div class="row" style="flex-direction:column;align-items:stretch"><label class="muted">Ustaw/zmień PIN (4–8 cyfr)</label><input id="pinSet" type="password" placeholder="${p.pin?'(obecny istnieje)':'brak'}"/><label class="muted" style="margin-top:8px">Tryb dziecka (blokada zmian)</label><div class="row"><button class="btn" onclick="setChildMode(true)">👶 Włącz</button><button class="btn" onclick="setChildMode(false)">🔓 Wyłącz</button></div></div><div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn" onclick="closeDialog()">Zamknij</button><button class="btn" onclick="savePin()">✅ Zapisz PIN</button></div>`);window.savePin = function () {
+  const newPin = ($('#pinSet').value || '').trim();
+
+  // jeśli PIN już istnieje — wymagamy podania obecnego
+  if (p.pin) {
+    const current = prompt('Podaj obecny PIN, aby go zmienić:');
+    if (current !== p.pin) {
+      alert('Zły PIN. Zmiana anulowana.');
+      return;
+    }
+  }
+
+  // walidacja nowego PIN-u
+  if (!/^\d{4,8}$/.test(newPin)) {
+    alert('Nowy PIN musi mieć 4–8 cyfr.');
+    return;
+  }
+if (p.pin && newPin === p.pin) {
+  alert('Nowy PIN jest taki sam jak obecny.');
+  return;
+}
+
+  // zapis
+  p.pin = newPin;
+  save();
+  alert('Zapisano nowy PIN.');
+  closeDialog();
+};
+window.setChildMode=function(on){if(p.pin){const entered=prompt('Podaj PIN:');if(entered!==p.pin)return alert('Zły PIN.')}p.childMode=!!on;save();renderTabs();alert(on?'Tryb dziecka WŁĄCZONY.':'Tryb dziecka WYŁĄCZONY.')}}
 
 /* ===== WIDOK ZAKUPÓW ===== */
 function shoppingPeopleOptions(){ const arr = ['—'].concat(db.people.map(p=>p.name)); return arr.map(n=>`<option value="${n}">${n}</option>`).join(''); }
@@ -1917,7 +1945,12 @@ function renderAllCore(){
 function renderAll(){renderDate();renderAllCore()}
 
 /* ===== BINDINGS ===== */
-$('#addPersonBtn').onclick=addPerson;$('#renamePersonBtn').onclick=renamePerson;$('#removePersonBtn').onclick=removePerson;$('#setGoalBtn').onclick=setGoal;$('#setIcsBtn').onclick=setIcs;$('#pinBtn').onclick=pinDialog;
+$('#addPersonBtn').onclick=addPerson;$('#renamePersonBtn').onclick=renamePerson;$('#removePersonBtn').onclick=removePerson;$('#setGoalBtn').onclick=setGoal;$('#setIcsBtn').onclick=setIcs;$('#pinBtn').onclick = () => {
+  const p = currentPerson();
+  if (!guardAction(p, 'pinSettings')) return; // wymusi PIN w trybie dziecka
+  pinDialog();
+};
+
 $('#addTaskBtn').onclick=addTask;$('#resetDailyBtn').onclick=()=>{const p=currentPerson(); if(!guardAction(p,'resetDaily')) return; db.people.forEach(pp=>pp.tasks.forEach(t=>{if((t.schedType||'daily')==='daily')t.done=false}));save();renderTasks()};
 $('#clearDoneBtn').onclick=()=>{const p=currentPerson(); if(!guardAction(p,'clearDone')) return; const cp=currentPerson();cp.tasks=cp.tasks.filter(t=>!((t.schedType==='once'||t.repeat==='once')&&t.done));save();renderTasks()};
 $('#mailBtn').onclick=sendMail;$('#copyBtn').onclick=copyToClipboard;$('#icsBtn').onclick=shareICSForCurrentPerson;$('#ttsBtn').onclick=speakNow;$('#remindersBtn').onclick=()=>{const p=currentPerson(); if(!guardAction(p,'remindersExport')) return; const payload={date:nowYMD(),people:db.people.map(p=>({name:p.name,items:p.tasks.filter(dueToday).map(t=>({title:t.title,time:t.time||'07:00',zone:t.zone||'',points:t.points||1}))}))};const text='CHORES_PAYLOAD\n'+JSON.stringify(payload);copy(text).then(()=>{location.href='shortcuts://run-shortcut?name=Chores%20Import'}).catch(()=>alert('Skopiuj ręcznie:\n\n'+text))};
