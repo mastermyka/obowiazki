@@ -2069,31 +2069,6 @@ document.getElementById('changeFamilyBtn').onclick = async () => {
     localStorage.setItem('ui-theme', newTheme);
   };
 })();
-/* THEME PRESETS (🎨 Motyw) */
-(function themePresetsInit(){
-  const PRESETS = ['theme-slate','theme-ocean','theme-forest']; // możesz dopisać więcej
-  const KEY = 'ui-preset';
-  const html = document.documentElement;
-  const btn  = document.getElementById('themePresetBtn');
-
-  function apply(name){
-    PRESETS.forEach(c => html.classList.remove(c));
-    if(name){ html.classList.add(name); }
-    localStorage.setItem(KEY, name || '');
-  }
-
-  // start: wczytaj ostatni wybrany preset (domyślnie slate)
-  apply(localStorage.getItem(KEY) || 'theme-slate');
-
-  // klik: cykl kolejnych presetów
-  if(btn){
-    btn.onclick = () => {
-      const cur = localStorage.getItem(KEY) || 'theme-slate';
-      const i = (PRESETS.indexOf(cur) + 1) % PRESETS.length;
-      apply(PRESETS[i]);
-    };
-  }
-})();
 
 
 /* SWIPE GESTURES FOR TASKS (mobile) */
