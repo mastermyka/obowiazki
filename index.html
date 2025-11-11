@@ -690,7 +690,6 @@ table#leaderboard { display:block; width:100%; overflow-x:auto; -webkit-overflow
 }
 
 </style>
-  <link rel="stylesheet" href="theme-sections.css">
 </head>
 <body>
 <div id="splash"><div class="logo">🧹</div></div>
@@ -1727,49 +1726,6 @@ function renderTopZones(){
 /* ===== PEOPLE SETTINGS ===== */
 function setGoal(){const p=currentPerson(); if(!p)return; if(!guardAction(p,'setGoal')) return; const g=prompt('Cel dzienny (informacyjny):', String(p.goal||goalForToday(p))); if(g!==null){ const v=Math.max(0,parseInt(g,10)||0); p.goal=v; save(); renderScores(); }}
 function setIcs(){const p=currentPerson();if(!p)return; if(!guardAction(p,'setIcs')) return; const cur=p.icsTime||'07:00';const t=prompt('Godzina .ics (HH:MM, 24h):',cur);if(!t)return;if(!/^\d{2}:\d{2}$/.test(t))return alert('Format HH:MM');p.icsTime=t;save();renderLeaderboard()}
-function pinDialog(){
-  const p = currentPerson();
-  if(!p) return;
-
-  showDialog(
-`<h3 style="margin-top:0">PIN i Tryb dziecka — ${p.name}</h3>
- <div class="row" style="flex-direction:column;align-items:stretch">
-   ${p.pin ? '<label class="muted">Obecny PIN (wymagany do zmiany)</label><input id="pinOld" type="password" placeholder="••••" />' : ''}
-   <label class="muted" style="margin-top:${p.pin? '8px':'0'}">Nowy PIN (4–8 cyfr)</label>
-   <input id="pinSet" type="password" placeholder="${p.pin?'(zmień)':'(ustaw)'}"/>
-   <label class="muted" style="margin-top:8px">Tryb dziecka (blokada zmian)</label>
-   <div class="row">
-     <button class="btn" onclick="setChildMode(true)">👶 Włącz</button>
-     <button class="btn" onclick="setChildMode(false)">🔓 Wyłącz</button>
-   </div>
- </div>
- <div class="row" style="justify-content:flex-end;margin-top:10px">
-   <button class="btn" onclick="closeDialog()">Zamknij</button>
-   <button class="btn" onclick="savePin()">✅ Zapisz PIN</button>
- </div>`
-  );
-
-  window.savePin = function(){
-    const newPin = ($('#pinSet').value||'').trim();
-    if (p.pin){ // zmiana istniejącego
-      const old = ($('#pinOld')?.value||'').trim();
-      if (old !== p.pin){ alert('Zły obecny PIN.'); return; }
-    }
-    if (!/^\d{4,8}$/.test(newPin)){ alert('PIN 4–8 cyfr.'); return; }
-    p.pin = newPin;
-    save(); alert('Zapisano PIN.'); closeDialog();
-  };
-
-  window.setChildMode = function(on){
-    if (p.pin){
-      const entered = prompt('Podaj PIN:');
-      if (entered !== p.pin){ alert('Zły PIN.'); return; }
-    }
-    p.childMode = !!on;
-    save(); renderTabs();
-    alert(on ? 'Tryb dziecka WŁĄCZONY.' : 'Tryb dziecka WYŁĄCZONY.');
-  };
-}
 
 
 
@@ -2233,10 +2189,7 @@ if (todayBtn) todayBtn.onclick = ()=>{
 
 
 
-// Zakupy – bind przycisków
-document.getElementById('shopAddBtn').onclick = addShoppingItem;
-document.getElementById('shopClearDoneBtn').onclick = clearBought;
-document.getElementById('shopExportBtn').onclick = exportShoppingText;
+
 
 // (NOWE) — bindy do kategorii zakupów
 const _shopAddCatBtn = document.getElementById('shopAddCatBtn');
