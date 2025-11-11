@@ -1296,20 +1296,30 @@ setFamilyLabel(localStorage.getItem('familyId'));
 function renderDate(){todayEl.textContent=fmtDate(new Date())}
 function currentPerson(){return db.people.find(p=>p.id===db.currentPersonId)||db.people[0]}
 const tabsEl=$('#peopleTabs');
-function renderTabs(){tabsEl.innerHTML='';db.people.forEach(p=>{const b=document.createElement('button');b.className='btn'+(p.id===db.currentPersonId?'':'');b.textContent=`${p.name} · ⭐ ${p.scoreWeek} · 🔥 ${p.streak||0}${p.childMode?' · 👶':''}`;b.onclick=()=>{
-  if (!guardAction(currentPerson(),'switchPerson')) return;
-  db.currentPersonId = p.id;
-  save(); renderAll();
-};
+function renderTabs(){
+  tabsEl.innerHTML='';
+  const actor = currentPerson(); // aktywnie wybrana osoba / "aktor"
 
-b.setAttribute('aria-pressed',p.id===db.currentPersonId?'true':'false');tabsEl.appendChild(b)})}
-function addPerson(){
-  const p=currentPerson();
-  if(p && !guardAction(p,'addPerson')) return;
-  /* PATCH: dopisany bank:0 w nowej osobie */
-  const name=prompt('Imię domownika:');if(!name)return;const np={id:crypto.randomUUID(),name:name.trim(),goal:5,streak:0,icsTime:'07:00',scoreToday:0,scoreWeek:0,bank:0,latePenaltyPerHour:1,pin:'',childMode:false,tasks:[]};db.people.push(np);db.currentPersonId=np.id;save();renderAll()}
-function renamePerson(){const p=currentPerson();if(!p)return;if(!guardAction(p,'renamePerson'))return;const n=prompt('Nowa nazwa:',p.name);if(!n)return;p.name=n.trim();save();renderTabs()}
-function removePerson(){const p=currentPerson();if(!p)return;if(!guardAction(p,'removePerson'))return;if(!confirm(`Usunąć osobę „${p.name}”?`))return;db.people=db.people.filter(x=>x.id!==p.id);db.currentPersonId=db.people[0]?.id||null;save();renderAll()}
+  db.people.forEach(p=>{
+    const b=document.createElement('button');
+    b.className='btn'+(p.id===db.currentPersonId?'':'');
+    b.textContent=`${p.name} · ⭐ ${p.scoreWeek} · 🔥 ${p.streak||0}${p.childMode?' · 👶':''}`;
+
+    b.onclick=()=>{
+      // jeśli AKTUALNY profil ma childMode, nie pozwalamy przełączyć na kogoś innego
+      const cur = currentPerson();
+      if (cur?.childMode && cur.id !== p.id){
+        alert('Tryb dziecka: nie możesz przełączyć na innego domownika.');
+        return;
+      }
+      db.currentPersonId=p.id; save(); renderAll();
+    };
+
+    b.setAttribute('aria-pressed', p.id===db.currentPersonId ? 'true' : 'false');
+    tabsEl.appendChild(b);
+  });
+}
+
 
 /* ===== ZONES ===== */
 function renderZones(){ $('#taskZone').innerHTML=db.zones.map(z=>`<option value="${z}">${z}</option>`).join(''); $('#zonesSelect').innerHTML=db.zones.map(z=>`<option>${z}</option>`).join(''); const badges=$('#zonesBadges'); badges.innerHTML=''; db.zones.forEach(z=>{const t=document.createElement('span');t.className='zoneTag';t.textContent=z;badges.appendChild(t)})}
@@ -1762,15 +1772,6 @@ function pinDialog(){
   };
 }
 
-
-  // jeśli PIN już istnieje — wymagamy podania obecnego
-  if (p.pin) {
-    const current = prompt('Podaj obecny PIN, aby go zmienić:');
-    if (current !== p.pin) {
-      alert('Zły PIN. Zmiana anulowana.');
-      return;
-    }
-  }
 
   // walidacja nowego PIN-u
   if (!/^\d{4,8}$/.test(newPin)) {
@@ -2245,31 +2246,62 @@ if (todayBtn) todayBtn.onclick = ()=>{
   renderExpenseSelectors(); renderExpenses();
 };
 
-  function activate(which){
-    document.documentElement.dataset.view = which; // chores | shopping | expenses
-    if(which==='shopping'){
-      tabChores.classList.remove('active'); tabExpenses.classList.remove('active'); tabShopping.classList.add('active');
-      viewChores.style.display='none'; viewExpenses.style.display='none'; viewShopping.style.display='';
-      renderShopping();
-    }else if(which==='expenses'){
-      tabChores.classList.remove('active'); tabShopping.classList.remove('active'); tabExpenses.classList.add('active');
-      viewChores.style.display='none'; viewShopping.style.display='none'; viewExpenses.style.display='';
-      renderExpenses();
-    }else{
-      tabShopping.classList.remove('active'); tabExpenses.classList.remove('active'); tabChores.classList.add('active');
-      viewShopping.style.display='none'; viewExpenses.style.display='none'; viewChores.style.display='';
-      renderAllCore();
+function pinDialog(){
+  const p = currentPerson();
+  if(!p) return;
+
+  // HTML dialogu: jeśli PIN istnieje, pokaż pole "obecny PIN"
+  const hasPin = !!(p.pin && String(p.pin).length);
+  showDialog(`
+    <h3 style="margin-top:0">PIN i Tryb dziecka — ${p.name}</h3>
+    <div class="row" style="flex-direction:column;align-items:stretch">
+      ${hasPin ? `
+        <label class="muted">Obecny PIN</label>
+        <input id="pinOld" type="password" placeholder="••••" inputmode="numeric" pattern="[0-9]*"/>
+      ` : ''}
+      <label class="muted" style="margin-top:8px">Nowy PIN (4–8 cyfr)</label>
+      <input id="pinSet" type="password" placeholder="${hasPin ? '(zmień)' : '(ustaw)'}" inputmode="numeric" pattern="[0-9]*"/>
+
+      <label class="muted" style="margin-top:12px">Tryb dziecka (blokada zmian)</label>
+      <div class="row">
+        <button class="btn" onclick="setChildMode(true)">👶 Włącz</button>
+        <button class="btn" onclick="setChildMode(false)">🔓 Wyłącz</button>
+      </div>
+    </div>
+
+    <div class="row" style="justify-content:flex-end;margin-top:10px">
+      <button class="btn" onclick="closeDialog()">Zamknij</button>
+      <button class="btn" onclick="savePin()">✅ Zapisz PIN</button>
+    </div>
+  `);
+
+  // zapisz PIN – wymaga podania starego, jeśli istniał
+  window.savePin = function(){
+    const newPin = ($('#pinSet').value||'').trim();
+
+    if (p.pin){ // zmiana istniejącego
+      const old = ($('#pinOld')?.value||'').trim();
+      if (old !== p.pin){ alert('Zły obecny PIN.'); return; }
     }
-  }
-  tabShopping.addEventListener('click', ()=>{
-  if (!guardAction(currentPerson(),'switchView')) return;
-  activate('shopping');
-});
-tabExpenses.addEventListener('click', ()=>{
-  if (!guardAction(currentPerson(),'switchView')) return;
-  activate('expenses');
-});
-tabChores.addEventListener('click', ()=>activate('chores')); // powrót do chores zostawiamy wolny
+
+    if (!/^\d{4,8}$/.test(newPin)){ alert('PIN 4–8 cyfr.'); return; }
+    if (p.pin && newPin === p.pin){ alert('Nowy PIN jest taki sam jak obecny.'); return; }
+
+    p.pin = newPin;
+    save(); alert('Zapisano PIN.'); closeDialog();
+  };
+
+  // włącz/wyłącz tryb dziecka – zawsze wymaga PIN-u, jeśli jest ustawiony
+  window.setChildMode = function(on){
+    if (p.pin){
+      const entered = prompt('Podaj PIN:') || '';
+      if (entered !== p.pin){ alert('Zły PIN.'); return; }
+    }
+    p.childMode = !!on;
+    save(); renderTabs();
+    alert(on ? 'Tryb dziecka WŁĄCZONY.' : 'Tryb dziecka WYŁĄCZONY.');
+  };
+}
 
 
   // Zakupy – bind przycisków
