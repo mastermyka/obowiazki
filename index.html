@@ -1071,19 +1071,37 @@ function copy(text){return navigator.clipboard.writeText(text)}
 function showDialog(html){$('#dialog').innerHTML=html;$('#overlay').style.display='flex'}
 function closeDialog(){ $('#overlay').style.display='none' }
 
-/* ====== GATEKEEPER PIN (Tryb dziecka) ======
-   – Dziecko MOŻE: odhaczanie zadań (wraz z podzadaniami), realizację nagród.
-   – Wszystko inne wymaga PINu osoby, gdy childMode=true. */
+/* ===== GATEKEEPER PIN (Tryb dziecka + blokada urządzenia) =====
+   Dozwolone bez PIN: odhaczanie zadań/podzadań, realizacja nagród.
+   Jeśli urządzenie jest zablokowane na profil, WSZYSTKO inne wymaga PIN-u tego profilu. */
 function needsPinFor(p, action){
-  if (!p?.childMode) return false;
   const allowed = ['toggleTask','toggleSubtask','redeemReward'];
-  return !allowed.includes(action);
+  // zablokowane urządzenie → tylko allowed bez PIN-u
+  if (isLocked()) return !allowed.includes(action);
+  // tryb dziecka → tylko allowed bez PIN-u
+  if (p?.childMode) return !allowed.includes(action);
+  return false;
 }
 function guardAction(p, action){
   if (!needsPinFor(p, action)) return true;
-  if (!p.pin){ alert('Akcja zablokowana: brak ustawionego PIN-u dla profilu dziecka.'); return false; }
+  const owner = isLocked() ? lockedPerson() : p;
+  if (!owner?.pin){
+    alert('Akcja zablokowana: brak ustawionego PIN-u.');
+    return false;
+  }
   const entered = prompt('Podaj PIN:');
-  return entered === p.pin;
+  return entered === owner.pin;
+}
+
+/* ===== DEVICE LOCK (blokada urządzenia na profil) ===== */
+const LOCK_KEY = 'lockPersonId';
+function getLock(){ return localStorage.getItem(LOCK_KEY) || ''; }
+function setLock(id){ if(id) localStorage.setItem(LOCK_KEY, id); else localStorage.removeItem(LOCK_KEY); }
+function isLocked(){ return !!getLock(); }
+
+function lockedPerson(){
+  const id = getLock();
+  return id ? (db.people||[]).find(x=>x.id===id) : null;
 }
 
 /* ===== FIREBASE (opcjonalny) ===== */
@@ -1209,6 +1227,11 @@ const defaultData={
 function load(){try{return JSON.parse(localStorage.getItem(stateKey))||defaultData}catch(e){return defaultData}}
 function save(){ db.updatedAt=Date.now(); localStorage.setItem(stateKey,JSON.stringify(db)); pushToFirebase(); }
 let db = load();
+// Jeśli urządzenie było zablokowane na konkretny profil — wymuś ten profil.
+if (isLocked()) {
+  const lp = lockedPerson();
+  if (lp) db.currentPersonId = lp.id;
+}
 
 /* ====== WYBÓR MIESIĄCA/ROKU DLA WYDATKÓW (zapamiętywany w localStorage) ====== */
 const EXP_MONTH_KEY = 'exp-view-month'; // 0..11
@@ -1254,6 +1277,11 @@ function expMonthLabel(d){
 }
 
 if(!db.currentPersonId && db.people.length) db.currentPersonId=db.people[0].id;
+  if (isLocked()){
+  const lp = lockedPerson();
+  if (lp) db.currentPersonId = lp.id;
+}
+
 setFamilyLabel(localStorage.getItem('familyId'));
 
 
@@ -1261,7 +1289,39 @@ setFamilyLabel(localStorage.getItem('familyId'));
 function renderDate(){todayEl.textContent=fmtDate(new Date())}
 function currentPerson(){return db.people.find(p=>p.id===db.currentPersonId)||db.people[0]}
 const tabsEl=$('#peopleTabs');
-function renderTabs(){tabsEl.innerHTML='';db.people.forEach(p=>{const b=document.createElement('button');b.className='btn'+(p.id===db.currentPersonId?'':'');b.textContent=`${p.name} · ⭐ ${p.scoreWeek} · 🔥 ${p.streak||0}${p.childMode?' · 👶':''}`;b.onclick=()=>{db.currentPersonId=p.id;save();renderAll()};b.setAttribute('aria-pressed',p.id===db.currentPersonId?'true':'false');tabsEl.appendChild(b)})}
+function renderTabs(){
+  const lockId = getLock();
+  tabsEl.innerHTML='';
+  db.people.forEach(p=>{
+    const b=document.createElement('button');
+    const isCurrent = (p.id===db.currentPersonId);
+    const lockedOther = lockId && p.id !== lockId;
+
+    b.className='btn' + (isCurrent ? '' : '');
+    b.textContent=`${p.name} · ⭐ ${p.scoreWeek} · 🔥 ${p.streak||0}${p.childMode?' · 👶':''}`;
+    b.setAttribute('aria-pressed', isCurrent ? 'true':'false');
+
+    if (lockedOther){
+      b.title = 'Zablokowane (urządzenie przypięte do innego profilu)';
+      b.disabled = true;
+      b.style.opacity = '.6';
+      b.style.cursor = 'not-allowed';
+    } else {
+      b.onclick=()=>{
+        if (lockId && p.id !== lockId){
+          const lp = lockedPerson();
+          if (!lp?.pin) return;
+          const entered = prompt('Podaj PIN aby zmienić profil:');
+          if (entered !== lp.pin) return alert('Zły PIN.');
+        }
+        db.currentPersonId=p.id; save(); renderAll();
+      };
+    }
+
+    tabsEl.appendChild(b);
+  });
+}
+
 function addPerson(){
   const p=currentPerson();
   if(p && !guardAction(p,'addPerson')) return;
@@ -1677,7 +1737,84 @@ function renderTopZones(){
 /* ===== PEOPLE SETTINGS ===== */
 function setGoal(){const p=currentPerson(); if(!p)return; if(!guardAction(p,'setGoal')) return; const g=prompt('Cel dzienny (informacyjny):', String(p.goal||goalForToday(p))); if(g!==null){ const v=Math.max(0,parseInt(g,10)||0); p.goal=v; save(); renderScores(); }}
 function setIcs(){const p=currentPerson();if(!p)return; if(!guardAction(p,'setIcs')) return; const cur=p.icsTime||'07:00';const t=prompt('Godzina .ics (HH:MM, 24h):',cur);if(!t)return;if(!/^\d{2}:\d{2}$/.test(t))return alert('Format HH:MM');p.icsTime=t;save();renderLeaderboard()}
-function pinDialog(){const p=currentPerson();if(!p)return;showDialog(`<h3 style="margin-top:0">PIN i Tryb dziecka — ${p.name}</h3><div class="row" style="flex-direction:column;align-items:stretch"><label class="muted">Ustaw/zmień PIN (4–8 cyfr)</label><input id="pinSet" type="password" placeholder="${p.pin?'(obecny istnieje)':'brak'}"/><label class="muted" style="margin-top:8px">Tryb dziecka (blokada zmian)</label><div class="row"><button class="btn" onclick="setChildMode(true)">👶 Włącz</button><button class="btn" onclick="setChildMode(false)">🔓 Wyłącz</button></div></div><div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn" onclick="closeDialog()">Zamknij</button><button class="btn" onclick="savePin()">✅ Zapisz PIN</button></div>`);window.savePin=function(){const v=$('#pinSet').value.trim();if(v&&!/^\d{4,8}$/.test(v))return alert('PIN 4–8 cyfr.');p.pin=v;save();alert('Zapisano PIN.');closeDialog()};window.setChildMode=function(on){if(p.pin){const entered=prompt('Podaj PIN:');if(entered!==p.pin)return alert('Zły PIN.')}p.childMode=!!on;save();renderTabs();alert(on?'Tryb dziecka WŁĄCZONY.':'Tryb dziecka WYŁĄCZONY.')}}
+function pinDialog(){
+  const p=currentPerson(); if(!p)return;
+
+  const lockOnThis = isLocked() && lockedPerson()?.id === p.id;
+
+  showDialog(`<h3 style="margin-top:0">PIN i Tryb dziecka — ${p.name}</h3>
+    <div class="row" style="flex-direction:column;align-items:stretch">
+      <label class="muted">Ustaw/zmień PIN (4–8 cyfr)</label>
+      <input id="pinSet" type="password" placeholder="${p.pin?'(podaj nowy po potwierdzeniu starego)':'brak'}"/>
+
+      <label class="muted" style="margin-top:8px">Tryb dziecka (blokada zmian)</label>
+      <div class="row">
+        <button class="btn" onclick="setChildMode(true)">👶 Włącz</button>
+        <button class="btn" onclick="setChildMode(false)">🔓 Wyłącz</button>
+      </div>
+
+      <div class="row" style="margin-top:8px">
+        <button class="btn" onclick="lockDevice()">🔒 Zablokuj urządzenie na ten profil</button>
+        <button class="btn" onclick="unlockDevice()" ${lockOnThis?'':'disabled'}>🔓 Odblokuj urządzenie</button>
+      </div>
+    </div>
+    <div class="row" style="justify-content:flex-end;margin-top:10px">
+      <button class="btn" onclick="closeDialog()">Zamknij</button>
+      <button class="btn" onclick="savePin()">✅ Zapisz PIN</button>
+    </div>`);
+
+  window.savePin = function(){
+    const newPin = ($('#pinSet').value||'').trim();
+    if (newPin && !/^\d{4,8}$/.test(newPin)) return alert('PIN 4–8 cyfr.');
+    if (p.pin){ // był ustawiony — podaj stary
+      const entered = prompt('Podaj obecny PIN, aby zmienić:');
+      if (entered !== p.pin) return alert('Zły PIN — nie zmieniono.');
+    }
+    if (p.pin && !newPin){
+      if (!confirm('Usunąć PIN?')) return;
+    }
+    p.pin = newPin || '';
+    save(); alert('Zapisano PIN.'); closeDialog();
+  };
+
+  window.setChildMode = function(on){
+    if (p.pin){
+      const entered = prompt('Podaj PIN:'); if (entered !== p.pin) return alert('Zły PIN.');
+    }
+    p.childMode = !!on; save(); renderTabs(); alert(on?'Tryb dziecka WŁĄCZONY.':'Tryb dziecka WYŁĄCZONY.');
+    // (opcjonalnie) automatyczna propozycja przypięcia urządzenia włącza się tutaj:
+    if (on && p.pin && !isLocked()){
+      if (confirm('Zablokować urządzenie na profil „'+p.name+'”?')){
+        setLock(p.id);
+        if (typeof enforceLockUI==='function') enforceLockUI();
+      }
+    }
+  };
+
+  window.lockDevice = function(){
+    if (!p.pin) return alert('Ustaw najpierw PIN tego profilu.');
+    const entered = prompt('Podaj PIN aby zablokować urządzenie na ten profil:');
+    if (entered !== p.pin) return alert('Zły PIN.');
+    setLock(p.id);
+    save();
+    renderTabs();
+    if (typeof enforceLockUI==='function') enforceLockUI();
+    alert('Urządzenie zablokowane na profil: '+p.name);
+  };
+
+  window.unlockDevice = function(){
+    const lp = lockedPerson();
+    if (!lp) return;
+    const entered = prompt('Podaj PIN aby odblokować urządzenie:');
+    if (entered !== lp.pin) return alert('Zły PIN.');
+    setLock(null);
+    save();
+    renderTabs();
+    if (typeof enforceLockUI==='function') enforceLockUI();
+    alert('Urządzenie odblokowane.');
+  };
+}
+
 
 /* ===== WIDOK ZAKUPÓW ===== */
 function shoppingPeopleOptions(){ const arr = ['—'].concat(db.people.map(p=>p.name)); return arr.map(n=>`<option value="${n}">${n}</option>`).join(''); }
@@ -2102,6 +2239,32 @@ function applyThemeClass(name){
   const viewChores = document.getElementById('view-chores');
   const viewShopping = document.getElementById('view-shopping');
   const viewExpenses = document.getElementById('view-expenses');
+    function enforceLockUI(){
+    const lock = isLocked();
+    const lp = lockedPerson();
+
+    // Ukryj zakładki Zakupy/Wydatki, gdy zablokowane
+    if (lock){
+      tabShopping.style.display='none';
+      tabExpenses.style.display='none';
+    }else{
+      tabShopping.style.display='';
+      tabExpenses.style.display='';
+    }
+
+    // Wymuś osobę i widok
+    if (lock && db.currentPersonId !== (lp?.id||'')){
+      db.currentPersonId = lp?.id || db.currentPersonId;
+      save();
+    }
+    document.documentElement.dataset.view = 'chores';
+    if (viewChores && viewShopping && viewExpenses){
+      viewChores.style.display='';
+      viewShopping.style.display='none';
+      viewExpenses.style.display='none';
+    }
+  }
+
 // (NOWE) — bindy do wyboru miesiąca/roku i strzałek w Wydatkach
 const mSel = document.getElementById('expFilterMonth');
 const ySel = document.getElementById('expFilterYear');
@@ -2130,6 +2293,12 @@ if (todayBtn) todayBtn.onclick = ()=>{
 };
 
   function activate(which){
+        // zablokowane urządzenie: żadnych innych widoków poza „obowiązki”
+    if (isLocked() && which !== 'chores') {
+      alert('Widok zablokowany. Tylko obowiązki są dostępne.');
+      which = 'chores';
+    }
+
     document.documentElement.dataset.view = which; // chores | shopping | expenses
     document.documentElement.dataset.view = which; // "chores" | "shopping" | "expenses"
     if(which==='shopping'){
@@ -2170,6 +2339,8 @@ if (_shopDelCatBtn) _shopDelCatBtn.onclick = delShopSection;
   document.getElementById('expAddBtn').onclick = addExpense;
   document.getElementById('expAddCatBtn').onclick = addExpenseCat;
   document.getElementById('expDelCatBtn').onclick = delExpenseCat;
+  enforceLockUI();
+
 })();
 
 /* ===== PWA SW ===== */
