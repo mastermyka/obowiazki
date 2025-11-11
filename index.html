@@ -1079,11 +1079,40 @@ function needsPinFor(p, action){
   const allowed = ['toggleTask','toggleSubtask','redeemReward'];
   return !allowed.includes(action);
 }
-function guardAction(p, action){
-  if (!needsPinFor(p, action)) return true;
-  if (!p.pin){ alert('Akcja zablokowana: brak ustawionego PIN-u dla profilu dziecka.'); return false; }
-  const entered = prompt('Podaj PIN:');
-  return entered === p.pin;
+/* ===== GATEKEEPER PIN (Tryb dziecka – sesyjny) =====
+   – Dziecko (actor.childMode===true) może TYLKO: toggleTask, toggleSubtask, redeemReward.
+   – Wszystko inne blokowane, także poza jego profilem i w innych zakładkach.
+   – Jeśli akcja dotyczy profilu z PIN-em: wymagamy PIN-u tego profilu. */
+function needsPinFor(targetPerson, action){
+  const allowed = ['toggleTask','toggleSubtask','redeemReward'];
+
+  // 1) Jeśli aktorem jest dziecko – blokuj wszystko poza allowed
+  const actor = currentActor();
+  if (actor?.childMode) {
+    return !allowed.includes(action); // true => wymaga PINu/odmowa
+  }
+
+  // 2) Jeśli target ma childMode – wymagaj PINu poza allowed
+  if (targetPerson?.childMode) {
+    return !allowed.includes(action);
+  }
+  return false;
+}
+
+function guardAction(targetPerson, action){
+  const actor = currentActor();
+  if (!needsPinFor(targetPerson, action)) return true;
+
+  // W sesji dziecka: twarda blokada (bez podawania PIN-u)
+  if (actor?.childMode && !['toggleTask','toggleSubtask','redeemReward'].includes(action)) {
+    alert('Tryb dziecka: akcja zablokowana.');
+    return false;
+  }
+
+  // Wymagamy PIN-u profilu targetPerson
+  if (!targetPerson?.pin) { alert('Akcja zablokowana: brak ustawionego PIN-u profilu.'); return false; }
+  const entered = prompt('Podaj PIN profilu:');
+  return entered === targetPerson.pin;
 }
 
 /* ===== FIREBASE (opcjonalny) ===== */
@@ -1209,6 +1238,11 @@ const defaultData={
 function load(){try{return JSON.parse(localStorage.getItem(stateKey))||defaultData}catch(e){return defaultData}}
 function save(){ db.updatedAt=Date.now(); localStorage.setItem(stateKey,JSON.stringify(db)); pushToFirebase(); }
 let db = load();
+/* === SESSION ACTOR (kto używa urządzenia) === */
+const ACTOR_KEY = 'ui-actor-id';
+let actorId = localStorage.getItem(ACTOR_KEY) || null;
+function setActor(id){ actorId = id || null; localStorage.setItem(ACTOR_KEY, id || ''); }
+function currentActor(){ return db.people.find(x=>x.id===actorId) || null; }
 
 /* ====== WYBÓR MIESIĄCA/ROKU DLA WYDATKÓW (zapamiętywany w localStorage) ====== */
 const EXP_MONTH_KEY = 'exp-view-month'; // 0..11
@@ -1261,7 +1295,15 @@ setFamilyLabel(localStorage.getItem('familyId'));
 function renderDate(){todayEl.textContent=fmtDate(new Date())}
 function currentPerson(){return db.people.find(p=>p.id===db.currentPersonId)||db.people[0]}
 const tabsEl=$('#peopleTabs');
-function renderTabs(){tabsEl.innerHTML='';db.people.forEach(p=>{const b=document.createElement('button');b.className='btn'+(p.id===db.currentPersonId?'':'');b.textContent=`${p.name} · ⭐ ${p.scoreWeek} · 🔥 ${p.streak||0}${p.childMode?' · 👶':''}`;b.onclick=()=>{db.currentPersonId=p.id;save();renderAll()};b.setAttribute('aria-pressed',p.id===db.currentPersonId?'true':'false');tabsEl.appendChild(b)})}
+function renderTabs(){tabsEl.innerHTML='';db.people.forEach(p=>{const b=document.createElement('button');b.className='btn'+(p.id===db.currentPersonId?'':'');b.textContent=`${p.name} · ⭐ ${p.scoreWeek} · 🔥 ${p.streak||0}${p.childMode?' · 👶':''}`;b.onclick=()=>{
+  const actor = currentActor();
+  if (actor?.childMode && actor.id !== p.id){
+    alert('Tryb dziecka: nie możesz przełączyć na innego domownika.');
+    return;
+  }
+  db.currentPersonId=p.id; save(); renderAll();
+};
+b.setAttribute('aria-pressed',p.id===db.currentPersonId?'true':'false');tabsEl.appendChild(b)})}
 function addPerson(){
   const p=currentPerson();
   if(p && !guardAction(p,'addPerson')) return;
@@ -1677,8 +1719,62 @@ function renderTopZones(){
 /* ===== PEOPLE SETTINGS ===== */
 function setGoal(){const p=currentPerson(); if(!p)return; if(!guardAction(p,'setGoal')) return; const g=prompt('Cel dzienny (informacyjny):', String(p.goal||goalForToday(p))); if(g!==null){ const v=Math.max(0,parseInt(g,10)||0); p.goal=v; save(); renderScores(); }}
 function setIcs(){const p=currentPerson();if(!p)return; if(!guardAction(p,'setIcs')) return; const cur=p.icsTime||'07:00';const t=prompt('Godzina .ics (HH:MM, 24h):',cur);if(!t)return;if(!/^\d{2}:\d{2}$/.test(t))return alert('Format HH:MM');p.icsTime=t;save();renderLeaderboard()}
-function pinDialog(){const p=currentPerson();if(!p)return;showDialog(`<h3 style="margin-top:0">PIN i Tryb dziecka — ${p.name}</h3><div class="row" style="flex-direction:column;align-items:stretch"><label class="muted">Ustaw/zmień PIN (4–8 cyfr)</label><input id="pinSet" type="password" placeholder="${p.pin?'(obecny istnieje)':'brak'}"/><label class="muted" style="margin-top:8px">Tryb dziecka (blokada zmian)</label><div class="row"><button class="btn" onclick="setChildMode(true)">👶 Włącz</button><button class="btn" onclick="setChildMode(false)">🔓 Wyłącz</button></div></div><div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn" onclick="closeDialog()">Zamknij</button><button class="btn" onclick="savePin()">✅ Zapisz PIN</button></div>`);window.savePin = function () {
-  const newPin = ($('#pinSet').value || '').trim();
+function pinDialog(){
+  const p=currentPerson(); if(!p) return;
+  showDialog(
+`<h3 style="margin-top:0">PIN i Tryb dziecka — ${p.name}</h3>
+<div class="row" style="flex-direction:column;align-items:stretch">
+  <label class="muted">Ustaw/zmień PIN (4–8 cyfr)</label>
+  <input id="pinSet" type="password" placeholder="${p.pin?'(obecny istnieje)':'brak'}"/>
+
+  <label class="muted" style="margin-top:8px">Tryb dziecka (blokada zmian)</label>
+  <div class="row">
+    <button class="btn" onclick="setChildModeFor('${p.id}', true)">👶 Włącz</button>
+    <button class="btn" onclick="setChildModeFor('${p.id}', false)">🔓 Wyłącz</button>
+    <button class="btn" onclick="endKidSession()">🚪 Zakończ sesję</button>
+  </div>
+</div>
+<div class="row" style="justify-content:flex-end;margin-top:10px">
+  <button class="btn" onclick="closeDialog()">Zamknij</button>
+  <button class="btn" onclick="savePinFor('${p.id}')">✅ Zapisz PIN</button>
+</div>`
+  );
+
+  window.savePinFor = function(pid){
+    const person = db.people.find(x=>x.id===pid); if(!person) return;
+    const newPin = ($('#pinSet').value || '').trim();
+    if (!/^\d{4,8}$/.test(newPin)) { alert('PIN 4–8 cyfr.'); return; }
+
+    // jeśli był stary PIN – wymagamy jego podania
+    if (person.pin){
+      const old = prompt('Podaj OBECNY PIN, aby zmienić:');
+      if (old !== person.pin){ alert('Zły PIN. Zmiana odrzucona.'); return; }
+    }
+    person.pin = newPin;
+    save(); alert('Zapisano PIN.'); closeDialog();
+  };
+
+  window.setChildModeFor = function(pid, on){
+    const person = db.people.find(x=>x.id===pid); if(!person) return;
+    // każda zmiana trybu wymaga podania obecnego PIN-u (jeśli istnieje)
+    if (person.pin){
+      const check = prompt('Podaj PIN profilu:');
+      if (check !== person.pin){ alert('Zły PIN.'); return; }
+    }
+    person.childMode = !!on;
+    save();
+
+    // Sesja: jeśli włączamy tryb dziecka dla tej osoby, przypnij aktora do niej
+    if (on) setActor(person.id);
+    alert(on ? 'Tryb dziecka WŁĄCZONY dla ' + person.name : 'Tryb dziecka WYŁĄCZONY.');
+    renderTabs();
+  };
+
+  window.endKidSession = function(){
+    setActor(null);
+    alert('Zakończono sesję dziecka na tym urządzeniu.');
+  };
+}
 
   // jeśli PIN już istnieje — wymagamy podania obecnego
   if (p.pin) {
