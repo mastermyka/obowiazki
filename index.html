@@ -1169,6 +1169,7 @@ async function tryFirebaseInit(){
 /* ---- BEZPIECZNY ZAPIS ---- */
 async function pushToFirebase(){
   if(!fbDoc) return;
+    if (!db || !db.updatedAt) return;   // NIE pchamy stanu “bez czasu” (np. default 0)
   try{
     const payloadStr = JSON.stringify(db);
     const snap = await fbDoc.get();
@@ -1177,7 +1178,7 @@ async function pushToFirebase(){
       const cloud = (typeof data.payload==='string') ? JSON.parse(data.payload) : (data.payload||{});
       const cloudMillis = data.updatedAt?.toMillis?.() ?? cloud.updatedAt ?? 0;
       const localMillis = db.updatedAt ?? 0;
-      if (localMillis && localMillis <= cloudMillis) {
+            if (!localMillis || localMillis <= cloudMillis) {
         return;
       }
     }
@@ -1222,7 +1223,7 @@ const defaultData={
       {id:crypto.randomUUID(),title:'Podlać kwiaty',schedType:'weekly',dows:[3],time:'18:00',points:2,penalty:1,priority:'low',zone:'Salon',done:false,sub:[]}
     ]}
   ],
-  currentPersonId:null,penaltyFactor:1,history:[],updatedAt: Date.now()
+ currentPersonId:null,penaltyFactor:1,history:[],updatedAt: 0
 };
 function load(){try{return JSON.parse(localStorage.getItem(stateKey))||defaultData}catch(e){return defaultData}}
 function save(){ db.updatedAt=Date.now(); localStorage.setItem(stateKey,JSON.stringify(db)); pushToFirebase(); }
@@ -2069,8 +2070,7 @@ document.getElementById('changeFamilyBtn').onclick = async () => {
   const curr = localStorage.getItem('familyId') || '';
   const next = prompt('ID rodziny (wspólna nazwa grupy):', curr);
   if (!next) return;
-  await subscribeToFamily(next.trim());
-  pushToFirebase();
+  await subscribeToFamily(family);
 };
 
 
