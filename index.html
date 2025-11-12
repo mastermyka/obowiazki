@@ -2244,26 +2244,35 @@ function applyThemeClass(name){
     const lp = lockedPerson();
 
     // Ukryj zakładki Zakupy/Wydatki, gdy zablokowane
-    if (lock){
-      tabShopping.style.display='none';
-      tabExpenses.style.display='none';
-    }else{
-      tabShopping.style.display='';
-      tabExpenses.style.display='';
-    }
+   if (lock){
+  tabShopping.style.display='';     // ← ZAKUPY WIDOCZNE przy blokadzie
+  tabExpenses.style.display='none'; // ← WYDATKI UKRYTE przy blokadzie
+}else{
+  tabShopping.style.display='';
+  tabExpenses.style.display='';
+}
+
 
     // Wymuś osobę i widok
+        // Wymuś osobę; widok: przy blokadzie dozwolone „obowiązki” i „zakupy”
     if (lock && db.currentPersonId !== (lp?.id||'')){
       db.currentPersonId = lp?.id || db.currentPersonId;
       save();
     }
-    document.documentElement.dataset.view = 'chores';
+
+    // Zachowaj bieżący widok; jeśli zablokowane i było „wydatki”, przełącz na „obowiązki”
+    let cur = document.documentElement.dataset.view || 'chores';
+    if (lock && cur === 'expenses') cur = 'chores';
+    document.documentElement.dataset.view = cur;
+
     if (viewChores && viewShopping && viewExpenses){
-      viewChores.style.display='';
-      viewShopping.style.display='none';
-      viewExpenses.style.display='none';
+      viewChores.style.display   = (cur === 'chores')   ? '' : 'none';
+      viewShopping.style.display = (cur === 'shopping') ? '' : 'none';
+      // „Wydatki” ukryte, gdy lock — inaczej zgodnie z cur
+      viewExpenses.style.display = lock ? 'none' : ((cur === 'expenses') ? '' : 'none');
     }
   }
+
 
 // (NOWE) — bindy do wyboru miesiąca/roku i strzałek w Wydatkach
 const mSel = document.getElementById('expFilterMonth');
@@ -2293,11 +2302,13 @@ if (todayBtn) todayBtn.onclick = ()=>{
 };
 
   function activate(which){
-        // zablokowane urządzenie: żadnych innych widoków poza „obowiązki”
-    if (isLocked() && which !== 'chores') {
-      alert('Widok zablokowany. Tylko obowiązki są dostępne.');
+          // zablokowane urządzenie: dozwolone tylko „obowiązki” i „zakupy”
+    if (isLocked() && which !== 'chores' && which !== 'shopping') {
+      alert('Widok zablokowany. Dostępne: Obowiązki i Zakupy.');
       which = 'chores';
     }
+
+
 
     document.documentElement.dataset.view = which; // chores | shopping | expenses
     document.documentElement.dataset.view = which; // "chores" | "shopping" | "expenses"
