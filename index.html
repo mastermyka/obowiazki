@@ -22,6 +22,7 @@
 <!-- Firebase compat (prawidłowa kolejność) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-check-compat.js"></script>
 <script src="firebase-config.js"></script>
 
@@ -1136,7 +1137,8 @@ async function subscribeToFamily(id){
   }, (err)=>console.error('onSnapshot error', err));
 }
 
-async function tryFirebaseInit(){
+await firebase.auth().signInAnonymously();
+fs = firebase.firestore();
   try{
     if(!window.firebaseConfig || !window.firebaseConfig.apiKey){
   setFamilyLabel(localStorage.getItem('familyId'));
