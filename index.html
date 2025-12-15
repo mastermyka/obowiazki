@@ -1187,12 +1187,15 @@ async function pushToFirebase(){
     // Istnieje
     const data = snap.data() || {};
 
-    // (V3) tylko członkowie mogą pisać
-    const members = Array.isArray(data.members) ? data.members : [];
-    if (!members.includes(uid)) {
-      alert('Brak dostępu: to urządzenie nie jest dodane do tej rodziny (members).');
-      return;
-    }
+const uid = firebase.auth().currentUser?.uid;   // ← NOWE
+const members = Array.isArray(data.members) ? data.members : [];
+
+// sprawdzaj dostęp TYLKO jeśli members w ogóle istnieje (nie jest puste)
+if (members.length && uid && !members.includes(uid)) {
+  alert('Brak dostępu: to urządzenie nie jest dodane do tej rodziny.');
+  return;
+}
+
 
     // Twoja ochrona przed nadpisaniem nowszej chmury
     const cloud = (typeof data.payload==='string') ? JSON.parse(data.payload) : (data.payload||{});
