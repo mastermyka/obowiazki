@@ -1128,8 +1128,11 @@ async function subscribeToFamily(id){
         renderAll();
       }
     }catch(e){ console.warn('Snapshot parse error', e); }
-  }, (err)=>console.error('onSnapshot error', err));
-}
+  }, (err)=>{
+  console.error('onSnapshot error', err);
+  alert('onSnapshot: ' + (err?.message || err));
+});
+
  
 async function tryFirebaseInit(){
   try{
@@ -1185,14 +1188,15 @@ async function pushToFirebase(){
 
 
    // Istnieje
-const data = snap.data() || {};
+let data = snap.data() || {};
+
 
 // (NAPRAWA STAREGO DOK) jeśli members nie istnieje – dodaj mnie
 if (!Array.isArray(data.members)) {
   await fbDoc.set({ members: [uid] }, { merge: true });
-  // odśwież lokalne data, żeby niżej members już było widoczne (opcjonalnie)
-  data.members = [uid];
+  data = { ...data, members: [uid] };
 }
+
 
 const members = Array.isArray(data.members) ? data.members : [];
 
@@ -2021,11 +2025,6 @@ document.getElementById('changeFamilyBtn').onclick = async () => {
   };
 })();
 /* THEME PRESETS (🎨 Motyw) */
-(function themePresetsInit(){
-  const PRESETS = ['theme-slate','theme-ocean','theme-forest']; // możesz dopisać więcej
-  const KEY = 'ui-preset';
-  const html = document.documentElement;
-  const btn  = document.getElementById('themePresetBtn');
  
   function apply(name){
     PRESETS.forEach(c => html.classList.remove(c));
