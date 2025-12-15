@@ -1137,13 +1137,38 @@ async function subscribeToFamily(id){
   }, (err)=>console.error('onSnapshot error', err));
 }
 
-await firebase.auth().signInAnonymously();
-fs = firebase.firestore();
+async function tryFirebaseInit(){
   try{
     if(!window.firebaseConfig || !window.firebaseConfig.apiKey){
-  setFamilyLabel(localStorage.getItem('familyId'));
-  return;
+      setFamilyLabel(localStorage.getItem('familyId'));
+      return;
+    }
+
+    if(!firebase.apps?.length){
+      fbApp = firebase.initializeApp(window.firebaseConfig);
+    }
+
+    await firebase.auth().signInAnonymously();
+    fs = firebase.firestore();
+
+    let family = localStorage.getItem('familyId');
+    if(!family){
+      const prev = localStorage.getItem('familyId') || '';
+      family = prompt('ID rodziny (np. rodzina-kowalscy) — wspólna dla wszystkich urządzeń:', prev || 'rodzina-demo');
+      if(!family) return;
+      family = String(family).trim();
+      localStorage.setItem('familyId', family);
+    }
+
+    setFamilyLabel(family);
+    await subscribeToFamily(family);
+    pushToFirebase();
+  }catch(e){
+    console.warn('Firebase init error', e);
+  }
 }
+
+
 
 
     if(!firebase.apps?.length){ fbApp = firebase.initializeApp(window.firebaseConfig); }
@@ -2072,8 +2097,11 @@ document.getElementById('changeFamilyBtn').onclick = async () => {
   if (!next) return;
 
   const id = String(next).trim();
-await subscribeToFamily(id);
+
+  if(!fs) await tryFirebaseInit();
+  await subscribeToFamily(id);
 };
+
 
 
 /* THEME TOGGLE (jasny/ciemny + paleta UI) */
