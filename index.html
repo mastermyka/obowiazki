@@ -1102,12 +1102,11 @@ async function subscribeToFamily(id){
   fbDoc = fs.collection(FIREBASE_COLLECTION).doc(id);
  
  __unsub = fbDoc.onSnapshot((snap)=>{
+ const uid = firebase.auth().currentUser?.uid;   // <<< DODAJ
   const data = snap.data() || {};
-
-  const uid = firebase.auth().currentUser?.uid;   // ← DODANE
   const members = Array.isArray(data.members) ? data.members : [];
 
-  // jeśli dokument istnieje i ma members, to pilnujemy dostępu
+  // sprawdzaj dostęp tylko jeśli members istnieje
   if (members.length && uid && !members.includes(uid)) {
     alert('Brak dostępu: to urządzenie nie jest dodane do tej rodziny.');
     return;
@@ -1174,14 +1173,15 @@ async function pushToFirebase(){
     const snap = await fbDoc.get();
 
     // (V3) Bootstrap: pierwsze urządzenie zakłada dokument i staje się członkiem
-    if (!snap.exists) {
+   if (!snap.exists) {
   await fbDoc.set({
     payload: payloadStr,
-    members: [uid], // ← DODANE (TYLKO przy tworzeniu dokumentu)
+    members: [uid], // <<< DODAJ TO
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
   }, { merge: true });
   return;
 }
+
 
 
    // Istnieje
