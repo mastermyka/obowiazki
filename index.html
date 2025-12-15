@@ -1101,13 +1101,18 @@ async function subscribeToFamily(id){
   if (__unsub) { try{ __unsub(); }catch(_){ } __unsub=null; }
   fbDoc = fs.collection(FIREBASE_COLLECTION).doc(id);
  
-  __unsub = fbDoc.onSnapshot((snap)=>{
-    const data = snap.data();
-    const members = Array.isArray(data.members) ? data.members : [];
-if(!members.includes(uid)){
-  alert('Brak dostępu: to urządzenie nie jest dodane do tej rodziny.');
-  return;
-}
+ __unsub = fbDoc.onSnapshot((snap)=>{
+  const data = snap.data() || {};
+
+  const uid = firebase.auth().currentUser?.uid;   // ← DODANE
+  const members = Array.isArray(data.members) ? data.members : [];
+
+  // jeśli dokument istnieje i ma members, to pilnujemy dostępu
+  if (members.length && uid && !members.includes(uid)) {
+    alert('Brak dostępu: to urządzenie nie jest dodane do tej rodziny.');
+    return;
+  }
+
 
     if(!data || !data.payload) return;
     try{
