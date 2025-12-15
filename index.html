@@ -1143,7 +1143,7 @@ async function tryFirebaseInit(){
  
  
     if(!firebase.apps?.length){ fbApp = firebase.initializeApp(window.firebaseConfig); }
-    firebase.appCheck().activate("6LffMAQsAAAAAHaO0TzmnQHwSA3SPNOxJOOIFCk1", true);
+    //firebase.appCheck().activate("6LffMAQsAAAAAHaO0TzmnQHwSA3SPNOxJOOIFCk1", true);
     await firebase.auth().signInAnonymously(); 
     fs = firebase.firestore();
  
