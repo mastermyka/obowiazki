@@ -1184,17 +1184,24 @@ async function pushToFirebase(){
 }
 
 
-    // Istnieje
-    const data = snap.data() || {};
+   // Istnieje
+const data = snap.data() || {};
 
-const uid = firebase.auth().currentUser?.uid;   // ← NOWE
+// (NAPRAWA STAREGO DOK) jeśli members nie istnieje – dodaj mnie
+if (!Array.isArray(data.members)) {
+  await fbDoc.set({ members: [uid] }, { merge: true });
+  // odśwież lokalne data, żeby niżej members już było widoczne (opcjonalnie)
+  data.members = [uid];
+}
+
 const members = Array.isArray(data.members) ? data.members : [];
 
-// sprawdzaj dostęp TYLKO jeśli members w ogóle istnieje (nie jest puste)
-if (members.length && uid && !members.includes(uid)) {
+// teraz już normalna kontrola
+if (!members.includes(uid)) {
   alert('Brak dostępu: to urządzenie nie jest dodane do tej rodziny.');
   return;
 }
+
 
 
     // Twoja ochrona przed nadpisaniem nowszej chmury
