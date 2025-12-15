@@ -24,7 +24,6 @@
 <!-- Firebase compat (prawidłowa kolejność) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-check-compat.js"></script>
 <script src="firebase-config.js"></script>
  
@@ -1101,18 +1100,8 @@ async function subscribeToFamily(id){
   if (__unsub) { try{ __unsub(); }catch(_){ } __unsub=null; }
   fbDoc = fs.collection(FIREBASE_COLLECTION).doc(id);
  
- __unsub = fbDoc.onSnapshot((snap)=>{
- const uid = firebase.auth().currentUser?.uid;   // <<< DODAJ
-  const data = snap.data() || {};
-  const members = Array.isArray(data.members) ? data.members : [];
-
-  // sprawdzaj dostęp tylko jeśli members istnieje
-  if (members.length && uid && !members.includes(uid)) {
-    alert('Brak dostępu: to urządzenie nie jest dodane do tej rodziny.');
-    return;
-  }
-
-
+  __unsub = fbDoc.onSnapshot((snap)=>{
+    const data = snap.data();
     if(!data || !data.payload) return;
     try{
       const payload = (typeof data.payload === 'string') ? JSON.parse(data.payload) : data.payload;
@@ -1128,10 +1117,7 @@ async function subscribeToFamily(id){
         renderAll();
       }
     }catch(e){ console.warn('Snapshot parse error', e); }
-  }, (err)=>{
-  console.error('onSnapshot error', err);
-  alert('onSnapshot: ' + (err?.message || err));
-});
+  }, (err)=>console.error('onSnapshot error', err));
 }
  
 async function tryFirebaseInit(){
@@ -1143,8 +1129,8 @@ async function tryFirebaseInit(){
  
  
     if(!firebase.apps?.length){ fbApp = firebase.initializeApp(window.firebaseConfig); }
-    //firebase.appCheck().activate("6LffMAQsAAAAAHaO0TzmnQHwSA3SPNOxJOOIFCk1", true);
-    await firebase.auth().signInAnonymously(); 
+    firebase.appCheck().activate("6LffMAQsAAAAAHaO0TzmnQHwSA3SPNOxJOOIFCk1", true);
+ 
     fs = firebase.firestore();
  
     let family = localStorage.getItem('familyId');
@@ -1164,68 +1150,28 @@ async function tryFirebaseInit(){
  
 /* ---- BEZPIECZNY ZAPIS ---- */
 async function pushToFirebase(){
-  const uid = firebase.auth().currentUser?.uid;
-  if(!uid){
-    console.warn('No auth user');
-    return;
-  }
   if(!fbDoc) return;
-
   try{
     const payloadStr = JSON.stringify(db);
     const snap = await fbDoc.get();
-
-    // (V3) Bootstrap: pierwsze urządzenie zakłada dokument i staje się członkiem
-   if (!snap.exists) {
-  await fbDoc.set({
-    payload: payloadStr,
-    members: [uid], // <<< DODAJ TO
-    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-  }, { merge: true });
-  return;
-}
-
-
-
-   // Istnieje
-let data = snap.data() || {};
-
-
-// (NAPRAWA STAREGO DOK) jeśli members nie istnieje – dodaj mnie
-if (!Array.isArray(data.members)) {
-  await fbDoc.set({ members: [uid] }, { merge: true });
-  data = { ...data, members: [uid] };
-}
-
-
-const members = Array.isArray(data.members) ? data.members : [];
-
-// teraz już normalna kontrola
-if (!members.includes(uid)) {
-  alert('Brak dostępu: to urządzenie nie jest dodane do tej rodziny.');
-  return;
-}
-
-
-
-    // Twoja ochrona przed nadpisaniem nowszej chmury
-    const cloud = (typeof data.payload==='string') ? JSON.parse(data.payload) : (data.payload||{});
-    const cloudMillis = data.updatedAt?.toMillis?.() ?? cloud.updatedAt ?? 0;
-    const localMillis = db.updatedAt ?? 0;
-    if (localMillis && localMillis <= cloudMillis) return;
-
-    // Zapis payload (NIE ruszamy members)
-    await fbDoc.set({
-      payload: payloadStr,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    }, { merge:true });
-
+    if (snap.exists) {
+      const data = snap.data() || {};
+      const cloud = (typeof data.payload==='string') ? JSON.parse(data.payload) : (data.payload||{});
+      const cloudMillis = data.updatedAt?.toMillis?.() ?? cloud.updatedAt ?? 0;
+      const localMillis = db.updatedAt ?? 0;
+      if (localMillis && localMillis <= cloudMillis) {
+        return;
+      }
+    }
+    await fbDoc.set(
+      { payload: payloadStr, updatedAt: firebase.firestore.FieldValue.serverTimestamp() },
+      { merge:true }
+    );
   }catch(e){
     console.error('[Firestore] zapis ERROR', e);
     alert('Błąd zapisu do Firestore: ' + (e?.message || e));
   }
 }
-
  
 /* ===== STATE ===== */
 const stateKey='home-chores-pro3-full';
@@ -2025,6 +1971,11 @@ document.getElementById('changeFamilyBtn').onclick = async () => {
   };
 })();
 /* THEME PRESETS (🎨 Motyw) */
+(function themePresetsInit(){
+  const PRESETS = ['theme-slate','theme-ocean','theme-forest']; // możesz dopisać więcej
+  const KEY = 'ui-preset';
+  const html = document.documentElement;
+  const btn  = document.getElementById('themePresetBtn');
  
   function apply(name){
     PRESETS.forEach(c => html.classList.remove(c));
