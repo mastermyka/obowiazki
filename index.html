@@ -2068,7 +2068,9 @@ document.getElementById('changeFamilyBtn').onclick = async () => {
   const curr = localStorage.getItem('familyId') || '';
   const next = prompt('ID rodziny (wspólna nazwa grupy):', curr);
   if (!next) return;
-  await subscribeToFamily(family);
+
+  const id = String(next).trim();
+await subscribeToFamily(id);
 };
 
 
